@@ -18,7 +18,26 @@ class Settings(BaseSettings):
 
     # ── LLM API ──────────────────────────────────────────────────────
     google_api_key: str = ""
+    google_api_key1: str = ""
+    google_api_key2: str = ""
+    google_api_key3: str = ""
+    google_api_key4: str = ""
+    google_api_key5: str = ""
+    google_api_key6: str = ""
+    google_api_key7: str = ""
+    google_api_key8: str = ""
     openai_api_key: str = ""
+
+    def get_google_api_keys(self) -> list[str]:
+        """Collect all configured Google Gemini API keys."""
+        keys = []
+        for i in range(1, 9):
+            key = getattr(self, f"google_api_key{i}", "").strip()
+            if key:
+                keys.append(key)
+        if not keys and self.google_api_key.strip():
+            keys.append(self.google_api_key.strip())
+        return keys
 
     # ── Database ─────────────────────────────────────────────────────
     database_url: str = (

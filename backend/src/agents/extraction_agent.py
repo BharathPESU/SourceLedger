@@ -1,6 +1,6 @@
-"""Extraction Agent — produces schema-locked structured output from raw text.
+"""Extraction Agent — produces schema-locked structured output from raw text using Google ADK.
 
-Uses Gemini (or falls back to demo mode) to extract product fields
+Uses Gemini / Google ADK LlmAgent (or falls back to demo mode) to extract product fields
 from raw text according to a category-specific schema. Output must
 validate against the schema or it is rejected, not passed forward.
 
@@ -13,6 +13,9 @@ import json
 import re
 from typing import Any
 from uuid import UUID, uuid4
+
+from google.adk.agents import Agent
+from google.adk.tools import ToolContext
 
 from ..config import settings
 from ..models.pipeline import ExtractionResult
@@ -36,8 +39,53 @@ logger = get_logger("ExtractionAgent")
 MAX_RETRIES = 2
 
 
+def validate_extracted_json_schema(category: str, json_str: str) -> dict:
+    """Validates extracted JSON output against the category schema.
+
+    Args:
+        category: The product category key.
+        json_str: The raw JSON string returned by extraction.
+
+    Returns:
+        dict containing validation status and parsed product fields summary.
+    """
+    schema = get_category_schema(category)
+    if not schema:
+        return {"valid": False, "error": f"Unknown category: {category}"}
+    try:
+        data = json.loads(json_str)
+        fields = data.get("fields", [])
+        return {
+            "valid": True,
+            "product_name": data.get("product_name", "Unknown Product"),
+            "extracted_count": len(fields),
+        }
+    except Exception as e:
+        return {"valid": False, "error": str(e)}
+
+
+def schema_field_lookup(category: str) -> dict:
+    """Lookup category schema field requirements and data types.
+
+    Args:
+        category: Category key (e.g. 'industrial_pump').
+
+    Returns:
+        dict with field definitions and required list.
+    """
+    schema = get_category_schema(category)
+    if not schema:
+        return {"found": False}
+    return {
+        "found": True,
+        "category": category,
+        "required_fields": schema.required_field_names,
+        "total_fields": len(schema.fields),
+    }
+
+
 class ExtractionAgent:
-    """Extracts structured product fields from raw text using an LLM.
+    """Extracts structured product fields from raw text using an ADK LLM Agent.
 
     The agent is designed as a pure function over (raw_text, category, source_id)
     → ExtractionResult, making it testable without a live LLM when mocked.
@@ -45,6 +93,22 @@ class ExtractionAgent:
 
     def __init__(self) -> None:
         self._client = None
+        self._adk_agent = Agent(
+            name="extraction_agent",
+            model="gemini-2.0-flash",
+            instruction=(
+                "You are an industrial product data extraction specialist built with Google ADK. "
+                "Your task is to extract structured, schema-locked product fields from source text. "
+                "For every field, extract the exact supporting source excerpt, assign an accurate "
+                "confidence score (0-100), and explain your reasoning."
+            ),
+            tools=[validate_extracted_json_schema, schema_field_lookup],
+        )
+
+    @property
+    def adk_agent(self) -> Agent:
+        """Expose the underlying Google ADK Agent instance."""
+        return self._adk_agent
 
     def _get_client(self):
         """Lazy-init the Google GenAI Client. Returns None if no API key."""
@@ -206,6 +270,9 @@ Return ONLY the JSON. No markdown fences, no commentary."""
             cleaned = re.sub(r"^```\w*\n?", "", cleaned)
             cleaned = re.sub(r"\n?```$", "", cleaned)
             cleaned = cleaned.strip()
+
+        # Validate with ADK tool function
+        validate_extracted_json_schema(schema.category_key, cleaned)
 
         data = json.loads(cleaned)
         product_name = data.get("product_name") or "Extracted Product"
