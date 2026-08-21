@@ -1,0 +1,4306 @@
+{
+  "processed_count": 50,
+  "timestamp": "2026-08-21T16:49:48.993149+00:00",
+  "records": [
+    {
+      "mfg_part_num": "DCB518ASTS06G",
+      "product_id": "f5e0549a-8b89-44fa-ab69-512c8d2cc0b5",
+      "product_name": "Manufacturer Part Number: DCB518ASTS06G",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "94c03dfa-2cdd-4c7b-9205-1c582ef52452",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: DCB518ASTS06G",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: DCB518ASTS06G\nDescription: DCB518ASTS06G Diabl",
+          "status": "needs_review"
+        },
+        {
+          "id": "2d8b3ebd-a46b-4b88-b27a-969f90bcfb3d",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0167e7fd-7600-4665-bf17-baa50c117239",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "083bef6a-fd6c-41f7-b1ab-0332bd357634",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8d72db03-a22d-4855-9ec5-c9e906fc3491",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cd05b2c3-fc85-4588-bd61-0b44f8538b42",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4724fc95-16ba-4187-9cda-64d39d9d59be",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "3MABR-7100075678",
+      "product_id": "abbc16da-0fcd-426c-bebf-f617d87078b1",
+      "product_name": "Manufacturer Part Number: 3MABR-7100075678",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "6d5d615f-42ba-482c-afc7-605ac1791374",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 3MABR-7100075678",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 3MABR-7100075678\nDescription: 3M 775L Stikit F",
+          "status": "needs_review"
+        },
+        {
+          "id": "096da16f-188d-45d4-bbe4-87dcdbd00c97",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "dc5f5eb3-9382-4a92-a0be-f245b59737be",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "bc57fad8-7c49-44c0-8be4-567b9df6e036",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2dd30b00-9a9e-421a-998e-38ac0afa0c10",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "905c4919-6dc4-402a-a303-63130ce276ff",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "d5f49b7a-a368-4109-808f-98d5670a79f2",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "3MABR-7100045865",
+      "product_id": "230c3446-f9d4-4346-a5a6-bde802c57ee4",
+      "product_name": "Manufacturer Part Number: 3MABR-7100045865",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "a66e184c-5737-476d-b864-e411c1f6bd2e",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 3MABR-7100045865",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 3MABR-7100045865\nDescription: 3M 775L Stikit F",
+          "status": "needs_review"
+        },
+        {
+          "id": "dfc161d4-3cc5-45f4-81db-bc99874256c2",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b52d4e96-cf25-4829-b632-e3bc183574c0",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a2262aca-5adc-4d3d-85ae-b2d99a3aeed8",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4651b09a-672b-43af-9d99-701568497e5e",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b4a0f2d6-4ecc-4a0e-86c2-c0f0547a767b",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0b7176a6-a2df-4a25-b99c-7932064718d8",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "3MABR-7100048736",
+      "product_id": "718f7d25-7fcd-45d2-8e6f-4280b18e2ad2",
+      "product_name": "Manufacturer Part Number: 3MABR-7100048736",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "58bb167c-7b8d-479d-983a-33c9360279f0",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 3MABR-7100048736",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 3MABR-7100048736\nDescription: 3M 775L Stikit F",
+          "status": "needs_review"
+        },
+        {
+          "id": "1407db2e-d390-4c2d-a03b-798639e044d6",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "3f95e552-139a-4e00-b936-0a2880fd59d6",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f83eef17-0a4d-4bbd-816c-58cd715d368a",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "75a81948-4e90-464c-95be-fb1bbf4a4cf0",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0675195c-7fac-4fca-aa7f-d06657acb522",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "da096793-dd13-43af-984a-4d6062768b3a",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "3MABR-7100075690",
+      "product_id": "b1723a55-b347-4937-afb7-9ac9912c65d0",
+      "product_name": "Manufacturer Part Number: 3MABR-7100075690",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "a90444a7-4d47-4a6a-9a22-d8cfd428bb3a",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 3MABR-7100075690",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 3MABR-7100075690\nDescription: 3M 775L Stikit F",
+          "status": "needs_review"
+        },
+        {
+          "id": "3438c71e-d447-47af-b819-6b43ad4a8dc0",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "d06536c8-8efd-40fb-8ec4-d7641fb3c153",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "beea1532-7261-4de3-8c7e-493beec6d302",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8f8f9700-29c4-413d-805f-0a0c6a5b6d18",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cee71e0e-e1b9-4fb3-93f5-62c55f4a9119",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "844b2d89-f2a7-46ab-8fc3-c7c33c793101",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "3MABR-7100075692",
+      "product_id": "8166ecb4-3c29-4daf-a0f2-41f20d0d37a4",
+      "product_name": "Manufacturer Part Number: 3MABR-7100075692",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "31d58f17-6b62-40a6-b8c5-32c71c5130ed",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 3MABR-7100075692",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 3MABR-7100075692\nDescription: 3M 775L Stikit F",
+          "status": "needs_review"
+        },
+        {
+          "id": "60f92d06-86ab-4076-9d0d-c1330ef47307",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "91a80050-66c2-4c7e-a051-5d6a0e973838",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b7634836-3933-4395-a521-0b5448508f26",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "475a19c7-c8d7-41c2-bc50-ba8357e1a8c0",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "edc402b5-59da-4cd1-8663-b5cba3be9767",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9d3fc251-d7f6-4f4d-b68b-751e2f45c961",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "3MABR-7100145365",
+      "product_id": "04f63ea6-6282-41c6-9d21-846e1b206c7e",
+      "product_name": "Manufacturer Part Number: 3MABR-7100145365",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "23749acf-d87f-4890-883e-0892b5abded1",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 3MABR-7100145365",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 3MABR-7100145365\nDescription: 3M 775L Stikit F",
+          "status": "needs_review"
+        },
+        {
+          "id": "abb0bddf-cd64-4883-a74a-9a87df02995d",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2eb92547-440d-4376-8317-fa58932b9254",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b60177a5-90db-4a17-93a5-d0a740e7e36f",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "e4830568-777a-46dc-af22-e775271e1580",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "668df8b3-faa3-4483-8d0b-c033a4cebb3a",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "e2531c08-3b0f-4538-ba19-1511a46ee1e9",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "5B-332-080",
+      "product_id": "8cc3c787-f726-4518-b282-647220baa491",
+      "product_name": "Manufacturer Part Number: 5B-332-080",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "e43b4f94-f8a2-485c-8f55-6d6050fcc411",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 5B-332-080",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 5B-332-080\nDescription: 5B-332-080 HIOLIT 5\" P",
+          "status": "needs_review"
+        },
+        {
+          "id": "68fc0e9f-1935-49c1-8742-18dc87d3c418",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "628916e5-d214-4d45-9aef-c2da3ed50667",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "51d3f436-7525-4750-be52-3cba590a83c0",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "fa4dabfb-8f04-41c8-957f-790cfe98fa82",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9912ebb6-6e65-44e2-88dd-b59c17d50b2b",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "7e724662-2633-4675-bdee-aa4ffea2942c",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "5B-332-120",
+      "product_id": "176006b5-83c3-4b18-9174-de00f00bd8b0",
+      "product_name": "Manufacturer Part Number: 5B-332-120",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "199fd194-fcbd-4286-a196-a78d7cda2925",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 5B-332-120",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 5B-332-120\nDescription: 5B-332-120 HIOLIT 5\" P",
+          "status": "needs_review"
+        },
+        {
+          "id": "45393069-735b-4121-a5c9-5869fe564c64",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f87bf9fe-1e28-4a71-8808-28b658f20968",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "55bf2fab-6655-4642-a28c-880a600050e0",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "d5cc9998-c57c-4b32-9806-2c4dee1e4140",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "908fbc2a-5cc3-4c6c-b62a-2fcfe0d5be5c",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0e799a72-2e41-4c7c-a770-8d56d43a99a3",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "9A-570-240",
+      "product_id": "e7a8bb78-f9ef-46e0-971a-7880a48ace1b",
+      "product_name": "Manufacturer Part Number: 9A-570-240",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "70bf3696-c838-497b-9c52-928db52bd734",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 9A-570-240",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 9A-570-240\nDescription: 9A-570-240 Abranet 2.7",
+          "status": "needs_review"
+        },
+        {
+          "id": "4790151c-a630-4aea-9dc1-80cd92d733a2",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b1ebccfe-bfe8-4596-be35-c4c85dbaefb9",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "85401f9e-432f-4a54-97b3-32634982cf71",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "938181ee-ddb0-4f1a-bb0e-052d7adb65eb",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9fcf841c-57e2-4e9d-9cba-346fc421f721",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8597dd25-9eff-4f01-ae8e-f7faa33d88b5",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "9A-570-320",
+      "product_id": "d490ea42-ab76-4b02-ad07-8c62081768e8",
+      "product_name": "Manufacturer Part Number: 9A-570-320",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "00ba6d89-49c2-4245-9a7b-34fb1403eba7",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 9A-570-320",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 9A-570-320\nDescription: 9A-570-320 Abranet 2.7",
+          "status": "needs_review"
+        },
+        {
+          "id": "a7c26de0-8849-47f4-81ef-8c24aef42749",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "eac50103-b950-4df8-92d8-12d97ff0fabb",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "76528614-054d-45a1-886a-0ae3f61591d9",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "09af29f9-d1f1-4486-b6fb-6b312973c470",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c1ca4d5d-734c-4241-82a6-db12749b984e",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "7a91afa2-9746-428d-b770-4205a34a75d6",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "DBD090094101F",
+      "product_id": "05d16b7f-a4f0-4648-a492-1581f14b0689",
+      "product_name": "Manufacturer Part Number: DBD090094101F",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "46697a6b-a676-465a-ad1f-c8d5befa9aeb",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: DBD090094101F",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: DBD090094101F\nDescription: DBD090094101F Diabl",
+          "status": "needs_review"
+        },
+        {
+          "id": "82d2862f-163f-4b85-be22-57e74ea23de4",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "5c34b298-fc0f-4bb1-a269-9e16da18eb97",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1105f4a9-00aa-4aa1-9c2b-29dac5817b20",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "57cacfdc-85ac-4aee-a18e-6b529b449307",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4587d175-f43e-4c61-bd30-d56c9861b823",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "80b05038-5255-4d15-a63d-709b45ac1c9a",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "DBDS12125A01F",
+      "product_id": "2af8a55e-ec73-434f-bef9-6a622c19d5b5",
+      "product_name": "Manufacturer Part Number: DBDS12125A01F",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "9b8b8482-05f5-43a0-bf31-1d8b18a896ff",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: DBDS12125A01F",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: DBDS12125A01F\nDescription: DBDS12125A01F Diabl",
+          "status": "needs_review"
+        },
+        {
+          "id": "f42ebebc-9afc-47b2-af70-d2669f351a93",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6a0750cc-28c8-42d1-b233-3c335ffbe676",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "230b7633-6d0c-4264-9880-a1af31658afb",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b234d13c-b707-4f6a-8391-2decd4ac5310",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "825154f9-883d-49b9-b72e-4c3143bb2033",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f6507d49-a837-4b9e-bc5d-3b91fbb1da5c",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "DBDS12125G01F",
+      "product_id": "a7428459-e96f-452f-ab8c-ed0284601728",
+      "product_name": "Manufacturer Part Number: DBDS12125G01F",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "b69bb62d-9d54-4f84-a296-ed9d8a070e8d",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: DBDS12125G01F",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: DBDS12125G01F\nDescription: DBDS12125G01F Diabl",
+          "status": "needs_review"
+        },
+        {
+          "id": "c2a6ecfa-259c-4786-b428-7b9647045fde",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "075345ad-a8e0-4e4e-9447-1d8f3dc2c513",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cf146bfc-075e-4fd0-bde7-c6a596a6fb8d",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1d970ec5-e3e1-4327-80c5-2fc83df67c0b",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "15d4237c-1189-4da7-adc9-bf71717bc95b",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "91830211-c9b2-49af-84db-2e7182821e24",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "DBDS14125A01F",
+      "product_id": "762f01f5-57af-43c9-a7f2-9d888e118fa6",
+      "product_name": "Manufacturer Part Number: DBDS14125A01F",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "c4ac71f5-4a54-4334-83f5-36097a9b6f06",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: DBDS14125A01F",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: DBDS14125A01F\nDescription: DBDS14125A01F Diabl",
+          "status": "needs_review"
+        },
+        {
+          "id": "6076e2f4-8dfc-47bc-8159-4df4c8d6882f",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "211cdc0a-c94e-4533-b4a0-eb76ab4b8c35",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "50bc980c-dce3-4991-8093-b7cf64d2061e",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "48e0321b-095c-4413-811c-060f469440e2",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "bc681bd6-17bc-4552-9c4a-3c52dd91e3a6",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2ee1b898-f89e-418b-a531-82918a816e67",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "DBDS14125G01F",
+      "product_id": "43e70c33-5b88-40d9-b6f9-45569eabd02b",
+      "product_name": "Manufacturer Part Number: DBDS14125G01F",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "b1180e60-e0bc-4212-90ce-bd2f532fd077",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: DBDS14125G01F",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: DBDS14125G01F\nDescription: DBDS14125G01F Diabl",
+          "status": "needs_review"
+        },
+        {
+          "id": "21e23522-3440-4cfe-a2ab-c1ab832c1293",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2b8112b4-dcfb-44ea-b5bd-8b4b69a71375",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9ddf26a0-8455-48f9-a1cc-2d7e1707042d",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1712bdd7-cf7f-4e9c-81e4-10d465e9722a",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "abcd3f1e-00b1-4b42-86b9-5cea9af74c12",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "34288cfc-2d16-44ff-8314-160ce6746551",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0013",
+      "product_id": "6ed39ad7-2738-4ccd-84e9-1cb5de36a85d",
+      "product_name": "Manufacturer Part Number: 49-94-0013",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "f812b082-6e39-4dd1-969d-8c8c06a06091",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0013",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0013\nDescription: 49-94-0013 Milw 5\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "593f7ee9-ab80-4981-b78f-178e70a8a31d",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "060cc949-6b42-44b2-883a-179b44d10a16",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "ff6a14fa-50f2-455c-9b14-b3fc06ddf7f6",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "08d8cd3f-de99-4392-a4ab-5bc42060d60b",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "84de32ce-d282-48c6-bd2f-f70d1c8217a9",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "be95d7a2-a0d9-433a-8102-b336caa99748",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0029",
+      "product_id": "c7a36b2c-4da7-48fe-b8ad-11b42ebecc22",
+      "product_name": "Manufacturer Part Number: 49-94-0029",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "32a51347-473f-486f-bd3a-76d49dd888dd",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0029",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0029\nDescription: 49-94-0029 Milw 6-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "889db0d5-6961-4147-857c-83e24b52ab79",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "d4744b78-4f2a-4636-98dc-10d74c2b4606",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "16c8ca6d-d171-40e2-aa3a-3b0cb1e3fb1a",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4cf59eba-b76b-4701-be5f-29f8d4366453",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "83e4f5f6-48f7-4add-9b75-82e15300a697",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "88db895b-94e5-4930-b663-244d98e88b1c",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0033",
+      "product_id": "1df40ca8-3a47-45f5-a2e1-1456797fe9e8",
+      "product_name": "Manufacturer Part Number: 49-94-0033",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "3b75a7f5-d0d6-453d-8e65-61cd3a92ffe3",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0033",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0033\nDescription: 49-94-0033 Milw 7\"x1/1",
+          "status": "needs_review"
+        },
+        {
+          "id": "8a02cfad-73f7-42be-aadb-7d2abbce0a11",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f2517ad2-2490-4698-9863-088e4ef04c2c",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "eeec9509-9958-48d9-9c04-2fd30512ef60",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1a2cc772-49d4-4e9e-8e1c-0b9290a6df29",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c127698c-6541-4c21-88d1-bae1a971757c",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cd82a531-8504-44d3-97ea-cd91c4db458f",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0001",
+      "product_id": "d75b218a-7f76-4ff0-8ec4-d0a6543aabd2",
+      "product_name": "Manufacturer Part Number: 49-94-0001",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "e7c992bc-a942-4945-9da5-12f50f7e34c3",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0001",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0001\nDescription: 49-94-0001 Milw 4\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "4f4e2a27-931e-4571-b1d9-97ff21e49a2b",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4f7023b0-cd02-4ace-989f-dde975ec60f1",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "65cae32b-6f93-4fc9-87ce-caf11f0e4be7",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "77ef855b-3ec8-468d-b942-17d96257a77f",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2694ed07-edc4-4e32-9943-27d2f6e7a55d",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "60aade0e-45fc-43bd-b594-f8a8172058df",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0039",
+      "product_id": "c0310750-290e-4329-b3bd-bdeaa393bdc2",
+      "product_name": "Manufacturer Part Number: 49-94-0039",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "f6edb752-661f-4d3c-9f02-f489f3df8c5e",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0039",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0039\nDescription: 49-94-0039 Milw 7\"x1/8",
+          "status": "needs_review"
+        },
+        {
+          "id": "266c4803-3510-4e5d-b393-aa837b9c9ea6",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4c9ed697-cf97-4645-8271-7dd2625e36ad",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "74808553-a710-4d8e-99f7-49426e8bf5d2",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4c0cc73d-a76d-45de-aaab-9e3150414cc3",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9891a406-d68c-4a07-b326-577fb108aaeb",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "80188943-d6f1-4abc-b94e-6c064daceb5f",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0043",
+      "product_id": "f7aeadd5-cb36-4a19-a0e3-0c5859382462",
+      "product_name": "Manufacturer Part Number: 49-94-0043",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "c352c18e-9bde-45df-be34-b0def5fa4299",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0043",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0043\nDescription: 49-94-0043 Milw 9\"x3/3",
+          "status": "needs_review"
+        },
+        {
+          "id": "17bd375d-1a48-47f1-969c-6f5a78de4726",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "384a290f-8195-40e0-bbc6-3de323a489be",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "daab9384-82e6-4dcb-89bc-1ae5c2fa0564",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0817810d-4018-4748-9a4d-5f3d43a4093d",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1aa5cf57-0c0e-41d9-8d20-49406df16a35",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "7641d4a3-c89b-4fb8-9382-067f8ee0e93c",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0048",
+      "product_id": "f0065013-5bb1-4c18-b2b6-0182dbb24fc0",
+      "product_name": "Manufacturer Part Number: 49-94-0048",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "68720ec2-026b-4eb8-8303-abd5765bda2a",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0048",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0048\nDescription: 49-94-0048 Milw 12\"x7/",
+          "status": "needs_review"
+        },
+        {
+          "id": "fa3cfdaa-5a97-41b9-b808-e73c032dade4",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "efa254b8-3e03-4fe3-871a-168c1d192caa",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f0c9b9fd-b76d-4d91-824b-dfa8fb1b3598",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "aed80851-563a-4615-86d4-132cca56e615",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1a80ba73-2d83-40b8-926e-ab9bd3796535",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "843834f5-d8a1-40e8-8fdd-7b9225c73ce0",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0053",
+      "product_id": "1201d158-c6ed-4d40-af9b-34d9a1290c32",
+      "product_name": "Manufacturer Part Number: 49-94-0053",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "46a53de3-66c9-4852-a0be-fc08ccbdac20",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0053",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0053\nDescription: 49-94-0053 Milw 12\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "a78017ae-8227-474b-b34b-4bac2285aa1d",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "178ed2e4-e4a0-4ab2-999e-63a15c20981e",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "597adfd3-3b8a-4a1a-97ad-1c9b28bf8880",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "ac503352-137c-44a2-b50b-57be47c7bfdc",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1e0a1269-89fa-49a3-8e9b-f423ad6712c0",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "19078634-b81d-40b4-848f-2ffa716d8cf2",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0058",
+      "product_id": "cccd1615-0dad-46f5-9ec1-1b45edb37a15",
+      "product_name": "Manufacturer Part Number: 49-94-0058",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "413d65a1-4ce8-432c-999f-90ba4f252012",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0058",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0058\nDescription: 49-94-0058 Milw 12\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "0b97cc9d-5890-4118-9d45-3f2a94318977",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cc080549-0db4-4af4-9580-0a684f3cdb2b",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "95f4c2eb-5490-4dd4-85b6-efdaf708e2c1",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "667c9f72-9420-41a0-b2de-f2e1be84a683",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "83dd8347-0f21-48fc-afe8-08adbb28b9db",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f6ef8b8f-6dcd-4871-83e1-f99118f1f308",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0063",
+      "product_id": "1f22aafe-fbd7-46da-805f-673295be87af",
+      "product_name": "Manufacturer Part Number: 49-94-0063",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "6f56667f-0b41-4109-b46c-45fb91c38cb9",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0063",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0063\nDescription: 49-94-0063 Milw 14\"x7/",
+          "status": "needs_review"
+        },
+        {
+          "id": "216efa2b-8181-4756-b4f2-d1bce8e8ef28",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f3befda8-2eef-46b7-a8b5-f6e8889f8e9a",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "d19811ca-5d22-42a1-97c2-1f029501772a",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1fa5da0e-43a8-422f-b747-375415565346",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8f0c4435-ebd2-4b80-88c3-0c26bc80bc9e",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a717514e-a369-47b6-a82d-bb9a5ad42704",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0068",
+      "product_id": "55c206c0-0b57-4f9f-9777-ce22e06c65a6",
+      "product_name": "Manufacturer Part Number: 49-94-0068",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "be094d4d-9c22-4189-80f5-a30659664521",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0068",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0068\nDescription: 49-94-0068 Milw 14\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "a4f55bc4-71bc-4d3d-a3dc-d0d07e5a0b3c",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0730461e-d63b-4eb3-8edb-f0295f6e7e7b",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "44f8e1c1-2964-48ba-a69e-4b1d76138b36",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "57ee9c90-1062-452c-b873-b772e3c65eb4",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "75f94ce6-7cf4-47ce-8fb1-d21bb7b665dc",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9e89a6e4-63c7-4d7f-b148-beb652222903",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0073",
+      "product_id": "080203ac-aee5-4f50-86d0-6d03de5ceb75",
+      "product_name": "Manufacturer Part Number: 49-94-0073",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "486ce17e-62d6-4ee6-8375-b9cd162c8083",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0073",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0073\nDescription: 49-94-0073 Milw 14\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "58cf45e3-befc-4f96-9b58-abcc70468355",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cfa3a21c-60fe-48c3-a64a-e49368e9550b",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1bb2dd97-83f7-4cd5-ad22-42d8fdc3107b",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "5cc68926-5f2e-46d8-9635-91c6d1a7b6d3",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "eb2df1e9-2506-4fdb-af10-a57f79cfcd79",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6eb30409-3629-4151-9adb-f0702ce87a54",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0101",
+      "product_id": "b59afd08-2dc6-4f32-ac84-d11d55197f08",
+      "product_name": "Manufacturer Part Number: 49-94-0101",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "3b73864b-08cd-490a-b24b-7ce563a0a331",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0101",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0101\nDescription: 49-94-0101 Milw 4-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "6cfd7681-25cb-4ced-8c9a-f21ba854e2b5",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f6b1b96c-0e2b-4495-9b05-da462fa5cb75",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "fa470852-11e0-4d31-a6b2-cae76abd88ec",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "ec846600-058b-4793-86bc-6dd15449e8c3",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "7e1b4fe3-6e5b-4815-ba93-8b5de092a516",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2b086c93-a73f-48b6-b661-15cc23dbb531",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0107",
+      "product_id": "a4171851-4a1b-4852-8ed3-f61aab8d19f2",
+      "product_name": "Manufacturer Part Number: 49-94-0107",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "ee874731-10b5-40da-a352-3e1f3a02f8d3",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0107",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0107\nDescription: 49-94-0107 Milw 4-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "2dbcd037-8581-4564-9c30-ef2820e3a585",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "fa279792-5cc7-4336-a95e-e0087c053012",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0c703bf4-9b4d-49ae-8878-f4c516b4ac14",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6edf8579-294e-4d62-b78b-af5492492ef2",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a9bf1348-b2e3-4831-976c-7157eb6ade25",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8908c6ed-88db-4b9c-a16a-7a152077b10b",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0117",
+      "product_id": "cee7ee8f-e11b-47d0-b2c8-1fc6b45a8952",
+      "product_name": "Manufacturer Part Number: 49-94-0117",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "f2373635-8dea-4f18-9e87-731c782533b9",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0117",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0117\nDescription: 49-94-0117 Milw 5\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "6e9f328a-1a5a-4647-acdd-ca84853b52d6",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a5256229-495a-40bb-8c5b-930f7bc42a17",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "5b4a6a6f-6558-4857-bda3-c4a1449962d8",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9121e89e-da23-4dad-b406-36b32c9e6d17",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2c6fb48f-26cd-4d1b-8f38-1c6e6705a47b",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6e0f86d1-7fce-4955-abbd-33f600fd87b3",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0123",
+      "product_id": "30b5b7d9-47c8-4c09-9991-0195880df224",
+      "product_name": "Manufacturer Part Number: 49-94-0123",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "9a6823c9-c185-4c15-802c-596d31fc4b29",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0123",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0123\nDescription: 49-94-0123 Milw 6\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "3e85fbcd-b339-41e8-bec2-270de7e1263a",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "04a6da4f-e5bb-46b4-9965-df3ac7231905",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "e5724e58-cfc3-470a-bc00-4ab6fa6a9e50",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c6c7104f-30d9-4248-b383-2555d35f12f2",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "027fab30-768c-43f8-8a76-7435617fb18f",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a89484ac-f47f-4413-a2a9-b5d2eb705674",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0023",
+      "product_id": "ff7cf27a-d500-4832-9252-dd5883d378b4",
+      "product_name": "Manufacturer Part Number: 49-94-0023",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "20b70bd6-1c58-46fa-8602-a32bed775218",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0023",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0023\nDescription: 49-94-0023 Milw 6\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "4b9e7571-92fd-4b15-9a5b-ce25c6eb5a03",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "77aae1f3-3d2f-43af-913c-2d625cb7dd62",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1476042f-bb9c-4fab-bf06-cb42ea956ecc",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "df9c8619-615a-481d-a331-e2bbd09856d5",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a1e7f01b-3757-4d2f-b54f-c3177b7f619f",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b98038af-7169-4e68-aba6-ec19ca174ceb",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0121",
+      "product_id": "a5c9c5b2-58fd-48f6-a254-668c399d88a8",
+      "product_name": "Manufacturer Part Number: 49-94-0121",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "ac7d3dd2-b7a0-427c-b061-526761bc9645",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0121",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0121\nDescription: 49-94-0121 Milw 6\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "523b7dd3-862d-4b2e-a299-a49b27bfa6a0",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "bab51784-458d-4b8f-9ca1-39a3946d8c2a",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "bb9260c7-e918-4f75-86ce-525757a989e3",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a60c14c2-5f51-44a0-9292-7219a84f486f",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "24d43073-1749-41d9-86fe-4b65efc047be",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "dfccbcd6-cc8e-4663-8482-e93582e4bf20",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0127",
+      "product_id": "bb2cea81-d80a-47f2-8417-22c2ea57fda5",
+      "product_name": "Manufacturer Part Number: 49-94-0127",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "e4fa7334-82d1-4cd7-a310-8026d3536ba8",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0127",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0127\nDescription: 49-94-0127 Milw 6\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "79d23255-ef16-4c9e-8ede-9cb7a731b27c",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "e3187fdc-7827-466c-95ad-a910153197cd",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8767ce7f-96a0-4ecd-a08f-4212c29e5de5",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4ae0ae82-5cc3-4fd9-bba5-00853443add2",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9befee36-8c8b-4f0b-9d40-daa317671567",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c7a1dc64-be78-4df3-b25e-734a4a24a40d",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0137",
+      "product_id": "a4603b48-c941-45a9-95cc-4d64d547d146",
+      "product_name": "Manufacturer Part Number: 49-94-0137",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "f66b6fc5-52aa-4df0-8e60-4dc6454993cb",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0137",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0137\nDescription: 49-94-0137 Milw 7\"x3/3",
+          "status": "needs_review"
+        },
+        {
+          "id": "0cf1273b-a83b-4f25-99de-e3115d30bc48",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "987c85df-e4b7-4208-aec0-d73aa3fc7d02",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "3fee6d1a-f6bf-4bf3-bc46-9fb9b72afc0f",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4893eefb-8f56-4450-8b48-2d2fd518b384",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "ce806a06-f1ab-4ae0-8398-59d65c71908f",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "e8bbd4b3-7a54-4721-925e-433e73eded0b",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0160",
+      "product_id": "72828792-65dd-4ac6-9c37-6ddc00913e3a",
+      "product_name": "Manufacturer Part Number: 49-94-0160",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "1a81881b-6a51-4560-ab45-001e5d32e73a",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0160",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0160\nDescription: 49-94-0160 Milw 14\"x7/",
+          "status": "needs_review"
+        },
+        {
+          "id": "1cfec71b-7635-4aad-ae75-c9bf22bdb888",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "74866d75-aa58-4b24-abb8-14568ccf9c53",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0ae00fd8-7f94-4944-983b-afda6ce2c9c9",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6af4f09c-b22e-4404-bd88-03d920e0c0c8",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "7a83e013-b4b1-432f-a272-af45271ee7bc",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "538a4810-b29d-4277-8185-244fdc3bd9fb",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0223",
+      "product_id": "2a699e39-974c-4d56-a679-3a87ac40c564",
+      "product_name": "Manufacturer Part Number: 49-94-0223",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "a1c5ab55-03c9-4411-a6ea-4e6e82e0b47e",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0223",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0223\nDescription: 49-94-0223 Milw 6\"x.04",
+          "status": "needs_review"
+        },
+        {
+          "id": "d84d475d-ae7f-43a3-aa37-73a27c0f2449",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "87e8eda8-2db7-427e-b413-42f6505c87ca",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "3c032595-bc46-4c70-bc34-0b1e1ece3afe",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "193a83a7-2782-48c6-ba79-5f96eb436458",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f0d019ae-8224-4e1e-9e75-fe2af8ff0743",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a8be46e9-a58c-4205-8c8a-a87564512d88",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0445",
+      "product_id": "9c97e18e-6c0c-4b2e-9377-acf7f86d0392",
+      "product_name": "Manufacturer Part Number: 49-94-0445",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "fa9aec14-c3e5-46f0-98ab-bff66b7d55d9",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0445",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0445\nDescription: 49-94-0445 Milw 10\"x3/",
+          "status": "needs_review"
+        },
+        {
+          "id": "b57ae2d1-6e49-4efb-8c97-a0decea2cbe0",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "161d920b-9ac7-4b09-8cf1-dfaa9e44f691",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6afc7caa-a9c2-4ba7-b8fd-ec3db1a84286",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "fd6d4fe3-dc4b-4220-8a46-959f300ee44c",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "7ab64ae6-1f3c-4fa1-8c16-48146e5d5c00",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c56367ae-e197-4efb-badc-8cc0c29f4f6a",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0803",
+      "product_id": "0870db45-5089-4baf-82b0-86b0e8faeef3",
+      "product_name": "Manufacturer Part Number: 49-94-0803",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "da4bac41-a6e0-47a5-99f2-116f61626c70",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0803",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0803\nDescription: 49-94-0803 Milw 4-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "11b8f957-8a3b-4f78-9512-63b05b954304",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9f37f682-221e-4fac-9775-46406abfa149",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c8b769ae-a4ee-46bd-973c-e9b83b1c6dbe",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a0cdcc1e-b272-4391-864a-c1d486b02969",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "af85aa9e-684b-494d-9c1f-689d0caf9b56",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "921fb37b-fb96-4978-80d1-10249af51655",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0903",
+      "product_id": "54f7ae48-0b1b-432d-b088-4ba9c661c567",
+      "product_name": "Manufacturer Part Number: 49-94-0903",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "784c382f-c31e-4e8e-bcc4-e937f99152e6",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0903",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0903\nDescription: 49-94-0903 Milw 4-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "41cbafc8-d2ff-4485-aa88-2ebcb978b42d",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "12734d61-dc23-4496-a2c8-5b389bbccb31",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "45afa19c-b410-4c49-932f-7925ff93e987",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "44a46bc7-b0e4-4266-8ef5-c0cdbd5bfa19",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f2e895ec-9279-4f39-86ae-6aabd168fc01",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "cbd7d9fd-6339-4bf6-b9dc-6482b6589db0",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0907",
+      "product_id": "bc9d4672-5c09-4e7d-a2e3-1b8cb9fa5a8b",
+      "product_name": "Manufacturer Part Number: 49-94-0907",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "c141e598-0733-4f35-9ec0-fe2b02da682f",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0907",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0907\nDescription: 49-94-0907 Milw 4-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "dcd6e8df-7228-4fcb-99ec-b397e265c3b8",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "5c6c00ad-831e-416c-800a-d8f47ef639cd",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "ff2b084d-6673-46a3-8cc4-cf79cfc792ef",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "6f472960-cb73-4954-8b39-248d16c2fbfc",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "ad4c2989-95ee-4af6-b6a8-ed18186db7e0",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f7a829b2-1063-4925-b896-ba99c39ac30b",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-0923",
+      "product_id": "37955e32-b414-4aa5-ac1b-2793157dcdb2",
+      "product_name": "Manufacturer Part Number: 49-94-0923",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "671c052b-fdec-41d9-b68a-f8f8119b8d76",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-0923",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-0923\nDescription: 49-94-0923 Milw 6\"x1/8",
+          "status": "needs_review"
+        },
+        {
+          "id": "10d270d2-88bc-4568-b7e0-f628234af3dc",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "579c3dbf-e41a-4c55-a677-d3327294648c",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "77d58296-b5ce-42ae-aa3c-16c55a64d6eb",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "122aaa20-093e-48a0-a05a-dadab972ad5e",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "823cebef-5c69-4cbe-9912-698c7e72dc41",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0aaa5d0b-564f-4882-bb26-9b704ee0abbb",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1900",
+      "product_id": "85cf6687-82ca-46cf-860f-03050f0b3dd6",
+      "product_name": "Manufacturer Part Number: 49-94-1900",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "802f0ea2-3433-432c-8bc3-8f77cb292131",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1900",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1900\nDescription: 49-94-1900 Milw 4\"x1/8",
+          "status": "needs_review"
+        },
+        {
+          "id": "ed3c8a9d-330e-4ee1-b1d8-a59d742adaa5",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f3c4d30a-4c69-43e7-804b-96cc2cbd3b50",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "1a6a48fc-bff1-4a6f-9234-ff42b2687daf",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "0ce83c5f-6b47-4819-b826-18aae7a02a0a",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8e9d0e9a-f3d9-40a1-84c2-a79a3d8ef1a8",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "71b3762a-33da-49da-a35f-2bd99a84c9a6",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1905",
+      "product_id": "4964afe8-8a0e-4a57-affe-43b1f794fdc9",
+      "product_name": "Manufacturer Part Number: 49-94-1905",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "4faccdec-e6ac-40c3-9d08-f0e0f637ba8d",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1905",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1905\nDescription: 49-94-1905 Milw 4-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "9e161748-6de8-4f06-a43e-3d8035451f9b",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "f5be8246-78aa-40e6-809d-32a2dd3c1507",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "15235dce-7d88-4f1b-a115-c66547f25fe8",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "2aebf307-f345-4e1c-8e57-2bdfd8686116",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "bf08f89d-a9c3-44cd-97d1-800380fc9738",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "94bdcc14-05fe-49b1-b638-957cd824fc21",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1915",
+      "product_id": "c7cc2a79-1c90-4693-83d5-043f1ae141a0",
+      "product_name": "Manufacturer Part Number: 49-94-1915",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "b11db8af-1a29-4b66-94f4-7be7b7bea7b0",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1915",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1915\nDescription: 49-94-1915 Milw 6-1/2\"",
+          "status": "needs_review"
+        },
+        {
+          "id": "042e1026-79be-44bb-bc91-55f0f0427bfa",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "240e6c8f-0c70-4a11-9ef4-347dd789474c",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "42fa4263-daad-44f0-b21c-0a1d13bd4dee",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "91d1d14e-608b-4e58-90e9-89d189bab521",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "e609e474-488f-419d-9a68-fdbb245b829c",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "74ca9753-ebad-4438-adb9-9b9bad65310c",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1920",
+      "product_id": "af9160bc-c725-4fef-bcb5-fb03e81f5704",
+      "product_name": "Manufacturer Part Number: 49-94-1920",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "5a401342-aef7-43eb-aa5b-86bacc7b17ca",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1920",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1920\nDescription: 49-94-1920 Milw 7\"x1/8",
+          "status": "needs_review"
+        },
+        {
+          "id": "517f5ece-3845-47ee-8273-1f8f55b6b251",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "fb0cef96-68c9-402d-a7fd-aff82cca505a",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4e2f4a4d-e868-4383-aa9a-42087911c633",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "b6a542a0-c6d0-4805-b4d2-f663b106104a",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "5b469796-b3ef-40e2-b0a2-75131574e59c",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "bee0f338-dfc5-4828-a118-d1983ddd1f29",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1925",
+      "product_id": "f37566f1-f300-4d18-a27c-31dd51be2c33",
+      "product_name": "Manufacturer Part Number: 49-94-1925",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "5890e2d5-4304-4b60-b9a4-c755a64b6ffc",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1925",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1925\nDescription: 49-94-1925 Milw 10\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "b6e5e408-e82e-4b30-9af5-8a01b12738ac",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9e85a26c-f046-4582-ab37-bc8b46580078",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "30c8df3f-15f4-4e7f-9c64-776cedd93e44",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "293c7035-a6df-4683-9aca-b6b79a8cc171",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "9d84a0e9-5b53-42f1-89d1-9afac372980e",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "49f455b6-61bb-4974-9fc6-dbd155ab2692",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1935",
+      "product_id": "43967164-0ded-475e-b4b2-8169f8741267",
+      "product_name": "Manufacturer Part Number: 49-94-1935",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "0080d8e8-8130-4289-9957-f935a8973615",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1935",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1935\nDescription: 49-94-1935 Milw 12\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "081d19a2-05f6-460e-828c-5a02ed28040a",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "a9adbf49-5948-4989-89ba-a27734d93ef8",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "66eca96b-61fc-4b9d-9366-2f30db40943f",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "c51aad7a-04e8-44fc-8030-a0fe79473f88",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "8e113eb0-f971-4aca-a4be-b001e9dd5464",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "012888e3-609c-442e-a6a2-35bf72c805eb",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    },
+    {
+      "mfg_part_num": "49-94-1940",
+      "product_id": "ee6f47d0-11a3-4b88-b290-32428670ce4e",
+      "product_name": "Manufacturer Part Number: 49-94-1940",
+      "category": "industrial_pump",
+      "confidence_overall": 0,
+      "fields": [
+        {
+          "id": "8d89a2bf-39d3-4fd5-b20b-58f5936c5ae6",
+          "name": "manufacturer",
+          "display_name": "Manufacturer",
+          "value": "Part Number: 49-94-1940",
+          "unit": null,
+          "confidence": 55,
+          "reasoning": "Demo mode: found keyword match",
+          "excerpt": "Manufacturer Part Number: 49-94-1940\nDescription: 49-94-1940 Milw 14\"x1/",
+          "status": "needs_review"
+        },
+        {
+          "id": "2b53d5c7-3515-4dd1-a0f0-89f473ab3a22",
+          "name": "model_number",
+          "display_name": "Model Number",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "da085a7b-7fbb-4387-bf90-2930a026dbe7",
+          "name": "pump_type",
+          "display_name": "Pump Type",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "4fe5ae74-128d-4ddc-9a1c-0b168efda7bd",
+          "name": "flow_rate",
+          "display_name": "Flow Rate",
+          "value": null,
+          "unit": "m\u00b3/h",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "fc58d4bb-eb2d-404f-aaff-4053e3d6b27d",
+          "name": "head_pressure",
+          "display_name": "Head Pressure",
+          "value": null,
+          "unit": "m",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "edbf8658-5b22-4373-88c2-af2f626826e2",
+          "name": "power_rating",
+          "display_name": "Power Rating",
+          "value": null,
+          "unit": "kW",
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        },
+        {
+          "id": "14308f25-9aba-429d-a017-e1045e1d5322",
+          "name": "material_body",
+          "display_name": "Body Material",
+          "value": null,
+          "unit": null,
+          "confidence": 0,
+          "reasoning": "Demo mode: no match found in source text | Required field with no value \u2014 needs manual entry.",
+          "excerpt": "(not found in source text)",
+          "status": "needs_review"
+        }
+      ]
+    }
+  ]
+}

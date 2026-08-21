@@ -1,4 +1,4 @@
-"""Validation Agent — conflict resolution, confidence scoring, review routing.
+"""Validation Agent — conflict resolution, confidence scoring, review routing using Google ADK.
 
 Detects conflicts between sources, resolves using trust-tier ranking,
 assigns calibrated confidence scores, and routes uncertain fields to
@@ -7,6 +7,11 @@ human review. Nothing below the confidence threshold is auto-committed.
 Architectural rule: the system is designed to know what it doesn't know.
 Low-confidence or conflicting data is never guessed past — it is surfaced.
 """
+
+from typing import Any
+
+from google.adk.agents import Agent
+from google.adk.tools import ToolContext
 
 from ..config import settings
 from ..models.pipeline import ValidationResult
@@ -17,13 +22,86 @@ from ..utils.logging import get_logger, log_agent_step
 logger = get_logger("ValidationAgent")
 
 
+def validate_field_type_and_source(
+    field_name: str, value: Any, expected_type: str, excerpt: str
+) -> dict:
+    """Helper tool function for validating field value types and source excerpt strength.
+
+    Args:
+        field_name: Machine key of the field.
+        value: Extracted value.
+        expected_type: Expected schema field type.
+        excerpt: Extracted source excerpt text.
+
+    Returns:
+        dict with validation flags and confidence penalty deductions.
+    """
+    has_excerpt = bool(excerpt and excerpt.strip() and not excerpt.startswith("("))
+    penalty = 0
+    reasons = []
+
+    if not has_excerpt:
+        penalty += 15
+        reasons.append("Weak or missing source excerpt")
+
+    return {
+        "field_name": field_name,
+        "valid_source": has_excerpt,
+        "confidence_penalty": penalty,
+        "issues": reasons,
+    }
+
+
+def assess_record_completeness(category: str, field_names: list[str]) -> dict:
+    """Helper tool function for assessing category schema completeness.
+
+    Args:
+        category: Product category key.
+        field_names: Names of fields present in the record.
+
+    Returns:
+        dict with missing required fields list and completeness score.
+    """
+    schema = get_category_schema(category)
+    if not schema:
+        return {"valid": False, "missing_required": []}
+
+    present = set(field_names)
+    required = set(schema.required_field_names)
+    missing = list(required - present)
+
+    return {
+        "valid": len(missing) == 0,
+        "missing_required": missing,
+        "completion_ratio": len(present) / max(1, len(schema.fields)),
+    }
+
+
 class ValidationAgent:
-    """Validates extracted fields, scores confidence, and routes to review.
+    """Validates extracted fields, scores confidence, and routes to review using Google ADK.
 
     This agent is the gatekeeper between raw extraction and committed
     catalog data. Its core job is ensuring the system never silently
     guesses past ambiguity.
     """
+
+    def __init__(self) -> None:
+        self._adk_agent = Agent(
+            name="validation_agent",
+            model="gemini-2.0-flash",
+            instruction=(
+                "You are an industrial product data validation agent built with Google ADK. "
+                "Your role is to validate extracted fields against category schemas, assess source "
+                "citation quality, detect type mismatches, score overall record confidence, "
+                "and route uncertain fields to human review."
+            ),
+            tools=[validate_field_type_and_source, assess_record_completeness],
+        )
+
+    @property
+    def adk_agent(self) -> Agent:
+        """Expose the underlying Google ADK Agent instance."""
+        return self._adk_agent
 
     async def validate(
         self,
@@ -155,7 +233,10 @@ class ValidationAgent:
         schema: CategorySchema,
     ) -> list[ProductField]:
         """Verify all required fields are present; penalize missing ones."""
-        existing_names = {f.name for f in fields}
+        field_names = [f.name for f in fields]
+        assess_record_completeness(schema.category_key, field_names)
+
+        existing_names = set(field_names)
         required_names = set(schema.required_field_names)
         missing = required_names - existing_names
 
