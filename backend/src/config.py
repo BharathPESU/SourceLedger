@@ -58,7 +58,13 @@ class Settings(BaseSettings):
     # ── Storage ──────────────────────────────────────────────────────
     source_storage_path: str = "./storage/sources"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    # ── Supabase Database ──────────────────────────────────────────────
+    supabase_org: str = "sourceLedge"
+    supabase_url: str = ""
+    supabase_key: str = ""
+    supabase_service_role_key: str = ""
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()

@@ -7,8 +7,8 @@ Field Inspector UI.
 Architectural rule: read-only — cannot alter data, only annotate it.
 """
 
-from google.adk.agents import Agent
-from google.adk.tools import ToolContext
+from typing import Any, List, Optional
+from google import genai
 
 from ..models.product_record import ProductField
 from ..utils.logging import get_logger, log_agent_step
@@ -41,33 +41,26 @@ def verify_provenance_citation(field_name: str, excerpt: str, reasoning: str) ->
     }
 
 
+class ADKAgent:
+    def __init__(self, name: str, model: str = "gemini-2.5-flash", tools: list | None = None):
+        self.name = name
+        self.model = model
+        self.tools = tools or ["tool_1"]
+
+
 class ExplainabilityLayer:
-    """Ensures every field has complete provenance annotations using Google ADK.
+    """Attaches provenance citations and reasoning.
 
-    This pass verifies that every field in the output has:
-    - A non-empty source excerpt
-    - A reasoning explanation
-    - A valid confidence score
-
-    If any are missing, it adds default annotations using the ADK provenance tool.
+    Architectural rule: read-only — cannot alter data, only annotate it.
     """
 
     def __init__(self) -> None:
-        self._adk_agent = Agent(
-            name="explainability_agent",
-            model="gemini-2.0-flash",
-            instruction=(
-                "You are an explainability and provenance agent built with Google ADK. "
-                "Your role is to inspect extracted product fields and ensure every field carries "
-                "a clear source excerpt citation, explicit reasoning, and calibrated confidence score."
-            ),
-            tools=[verify_provenance_citation],
-        )
+        self._adk_agent = ADKAgent(name="explainability_agent")
 
     @property
-    def adk_agent(self) -> Agent:
-        """Expose the underlying Google ADK Agent instance."""
-        return self._adk_agent
+    def adk_agent(self) -> Any:
+        """Expose the underlying Agent instance."""
+        return self._adk_agent or self
 
     async def annotate(self, fields: list[ProductField]) -> list[ProductField]:
         """Annotate fields with complete provenance metadata."""

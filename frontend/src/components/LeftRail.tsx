@@ -63,9 +63,9 @@ export const LeftRail: React.FC<LeftRailProps> = ({
   ];
 
   return (
-    <aside className="relative z-20 w-20 h-full border-r border-[#1A1A1A]/8 flex flex-col items-center py-6 gap-6 shrink-0 transition-all bg-[#F5E9D8]/60 backdrop-blur-md overflow-y-auto overflow-x-hidden">
-      {/* Top Navigation Items */}
-      <div className="flex flex-col items-center gap-6 w-full px-2">
+    <aside className="relative z-20 my-auto ml-4 sm:ml-6 w-16 sm:w-18 shrink-0 rounded-[28px] bg-white/70 backdrop-blur-2xl border border-white/80 ring-1 ring-white/50 shadow-[0_12px_36px_rgba(26,23,21,0.08)] flex flex-col items-center py-4 gap-4 transition-all self-center">
+      {/* Navigation Dock Items */}
+      <div className="flex flex-col items-center gap-3.5 w-full px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -74,10 +74,10 @@ export const LeftRail: React.FC<LeftRailProps> = ({
             <div key={item.id} className="relative group flex items-center justify-center w-full">
               <button
                 onClick={() => setActiveTab(item.id)}
-                className={`relative w-12 h-12 rounded-[18px] flex items-center justify-center transition-all cursor-pointer ${
+                className={`relative w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#E8622C] text-white shadow-lg shadow-[#E8622C]/30 scale-105'
-                    : 'text-[#1A1A1A] opacity-40 hover:opacity-100 hover:bg-[#EBDCC5]/40'
+                    ? 'bg-[#E8622C] text-white shadow-lg shadow-[#E8622C]/30 scale-105 ring-2 ring-white/80'
+                    : 'text-[#1A1A1A]/60 hover:text-[#1A1A1A] hover:bg-white/80 hover:scale-105'
                 }`}
                 aria-label={item.label}
               >
@@ -85,8 +85,8 @@ export const LeftRail: React.FC<LeftRailProps> = ({
 
                 {/* Badge for counts */}
                 {item.badge !== undefined && (
-                  <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1 ring-2 ring-white shadow-xs ${
-                    isActive ? 'bg-[#1A1A1A] text-white' : 'bg-[#E8622C] text-white'
+                  <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[10px] font-extrabold flex items-center justify-center px-1 ring-2 ring-white shadow-xs ${
+                    isActive ? 'bg-[#191715] text-white' : 'bg-[#E8622C] text-white'
                   }`}>
                     {item.badge}
                   </span>
@@ -94,10 +94,10 @@ export const LeftRail: React.FC<LeftRailProps> = ({
               </button>
 
               {/* Tooltip on hover */}
-              <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#1A1A1A] text-[#FAF4EB] text-xs font-semibold rounded-xl shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 whitespace-nowrap flex items-center gap-2">
+              <div className="absolute left-full ml-3.5 px-3 py-1.5 bg-[#191715] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 whitespace-nowrap flex items-center gap-2 border border-white/10">
                 <span>{item.label}</span>
                 {item.shortcut && (
-                  <span className="text-[10px] text-[#8C8276] px-1 py-0.2 bg-white/10 rounded">
+                  <span className="text-[10px] text-[#8C8276] px-1.5 py-0.5 bg-white/10 rounded-md font-mono">
                     {item.shortcut}
                   </span>
                 )}
@@ -105,22 +105,6 @@ export const LeftRail: React.FC<LeftRailProps> = ({
             </div>
           );
         })}
-      </div>
-
-      {/* Bottom info button / hint */}
-      <div className="mt-auto flex flex-col items-center gap-2">
-        <div className="relative group">
-          <button
-            onClick={() => setActiveTab('settings')}
-            className="w-12 h-12 rounded-[18px] text-[#1A1A1A] opacity-40 hover:opacity-100 hover:bg-[#EBDCC5]/40 flex items-center justify-center transition-all cursor-pointer"
-            title="System Settings & Guidelines"
-          >
-            <Sliders className="w-5 h-5 stroke-[2]" />
-          </button>
-          <div className="absolute left-full ml-3 px-2.5 py-1 bg-[#1A1A1A] text-[#FAF4EB] text-xs font-semibold rounded-xl shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 whitespace-nowrap">
-            Settings & Model Rules
-          </div>
-        </div>
       </div>
     </aside>
   );

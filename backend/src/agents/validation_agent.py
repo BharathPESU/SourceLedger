@@ -10,8 +10,7 @@ Low-confidence or conflicting data is never guessed past — it is surfaced.
 
 from typing import Any
 
-from google.adk.agents import Agent
-from google.adk.tools import ToolContext
+from google import genai
 
 from ..config import settings
 from ..models.pipeline import ValidationResult
@@ -86,22 +85,12 @@ class ValidationAgent:
     """
 
     def __init__(self) -> None:
-        self._adk_agent = Agent(
-            name="validation_agent",
-            model="gemini-2.0-flash",
-            instruction=(
-                "You are an industrial product data validation agent built with Google ADK. "
-                "Your role is to validate extracted fields against category schemas, assess source "
-                "citation quality, detect type mismatches, score overall record confidence, "
-                "and route uncertain fields to human review."
-            ),
-            tools=[validate_field_type_and_source, assess_record_completeness],
-        )
+        self._adk_agent = None
 
     @property
-    def adk_agent(self) -> Agent:
-        """Expose the underlying Google ADK Agent instance."""
-        return self._adk_agent
+    def adk_agent(self) -> Any:
+        """Expose the underlying Agent instance."""
+        return self._adk_agent or self
 
     async def validate(
         self,

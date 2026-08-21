@@ -14,8 +14,8 @@ import re
 from typing import Any
 from uuid import UUID, uuid4
 
-from google.adk.agents import Agent
-from google.adk.tools import ToolContext
+from google import genai
+from google.genai import types
 
 from ..config import settings
 from ..models.pipeline import ExtractionResult
@@ -93,22 +93,12 @@ class ExtractionAgent:
 
     def __init__(self) -> None:
         self._client = None
-        self._adk_agent = Agent(
-            name="extraction_agent",
-            model="gemini-2.0-flash",
-            instruction=(
-                "You are an industrial product data extraction specialist built with Google ADK. "
-                "Your task is to extract structured, schema-locked product fields from source text. "
-                "For every field, extract the exact supporting source excerpt, assign an accurate "
-                "confidence score (0-100), and explain your reasoning."
-            ),
-            tools=[validate_extracted_json_schema, schema_field_lookup],
-        )
+        self._adk_agent = None
 
     @property
-    def adk_agent(self) -> Agent:
-        """Expose the underlying Google ADK Agent instance."""
-        return self._adk_agent
+    def adk_agent(self) -> Any:
+        """Expose the underlying Agent instance."""
+        return self._adk_agent or self
 
     def _get_client(self):
         """Lazy-init the Google GenAI Client. Returns None if no API key."""

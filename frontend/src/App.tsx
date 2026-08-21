@@ -260,7 +260,7 @@ export default function App() {
           ref={mainScrollRef}
           className="flex-1 h-full overflow-y-auto overflow-x-hidden min-h-0 w-full focus:outline-hidden"
         >
-          <div className="px-4 md:px-8 py-6 max-w-7xl mx-auto w-full">
+          <div className="px-4 sm:px-6 md:px-8 lg:px-10 py-6 w-full max-w-[1920px] mx-auto">
             {activeTab === 'dashboard' && (
               <DashboardView
                 products={products}

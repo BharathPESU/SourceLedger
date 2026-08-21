@@ -16,7 +16,7 @@ import os
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from google.adk.agents import Agent
+from google import genai
 
 from ..config import settings
 from ..models.product_record import ProductRecord, SourceType, TrustTier
