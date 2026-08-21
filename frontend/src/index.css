@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-serif: 'Bodoni Moda', 'Playfair Display', Didot, 'Bodoni MT', 'Century Schoolbook', Georgia, serif;
+  --font-didone: 'Bodoni Moda', 'Playfair Display', Didot, serif;
+
+  --color-cream-50: #FCFAF7;
+  --color-cream-100: #FAF4EB;
+  --color-cream-200: #F5E9D8;
+  --color-cream-300: #EBDDCB;
+  --color-cream-400: #DFCDBC;
+  --color-cream-500: #CFB8A1;
+
+  --color-orange-brand: #E8622C;
+  --color-orange-dark: #D45320;
+  --color-orange-light: #F27848;
+  --color-orange-subtle: #FDF2EC;
+  --color-orange-glow: rgba(232, 98, 44, 0.15);
+
+  --color-charcoal-900: #191715;
+  --color-charcoal-800: #262320;
+  --color-charcoal-700: #3C3833;
+  --color-charcoal-600: #5C554D;
+  --color-charcoal-400: #8C8276;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #F5E9D8;
+    color: #191715;
+    user-select: auto;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(235, 221, 203, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 130, 118, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 98, 44, 0.6);
+}
+
+/* Organic background ambient blob animation */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -15px) scale(1.04);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-25px, 20px) scale(0.96);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 18s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 22s ease-in-out infinite;
+}
+
+.font-didone {
+  font-family: 'Bodoni Moda', 'Playfair Display', Didot, serif;
+}
+
+.font-didone-italic {
+  font-family: 'Bodoni Moda', 'Playfair Display', Didot, serif;
+  font-style: italic;
+  letter-spacing: -0.02em;
+}

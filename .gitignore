@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.mypy_cache/
+.pytest_cache/
+.playwright-mcp 
+playwright-mcp
+# Node
+node_modules/
+.next/
+out/
+build/
+
+# Environment — secrets never committed
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Local storage (source documents, uploads)
+storage/
+uploads/
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml

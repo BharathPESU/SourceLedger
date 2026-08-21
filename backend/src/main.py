@@ -1,0 +1,32 @@
+"""SourceLedger backend — FastAPI application entry point."""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api.routes_dashboard import router as dashboard_router
+from .api.routes_fields import router as fields_router
+from .api.routes_ingest import router as ingest_router
+from .api.routes_products import router as products_router
+from .api.routes_review import router as review_router
+
+app = FastAPI(
+    title="SourceLedger",
+    description="AI-Powered Product Intelligence Engine — every product fact, ledgered back to its source.",
+    version="0.1.0",
+)
+
+# CORS — allow the React frontend dev server
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount route modules
+app.include_router(ingest_router)
+app.include_router(products_router)
+app.include_router(fields_router)
+app.include_router(review_router)
+app.include_router(dashboard_router)

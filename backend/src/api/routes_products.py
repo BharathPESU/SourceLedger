@@ -1,0 +1,68 @@
+"""Product record API routes."""
+
+from uuid import UUID
+
+from fastapi import APIRouter, HTTPException
+
+from ..db.store import store
+from ..models.api import ProductDetailResponse, ProductListResponse, ProductSummary
+from ..models.product_record import FieldStatus
+from ..models.schemas import CATEGORY_REGISTRY, get_category_schema
+
+router = APIRouter(prefix="/api", tags=["products"])
+
+
+@router.get("/products", response_model=ProductListResponse)
+async def list_products() -> ProductListResponse:
+    """List all product records with summary info."""
+    products = await store.list_products()
+    summaries = []
+    for p in products:
+        schema = CATEGORY_REGISTRY.get(p.category)
+        needs_review = sum(
+            1 for f in p.fields if f.status == FieldStatus.NEEDS_REVIEW
+        )
+        auto_committed = sum(
+            1 for f in p.fields if f.status == FieldStatus.AUTO_COMMITTED
+        )
+        summaries.append(
+            ProductSummary(
+                id=p.id,
+                name=p.name,
+                category=p.category,
+                category_display_name=schema.display_name if schema else p.category,
+                confidence_overall=p.confidence_overall,
+                field_count=len(p.fields),
+                needs_review_count=needs_review,
+                auto_committed_count=auto_committed,
+                created_at=p.created_at.isoformat(),
+            )
+        )
+    return ProductListResponse(products=summaries, total_count=len(summaries))
+
+
+@router.get("/products/{product_id}", response_model=ProductDetailResponse)
+async def get_product(product_id: UUID) -> ProductDetailResponse:
+    """Get full product record with all fields and provenance."""
+    product = await store.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    # Gather all sources used by this product
+    sources = []
+    for sid in product.source_ids:
+        source = await store.get_source(sid)
+        if source:
+            sources.append(source)
+
+    schema = get_category_schema(product.category)
+    if not schema:
+        raise HTTPException(
+            status_code=500, detail=f"Unknown category: {product.category}"
+        )
+
+    return ProductDetailResponse(
+        product=product,
+        sources=sources,
+        category_schema=schema,
+    )
