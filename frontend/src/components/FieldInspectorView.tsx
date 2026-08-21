@@ -45,6 +45,28 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
   const [activeInspectorTab, setActiveInspectorTab] = useState<'fields' | 'history' | 'document_preview'>('fields');
   const [filterConfidence, setFilterConfidence] = useState<'all' | 'needs_review' | 'high'>('all');
 
+  if (!product) {
+    return (
+      <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-12 text-center border border-white/80 ring-1 ring-white/50 shadow-[0_8px_32px_rgba(26,23,21,0.04)] max-w-lg mx-auto my-12">
+        <div className="w-16 h-16 rounded-2xl bg-[#FAF4EB] text-[#E8622C] flex items-center justify-center mx-auto mb-4 border border-[#DFCDBC]/50">
+          <Info className="w-8 h-8" />
+        </div>
+        <h3 className="font-didone font-bold text-2xl text-[#191715]">
+          No Product Selected
+        </h3>
+        <p className="text-xs text-[#5C554D] mt-2 leading-relaxed">
+          Ingest a new datasheet or select a product record from your catalog to inspect its extracted attributes and field provenance.
+        </p>
+        <button
+          onClick={onBackToDashboard}
+          className="mt-6 px-5 py-2.5 rounded-full bg-[#E8622C] text-white text-xs font-bold shadow-md shadow-[#E8622C]/20 hover:bg-[#D45320] transition-all cursor-pointer"
+        >
+          Return to Dashboard
+        </button>
+      </div>
+    );
+  }
+
   const currentIndex = products.findIndex(p => p.id === product.id);
   const prevProduct = currentIndex > 0 ? products[currentIndex - 1] : null;
   const nextProduct = currentIndex < products.length - 1 ? products[currentIndex + 1] : null;

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routes_dashboard import router as dashboard_router
+from .api.routes_export import router as export_router
 from .api.routes_fields import router as fields_router
 from .api.routes_ingest import router as ingest_router
 from .api.routes_products import router as products_router
@@ -24,9 +25,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+import asyncio
+
+@app.on_event("startup")
+async def startup_event():
+    """Startup event — starts with clean catalog ready for live user ingestion."""
+    pass
+
 # Mount route modules
 app.include_router(ingest_router)
 app.include_router(products_router)
 app.include_router(fields_router)
 app.include_router(review_router)
 app.include_router(dashboard_router)
+app.include_router(export_router)
+
+

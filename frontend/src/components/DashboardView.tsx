@@ -154,54 +154,72 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             {/* Table Rows */}
             <div className="flex flex-col divide-y divide-white/60">
-              {products.slice(0, 6).map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => {
-                    onSelectProduct(product);
-                    onNavigateToTab('field_inspector');
-                  }}
-                  className="grid grid-cols-4 items-center p-4 hover:bg-white/60 hover:backdrop-blur-md rounded-2xl transition-all cursor-pointer group"
-                >
-                  {/* Product Name */}
-                  <div className="min-w-0 pr-2">
-                    <span className="font-bold text-sm text-[#1A1A1A] group-hover:text-[#E8622C] transition-colors truncate block">
-                      {product.name}
-                    </span>
-                    <span className="text-[11px] font-mono opacity-50 truncate block">
-                      {product.sku}
-                    </span>
+              {products.length === 0 ? (
+                <div className="py-12 text-center flex flex-col items-center justify-center">
+                  <div className="w-14 h-14 rounded-2xl bg-white/80 text-[#E8622C] flex items-center justify-center mb-3 shadow-sm border border-white/80">
+                    <Sparkles className="w-7 h-7" />
                   </div>
+                  <h4 className="font-didone font-bold text-xl text-[#1A1A1A]">Catalog Ready for Live Data</h4>
+                  <p className="text-xs text-[#1A1A1A]/60 max-w-md mt-1.5 mb-5 leading-relaxed">
+                    Upload PDF datasheets, CSV product tables, or paste specification text. The Google GenAI Agent Engine will extract 252-column attributes in real time.
+                  </p>
+                  <button
+                    onClick={onOpenIngestModal}
+                    className="px-6 py-3 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] text-white text-xs font-bold shadow-md shadow-[#E8622C]/25 hover:scale-[1.02] transition-all cursor-pointer"
+                  >
+                    + Ingest First Source
+                  </button>
+                </div>
+              ) : (
+                products.slice(0, 6).map((product) => (
+                  <div
+                    key={product.id}
+                    onClick={() => {
+                      onSelectProduct(product);
+                      onNavigateToTab('field_inspector');
+                    }}
+                    className="grid grid-cols-4 items-center p-4 hover:bg-white/60 hover:backdrop-blur-md rounded-2xl transition-all cursor-pointer group"
+                  >
+                    {/* Product Name */}
+                    <div className="min-w-0 pr-2">
+                      <span className="font-bold text-sm text-[#1A1A1A] group-hover:text-[#E8622C] transition-colors truncate block">
+                        {product.name}
+                      </span>
+                      <span className="text-[11px] font-mono opacity-50 truncate block">
+                        {product.sku}
+                      </span>
+                    </div>
 
-                  {/* Category */}
-                  <span className="text-sm opacity-70 text-[#1A1A1A] truncate pr-2">
-                    {product.category}
-                  </span>
+                    {/* Category */}
+                    <span className="text-sm opacity-70 text-[#1A1A1A] truncate pr-2">
+                      {product.category}
+                    </span>
 
-                  {/* Confidence Bar & Number */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-16 sm:w-20 h-1.5 bg-white/60 rounded-full overflow-hidden shrink-0 border border-white/40">
-                      <div
-                        className={`h-full ${
-                          product.confidence >= 85 ? 'bg-[#E8622C]' : 'bg-[#1A1A1A]'
-                        }`}
-                        style={{ width: `${product.confidence}%` }}
+                    {/* Confidence Bar & Number */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 sm:w-20 h-1.5 bg-white/60 rounded-full overflow-hidden shrink-0 border border-white/40">
+                        <div
+                          className={`h-full ${
+                            product.confidence >= 85 ? 'bg-[#E8622C]' : 'bg-[#1A1A1A]'
+                          }`}
+                          style={{ width: `${product.confidence}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-[#1A1A1A]">{product.confidence}%</span>
+                    </div>
+
+                    {/* Priority / Action */}
+                    <div className="flex justify-end items-center gap-2">
+                      <StatusPill
+                        type="confidence"
+                        confidenceScore={product.confidence}
+                        label={product.confidence >= 85 ? 'High' : product.confidence >= 65 ? 'Med' : 'Low'}
+                        size="sm"
                       />
                     </div>
-                    <span className="text-xs font-bold text-[#1A1A1A]">{product.confidence}%</span>
                   </div>
-
-                  {/* Priority / Action */}
-                  <div className="flex justify-end items-center gap-2">
-                    <StatusPill
-                      type="confidence"
-                      confidenceScore={product.confidence}
-                      label={product.confidence >= 85 ? 'High' : product.confidence >= 65 ? 'Med' : 'Low'}
-                      size="sm"
-                    />
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

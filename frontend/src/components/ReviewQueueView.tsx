@@ -212,7 +212,18 @@ export const ReviewQueueView: React.FC<ReviewQueueViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/60">
-              {queueProducts.map((product) => {
+              {queueProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <ShieldCheck className="w-8 h-8 text-[#1F8A53] mb-2" />
+                      <p className="font-bold text-sm text-[#191715]">Review Queue Clear</p>
+                      <p className="text-xs text-[#8C8276] mt-0.5">No products or fields currently require human review.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                queueProducts.map((product) => {
                 const isSelected = selectedIds.includes(product.id);
 
                 return (
@@ -323,7 +334,7 @@ export const ReviewQueueView: React.FC<ReviewQueueViewProps> = ({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

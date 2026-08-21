@@ -214,6 +214,17 @@ export const TopNav: React.FC<TopNavProps> = ({
           </div>
         </div>
 
+        {/* Secondary Action: Export Unihack Delivery CSV */}
+        <a
+          href="/api/export/csv"
+          download="Unihack_Delivery_Format.csv"
+          className="bg-white/60 hover:bg-white text-[#1A1A1A] px-4 py-2.5 rounded-full text-xs font-bold shadow-xs hover:shadow-md border border-[#1A1A1A]/10 transition-all cursor-pointer flex items-center gap-2"
+          title="Export catalog in exact Unihack Delivery CSV format"
+        >
+          <FileText className="w-3.5 h-3.5 text-[#E8622C]" />
+          <span className="hidden lg:inline">Export Delivery CSV</span>
+        </a>
+
         {/* Primary Action Button */}
         <button
           onClick={onOpenIngestModal}

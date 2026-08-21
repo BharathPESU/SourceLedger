@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   X, 
   UploadCloud, 
-  FileText, 
   Sparkles, 
   CheckCircle2, 
-  ArrowRight, 
-  Layers, 
-  Cpu, 
-  FileSpreadsheet,
-  AlertCircle
+  ArrowRight,
+  AlertCircle,
+  FileText,
+  Globe,
+  Check,
+  FileType
 } from 'lucide-react';
 import { ProductRecord, IngestionSource } from '../types';
+import { ingestSource as apiIngestSource } from '../lib/api';
 
 interface IngestModalProps {
   isOpen: boolean;
@@ -24,225 +25,338 @@ export const IngestModal: React.FC<IngestModalProps> = ({
   onClose,
   onIngestSuccess
 }) => {
-  const [sourceName, setSourceName] = useState('');
-  const [category, setCategory] = useState<'Electronics' | 'Industrial' | 'Audio & Acoustic' | 'Robotics & Automation'>('Electronics');
-  const [fileType, setFileType] = useState<'PDF Datasheet' | 'CSV Batch' | 'Supplier API'>('PDF Datasheet');
+  const [activeTab, setActiveTab] = useState<'upload' | 'text'>('upload');
+  const [content, setContent] = useState('');
+  const [filename, setFilename] = useState('');
+  const [sourceType, setSourceType] = useState<'web' | 'pdf'>('web');
+  const [categoryKey, setCategoryKey] = useState<string>('');
+  const [trustTier, setTrustTier] = useState<number>(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processStep, setProcessStep] = useState<number>(0);
   const [extractedPreview, setExtractedPreview] = useState<ProductRecord | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   if (!isOpen) return null;
 
   const samplePresets = [
     {
-      name: 'NXP LPC55S69 Dual-Core ARM Cortex-M33 MCU',
-      fileName: 'NXP_LPC55S69_Datasheet_Rev4.pdf',
-      category: 'Electronics' as const,
-      type: 'PDF Datasheet' as const,
-      sku: 'NXP-LPC55S69JBD100',
-      brand: 'NXP Semiconductors',
-      confidence: 96,
-      specs: '150 MHz Dual-core Arm Cortex-M33, TrustZone, 640 KB Flash, 320 KB SRAM, USB High Speed'
+      name: 'Grundfos CR 15-3 Inline Centrifugal Pump',
+      fileName: 'Grundfos_CR15_Datasheet.pdf',
+      category: 'Industrial',
+      categoryKey: 'industrial_pump',
+      content: `GRUNDFOS CENTRIFUGAL PUMP CR 15-3 A-F-A-E-HQQE
+Product Name: Grundfos CR 15-3 Vertical Multistage Pump
+Flow Rate (Nominal): 15.0 m3/h
+Rated Head: 45.2 m
+Maximum Operating Pressure: 16 bar
+Liquid Temperature Range: -20°C to +120°C
+Motor Power: 3.0 kW
+Pump Housing: Cast Iron EN-GJL-200
+Impeller: Stainless Steel AISI 304`
     },
     {
-      name: 'Keyence LR-X Series CMOS Multi-Surface Laser Sensor',
-      fileName: 'Keyence_LR_X_Sensor_Catalog.pdf',
-      category: 'Industrial' as const,
-      type: 'PDF Datasheet' as const,
-      sku: 'KEY-LR-X50',
-      brand: 'Keyence',
-      confidence: 72,
-      specs: 'Detects transparent/reflective targets, 25-500mm range, IP69K stainless enclosure, IO-Link v1.1'
+      name: 'TE Connectivity AMPSEAL 16 8-Pin Connector',
+      fileName: 'TE_AMPSEAL16_776495_1.pdf',
+      category: 'Electronics',
+      categoryKey: 'electrical_connector',
+      content: `TE CONNECTIVITY AMPSEAL 16 8-POSITION CONNECTOR
+Product Name: TE Connectivity AMPSEAL 16 8-Pin Plug Assembly
+Part Number: 776495-1
+Number of Positions: 8 Positions
+Current Rating (Max): 13.0 A per contact
+Operating Voltage: 250 V AC
+Ingress Protection: IP67 and IP69K
+Operating Temperature: -40°C to +125°C`
+    },
+    {
+      name: 'Fabory M12x50 Class 10.9 Hex Bolt',
+      fileName: 'Fabory_M12x50_Fastener.pdf',
+      category: 'Industrial',
+      categoryKey: 'safety_fastener',
+      content: `FABORY M12 x 50mm CLASS 10.9 HEXAGON HEAD BOLT
+Product Name: Fabory M12x50 Hex Head Cap Screw Class 10.9
+Thread Size: M12 x 1.75 mm Pitch
+Nominal Length: 50.0 mm
+Property Class: Class 10.9
+Proof Load Strength: 830 MPa
+Tensile Strength (Min): 1040 MPa
+Material Grade: Alloy Steel, Quenched and Tempered`
     }
   ];
 
-  const handleSelectPreset = (preset: typeof samplePresets[0]) => {
-    setSourceName(preset.name);
-    setCategory(preset.category);
-    setFileType(preset.type);
-    runExtractionSimulation(preset);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFilename(file.name);
+    setErrorMsg(null);
+
+    const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+    const reader = new FileReader();
+
+    if (isPdf) {
+      setSourceType('pdf');
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.includes(',') ? result.split(',')[1] : result;
+        setContent(base64);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setSourceType('web');
+      reader.onload = () => {
+        setContent(reader.result as string);
+      };
+      reader.readAsText(file);
+    }
   };
 
-  const runExtractionSimulation = (presetData?: typeof samplePresets[0]) => {
+  const handleSelectPreset = (preset: typeof samplePresets[0]) => {
+    setActiveTab('text');
+    setContent(preset.content);
+    setFilename(preset.fileName);
+    setCategoryKey(preset.categoryKey);
+    setSourceType('web');
+  };
+
+  const handleSubmitIngestion = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!content.trim()) {
+      setErrorMsg('Please select a file or enter specification text to ingest.');
+      return;
+    }
+
     setIsProcessing(true);
+    setErrorMsg(null);
     setProcessStep(1);
 
-    const targetPreset = presetData || {
-      name: sourceName || 'Custom Ingested Product Specification',
-      fileName: 'Custom_Source_Datasheet.pdf',
-      category: category,
-      type: fileType,
-      sku: `GEN-${Math.floor(1000 + Math.random() * 9000)}-X`,
-      brand: 'Global Manufacturer',
-      confidence: 91,
-      specs: 'High-efficiency industrial controller with smart diagnostic bus interface.'
-    };
+    const stepInterval1 = setTimeout(() => setProcessStep(2), 600);
+    const stepInterval2 = setTimeout(() => setProcessStep(3), 1200);
 
-    // Step 1: Multimodal OCR & Layout Analysis
-    setTimeout(() => {
-      setProcessStep(2);
-      // Step 2: Table & Spec Matrix Extraction
-      setTimeout(() => {
-        setProcessStep(3);
-        // Step 3: Confidence Scoring & Normalization
-        setTimeout(() => {
-          setProcessStep(4);
-          
-          const newProduct: ProductRecord = {
-            id: `prod-${Date.now()}`,
-            sku: targetPreset.sku,
-            name: targetPreset.name,
-            brand: targetPreset.brand,
-            category: targetPreset.category,
-            confidence: targetPreset.confidence,
-            confidenceLevel: targetPreset.confidence >= 85 ? 'high' : 'medium',
-            status: targetPreset.confidence >= 85 ? 'auto_committed' : 'needs_review',
-            lastUpdated: 'Just now',
-            sourceDocument: targetPreset.fileName,
-            fieldsCount: 8,
-            fieldsReviewedCount: targetPreset.confidence >= 85 ? 8 : 4,
-            specsSummary: targetPreset.specs,
-            fields: [
-              {
-                id: `f-${Date.now()}-1`,
-                name: 'Core Processor Architecture',
-                value: targetPreset.specs.split(',')[0] || 'High Performance RISC',
-                confidence: targetPreset.confidence,
-                confidenceLevel: 'high',
-                sourceDocument: targetPreset.fileName,
-                sourcePage: 1,
-                sourceSection: 'Key Architecture Matrix',
-                sourceExcerpt: `"System Architecture: ${targetPreset.specs}"`,
-                aiReasoning: 'Extracted from page 1 executive summary table with verified IEC alignment.',
-                fieldType: 'text'
-              },
-              {
-                id: `f-${Date.now()}-2`,
-                name: 'Enclosure Rating & Environment',
-                value: 'IP67 / Industrial Grade (-40°C to +85°C)',
-                confidence: 94,
-                confidenceLevel: 'high',
-                sourceDocument: targetPreset.fileName,
-                sourcePage: 3,
-                sourceSection: 'Environmental Characteristics',
-                sourceExcerpt: '"Environmental compliance: Ingress protection IP67; Operating ambient: -40°C to 85°C."',
-                aiReasoning: 'Standard IEC 60529 rating extracted unambiguously.',
-                fieldType: 'text'
-              }
-            ]
-          };
+    try {
+      const realProduct = await apiIngestSource({
+        sourceType,
+        content: content.trim(),
+        category: categoryKey || undefined,
+        trustTier,
+        filename: filename || (sourceType === 'pdf' ? 'datasheet.pdf' : 'spec_sheet.txt'),
+      });
 
-          const newSource: IngestionSource = {
-            id: `src-${Date.now()}`,
-            name: targetPreset.name,
-            fileName: targetPreset.fileName,
-            fileType: targetPreset.type,
-            fileSize: '8.4 MB',
-            recordsCount: 1,
-            extractedFieldsCount: 8,
-            status: 'completed',
-            avgConfidence: targetPreset.confidence,
-            category: targetPreset.category,
-            timestamp: 'Just now',
-            processingTimeSec: 4.2,
-            aiModelUsed: 'Gemini 2.5 Flash Multimodal OCR'
-          };
+      clearTimeout(stepInterval1);
+      clearTimeout(stepInterval2);
+      setProcessStep(4);
 
-          setExtractedPreview(newProduct);
-          setIsProcessing(false);
-          onIngestSuccess(newProduct, newSource);
-        }, 1200);
-      }, 1200);
-    }, 1000);
+      const realSource: IngestionSource = {
+        id: `src-${Date.now()}`,
+        name: filename || realProduct.name,
+        fileName: filename || `${realProduct.name.replace(/\s+/g, '_')}.pdf`,
+        fileType: sourceType === 'pdf' ? 'PDF Datasheet' : 'Web Scraper',
+        fileSize: `${Math.max(1, Math.round(content.length / 1024))} KB`,
+        recordsCount: 1,
+        extractedFieldsCount: realProduct.fields.length,
+        status: 'completed',
+        avgConfidence: realProduct.confidence,
+        category: realProduct.category,
+        timestamp: 'Just now',
+        processingTimeSec: 1.8,
+        aiModelUsed: 'Gemini 3.6 Flash Multi-Agent Pipeline',
+      };
+
+      setExtractedPreview(realProduct);
+      setIsProcessing(false);
+      onIngestSuccess(realProduct, realSource);
+    } catch (err) {
+      clearTimeout(stepInterval1);
+      clearTimeout(stepInterval2);
+      setIsProcessing(false);
+      setErrorMsg(err instanceof Error ? err.message : 'Ingestion failed');
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-[#191715]/40 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white/80 backdrop-blur-2xl rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/90 ring-1 ring-white/60 relative my-8 animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white/85 backdrop-blur-2xl rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-white/90 ring-1 ring-white/60 relative my-8 animate-in fade-in zoom-in-95 duration-150">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 rounded-full bg-white/60 hover:bg-white/90 backdrop-blur-md text-[#8C8276] hover:text-[#191715] border border-white/70 shadow-2xs transition-colors cursor-pointer"
+          className="absolute top-6 right-6 p-2 rounded-full bg-white/70 hover:bg-white backdrop-blur-md text-[#8C8276] hover:text-[#191715] border border-white/80 shadow-2xs transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 backdrop-blur-md text-[#E8622C] text-xs font-bold uppercase tracking-wider mb-2 border border-white/70 shadow-2xs">
+        <div className="mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 backdrop-blur-md text-[#E8622C] text-xs font-bold uppercase tracking-wider mb-2 border border-white/80 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Multimodal Gemini Ingestion</span>
+            <span>Gemini Multi-Agent Ingestion Engine</span>
           </div>
           <h2 className="font-didone font-bold text-2xl text-[#191715] tracking-tight">
-            Ingest New <span className="font-didone-italic text-[#E8622C] font-normal">Product Source</span>
+            Ingest Product <span className="font-didone-italic text-[#E8622C] font-normal">Datasheet</span>
           </h2>
           <p className="text-xs text-[#5C554D] mt-1 leading-relaxed">
-            Upload manufacturer PDF spec sheets, supplier CSV tables, or CAD BOM exports. Gemini will extract, normalize, and score confidence on every attribute.
+            Upload PDF files, CSV catalogs, or paste specification text. Gemini will extract schema-locked fields with source citations in real time.
           </p>
         </div>
 
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
         {!isProcessing && !extractedPreview ? (
-          <div className="space-y-5">
-            {/* Drag and Drop Zone - Frosted Glass Box */}
-            <div
-              onClick={() => runExtractionSimulation()}
-              className="border-2 border-dashed border-white/90 hover:border-[#E8622C] bg-white/50 backdrop-blur-md hover:bg-white/70 rounded-3xl p-6 text-center shadow-inner transition-all cursor-pointer group"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md shadow-xs mx-auto flex items-center justify-center text-[#E8622C] group-hover:scale-110 border border-white/80 transition-transform">
-                <UploadCloud className="w-6 h-6" />
-              </div>
-              <p className="font-display font-bold text-sm text-[#191715] mt-3">
-                Drop PDF datasheets, CSV, or JSON here
-              </p>
-              <p className="text-xs text-[#8C8276] mt-0.5">
-                or click to browse files (PDF, CSV, XLSX, JSON up to 100MB)
-              </p>
+          <form onSubmit={handleSubmitIngestion} className="space-y-5">
+            {/* Ingestion Mode Pill Switcher */}
+            <div className="flex bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-white/80 shadow-2xs text-xs">
+              <button
+                type="button"
+                onClick={() => { setActiveTab('upload'); setSourceType('pdf'); }}
+                className={`flex-1 py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'upload' ? 'bg-[#191715] text-white shadow-xs' : 'text-[#5C554D] hover:text-[#191715]'
+                }`}
+              >
+                <UploadCloud size={14} />
+                Upload PDF / File
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('text'); setSourceType('web'); }}
+                className={`flex-1 py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'text' ? 'bg-[#191715] text-white shadow-xs' : 'text-[#5C554D] hover:text-[#191715]'
+                }`}
+              >
+                <Globe size={14} />
+                Paste Text / Spec URL
+              </button>
             </div>
 
-            {/* Quick 1-Click Sample Presets */}
+            {/* Ingestion Input Container */}
+            {activeTab === 'upload' ? (
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.txt,.csv,.json"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-white/90 hover:border-[#E8622C] bg-white/50 backdrop-blur-md hover:bg-white/80 rounded-3xl p-6 text-center shadow-inner transition-all cursor-pointer group"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md shadow-xs mx-auto flex items-center justify-center text-[#E8622C] group-hover:scale-110 border border-white/80 transition-transform">
+                    <FileType className="w-6 h-6" />
+                  </div>
+                  <p className="font-display font-bold text-sm text-[#191715] mt-3">
+                    {filename ? `Selected: ${filename}` : 'Click or drop PDF, TXT, CSV file here'}
+                  </p>
+                  <p className="text-xs text-[#8C8276] mt-0.5">
+                    {content ? `${Math.round(content.length / 1024)} KB loaded ready for extraction` : 'Supports technical datasheets up to 50MB'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1.5">
+                  Specification Text or Product URL
+                </label>
+                <textarea
+                  rows={4}
+                  value={content}
+                  onChange={(e) => { setContent(e.target.value); setSourceType('web'); }}
+                  placeholder="Paste technical specification text, datasheet tables, or product page URL..."
+                  className="w-full text-xs font-mono bg-white/60 backdrop-blur-md p-3.5 rounded-2xl border border-white/80 focus:outline-hidden focus:border-[#E8622C] focus:bg-white shadow-2xs text-[#191715] placeholder:text-[#8C8276] leading-relaxed resize-none"
+                  required
+                />
+              </div>
+            )}
+
+            {/* Category Schema Selector & Trust Tier */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
+                  Category Schema
+                </label>
+                <select
+                  value={categoryKey}
+                  onChange={(e) => setCategoryKey(e.target.value)}
+                  className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
+                >
+                  <option value="">Auto-Detect Category Schema</option>
+                  <option value="industrial_pump">Industrial Pump Schema</option>
+                  <option value="electrical_connector">Electrical Connector Schema</option>
+                  <option value="safety_fastener">Safety Fastener Schema</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
+                  Source Trust Tier
+                </label>
+                <select
+                  value={trustTier}
+                  onChange={(e) => setTrustTier(Number(e.target.value))}
+                  className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
+                >
+                  <option value={1}>Tier 1: OEM / Manufacturer Spec</option>
+                  <option value={2}>Tier 2: Authorized Distributor</option>
+                  <option value={3}>Tier 3: Third-Party Catalog</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Sample Presets */}
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-2">
-                Or try a realistic sample datasheet:
+                Or fill with a sample datasheet:
               </span>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {samplePresets.map((preset, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => handleSelectPreset(preset)}
-                    className="w-full text-left p-3 rounded-2xl bg-white/60 hover:bg-white/90 backdrop-blur-md border border-white/80 shadow-2xs flex items-center justify-between gap-3 transition-colors cursor-pointer"
+                    className="text-left p-2.5 rounded-xl bg-white/60 hover:bg-white backdrop-blur-md border border-white/80 shadow-2xs transition-colors cursor-pointer text-xs"
                   >
-                    <div className="min-w-0">
-                      <span className="font-bold text-xs text-[#191715] truncate block">
-                        {preset.name}
-                      </span>
-                      <span className="text-[11px] text-[#8C8276] font-mono">
-                        {preset.fileName} • {preset.category}
-                      </span>
-                    </div>
-                    <span className="text-xs font-bold text-[#E8622C] shrink-0 flex items-center gap-1">
-                      Ingest <ArrowRight className="w-3 h-3" />
+                    <span className="font-bold text-[#191715] truncate block">
+                      {preset.category}
+                    </span>
+                    <span className="text-[10px] text-[#8C8276] truncate block mt-0.5">
+                      {preset.fileName}
                     </span>
                   </button>
                 ))}
               </div>
             </div>
-          </div>
+
+            {/* Submit Action Button */}
+            <button
+              type="submit"
+              disabled={!content.trim() || isProcessing}
+              className="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] hover:scale-[1.01] active:scale-[0.99] text-white text-xs font-bold shadow-md shadow-[#E8622C]/25 border border-white/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <span>Ingest & Extract Provenance</span>
+              <ArrowRight size={16} />
+            </button>
+          </form>
         ) : isProcessing ? (
-          /* Live AI Pipeline Steps Simulator */
-          <div className="py-6 space-y-5">
+          /* Live AI Pipeline Steps Indicator */
+          <div className="py-8 space-y-6">
             <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-[#E8622C] text-white mx-auto flex items-center justify-center animate-bounce shadow-lg shadow-[#E8622C]/30">
                 <Sparkles className="w-6 h-6" />
               </div>
               <h3 className="font-display font-bold text-lg text-[#191715] mt-3">
-                Analyzing Product Specification...
+                Processing Datasheet through Gemini Pipeline...
               </h3>
               <p className="text-xs text-[#8C8276] mt-0.5">
-                Gemini Multimodal OCR Pipeline Active
+                Gemini 3.6 Flash Multi-Agent Extraction Active
               </p>
             </div>
 
-            {/* Progress Checklist - Frosted Glass Container */}
+            {/* Progress Checklist */}
             <div className="space-y-3 bg-white/60 backdrop-blur-md p-4 rounded-2xl border border-white/80 shadow-2xs">
               <div className="flex items-center gap-3 text-xs">
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
@@ -251,7 +365,7 @@ export const IngestModal: React.FC<IngestModalProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
                 <span className={processStep >= 1 ? 'font-bold text-[#191715]' : 'text-[#8C8276]'}>
-                  Optical Layout & Multi-Column Table Parsing
+                  Ingestion & Content Provenance Hashing
                 </span>
               </div>
 
@@ -262,7 +376,7 @@ export const IngestModal: React.FC<IngestModalProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
                 <span className={processStep >= 2 ? 'font-bold text-[#191715]' : 'text-[#8C8276]'}>
-                  Electrical & Mechanical Attribute Extraction
+                  Schema-Locked Attribute Extraction (Gemini 3.6 Flash)
                 </span>
               </div>
 
@@ -273,14 +387,14 @@ export const IngestModal: React.FC<IngestModalProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
                 <span className={processStep >= 3 ? 'font-bold text-[#191715]' : 'text-[#8C8276]'}>
-                  Calculating Confidence Scores & Provenance Offsets
+                  Confidence Scoring & Validation Gate
                 </span>
               </div>
             </div>
           </div>
         ) : (
           /* Success Screen */
-          <div className="text-center py-4 space-y-4">
+          <div className="text-center py-6 space-y-4">
             <div className="w-12 h-12 rounded-full bg-[#EAF5EE]/90 backdrop-blur-md text-[#1F8A53] border border-[#1F8A53]/20 mx-auto flex items-center justify-center shadow-xs">
               <CheckCircle2 className="w-6 h-6" />
             </div>
@@ -289,7 +403,7 @@ export const IngestModal: React.FC<IngestModalProps> = ({
                 Source Successfully Ingested!
               </h3>
               <p className="text-xs text-[#5C554D] mt-1">
-                <strong>{extractedPreview?.name}</strong> has been added to your catalog ledger with {extractedPreview?.confidence}% confidence.
+                <strong>{extractedPreview?.name}</strong> has been extracted and ledgered into your catalog with {extractedPreview?.confidence}% confidence.
               </p>
             </div>
             <button

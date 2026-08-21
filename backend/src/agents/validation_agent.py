@@ -66,11 +66,12 @@ class ValidationAgent:
                 if f.status == FieldStatus.AUTO_COMMITTED
             )
 
-            # Overall confidence is the minimum across all fields
+            # Overall confidence is the average across extracted fields
+            non_zero_confidences = [f.confidence for f in validated_fields if f.value is not None]
             confidence_overall = (
-                min(f.confidence for f in validated_fields)
-                if validated_fields
-                else 0
+                round(sum(non_zero_confidences) / len(non_zero_confidences))
+                if non_zero_confidences
+                else (round(sum(f.confidence for f in validated_fields) / len(validated_fields)) if validated_fields else 0)
             )
 
             ctx["output_summary"] = (

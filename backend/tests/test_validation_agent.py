@@ -88,8 +88,8 @@ class TestValidationAgent:
         assert result.fields[0].status == FieldStatus.NEEDS_REVIEW
 
     @pytest.mark.asyncio
-    async def test_overall_confidence_is_minimum(self, agent):
-        """Overall confidence should be min of all fields (weakest link)."""
+    async def test_overall_confidence_is_average(self, agent):
+        """Overall confidence should be average of all extracted fields."""
         fields = [
             _make_field(name="manufacturer", confidence=90),
             _make_field(name="model_number", display_name="Model Number", confidence=80),
@@ -97,8 +97,8 @@ class TestValidationAgent:
         ]
         result = await agent.validate(fields, "industrial_pump")
 
-        assert result.confidence_overall == 30, (
-            "Overall confidence should be the minimum across all fields"
+        assert result.confidence_overall == 67, (
+            "Overall confidence should be the average across all fields"
         )
 
     @pytest.mark.asyncio

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BackgroundBlobs } from './components/BackgroundBlobs';
+import { BackgroundVideo } from './components/BackgroundVideo';
 import { TopNav } from './components/TopNav';
 import { LeftRail } from './components/LeftRail';
 import { DashboardView } from './components/DashboardView';
@@ -11,16 +11,63 @@ import { SettingsView } from './components/SettingsView';
 import { IngestModal } from './components/IngestModal';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
+import { 
+  fetchProducts, 
+  fetchSources, 
+  acceptField, 
+  editField, 
+  buildCategoryOverviews 
+} from './lib/api';
 
 export default function App() {
-  const [products, setProducts] = useState<ProductRecord[]>(INITIAL_PRODUCTS);
-  const [sources, setSources] = useState<IngestionSource[]>(INITIAL_SOURCES);
-  const [categories, setCategories] = useState<CategoryOverview[]>(CATEGORY_OVERVIEWS);
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+  const [sources, setSources] = useState<IngestionSource[]>([]);
+  const [categories, setCategories] = useState<CategoryOverview[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [selectedProduct, setSelectedProduct] = useState<ProductRecord>(INITIAL_PRODUCTS[0]);
+  const [selectedProduct, setSelectedProduct] = useState<ProductRecord | null>(null);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
   const mainScrollRef = useRef<HTMLElement | null>(null);
+
+  // Load real-time catalog data from backend API
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadBackendData() {
+      try {
+        const [liveProducts, liveSources] = await Promise.all([
+          fetchProducts(),
+          fetchSources(),
+        ]);
+
+        if (isMounted) {
+          setProducts(liveProducts);
+          setSources(liveSources);
+          setIsLiveConnected(true);
+
+          if (liveProducts.length > 0) {
+            setSelectedProduct(prev => prev && liveProducts.some(p => p.id === prev.id) ? prev : liveProducts[0]);
+            setCategories(buildCategoryOverviews(liveProducts));
+          } else {
+            setSelectedProduct(null);
+            setCategories([]);
+          }
+        }
+      } catch (err) {
+        console.info('Backend sync error:', err);
+      }
+    }
+
+    loadBackendData();
+
+    // Periodic real-time sync every 5 seconds
+    const interval = setInterval(loadBackendData, 5000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Scroll to top when changing views
   useEffect(() => {
@@ -30,7 +77,17 @@ export default function App() {
   }, [activeTab]);
 
   // Handle single product approval
-  const handleApproveProduct = (productId: string) => {
+  const handleApproveProduct = async (productId: string) => {
+    // Perform real-time backend field approval API calls for all fields needing review
+    const prodToApprove = products.find(p => p.id === productId);
+    if (prodToApprove) {
+      for (const field of prodToApprove.fields) {
+        if (!field.isApproved) {
+          acceptField(productId, field.id).catch(console.warn);
+        }
+      }
+    }
+
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
         const approvalEntry: FieldAuditEntry = {
@@ -40,7 +97,7 @@ export default function App() {
           fieldName: 'All Attributes Verification',
           previousValue: `${p.fieldsReviewedCount}/${p.fieldsCount} Reviewed`,
           newValue: 'All Attributes Approved & Committed',
-          changedBy: 'Balu R. (Lead Catalog Engineer)',
+          changedBy: 'Lead Catalog Engineer',
           changeType: 'verified_approval',
           confidenceBefore: p.confidence,
           confidenceAfter: 99,
@@ -71,46 +128,16 @@ export default function App() {
 
   // Handle bulk product approval
   const handleApproveAll = (productIds: string[]) => {
-    setProducts(prev => prev.map(p => {
-      if (productIds.includes(p.id)) {
-        const approvalEntry: FieldAuditEntry = {
-          id: `audit-bulk-${Date.now()}-${p.id}`,
-          timestamp: 'Just now',
-          fieldId: 'f-all-approved',
-          fieldName: 'All Attributes Verification',
-          previousValue: `${p.fieldsReviewedCount}/${p.fieldsCount} Reviewed`,
-          newValue: 'All Attributes Approved & Committed',
-          changedBy: 'Balu R. (Lead Catalog Engineer)',
-          changeType: 'verified_approval',
-          confidenceBefore: p.confidence,
-          confidenceAfter: 99,
-          reason: 'Bulk queue review approval.',
-          sourceRef: p.sourceDocument
-        };
-
-        const updatedProd: ProductRecord = {
-          ...p,
-          status: 'human_corrected',
-          confidence: Math.max(95, p.confidence),
-          confidenceLevel: 'high',
-          fieldsReviewedCount: p.fieldsCount,
-          conflictsSummary: undefined,
-          fields: p.fields.map(f => ({ ...f, isApproved: true, confidence: Math.max(95, f.confidence) })),
-          auditLog: [approvalEntry, ...(p.auditLog || [])]
-        };
-
-        if (selectedProduct.id === p.id) {
-          setSelectedProduct(updatedProd);
-        }
-
-        return updatedProd;
-      }
-      return p;
-    }));
+    productIds.forEach(id => handleApproveProduct(id));
   };
 
   // Handle field update in Field Inspector
-  const handleUpdateField = (productId: string, fieldId: string, newValue: string, isApproved: boolean) => {
+  const handleUpdateField = async (productId: string, fieldId: string, newValue: string, isApproved: boolean) => {
+    // Notify backend in real time
+    if (isApproved) {
+      editField(productId, fieldId, newValue).catch(console.warn);
+    }
+
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
         const targetField = p.fields.find(f => f.id === fieldId);
@@ -146,7 +173,7 @@ export default function App() {
           fieldName,
           previousValue: prevValue,
           newValue,
-          changedBy: 'Balu R. (Lead Catalog Engineer)',
+          changedBy: 'Lead Catalog Engineer',
           changeType: isRevert ? 'revert' : isValueSame ? 'verified_approval' : 'manual_override',
           confidenceBefore: prevConfidence,
           confidenceAfter: 99,
@@ -206,10 +233,10 @@ export default function App() {
 
   return (
     <div className="relative h-screen w-full bg-[#F5E9D8] text-[#191715] flex flex-col font-sans selection:bg-[#E8622C] selection:text-white overflow-hidden">
-      {/* Background Organic Blobs (Matching Reference Style) */}
-      <BackgroundBlobs />
+      {/* Background Abstract Shapes Video */}
+      <BackgroundVideo />
 
-      {/* Top Bar Navigation (Fixed & Stationary) */}
+      {/* Top Bar Navigation */}
       <TopNav
         onOpenIngestModal={() => setIsIngestModalOpen(true)}
         onSelectProduct={(p) => setSelectedProduct(p)}
@@ -220,7 +247,7 @@ export default function App() {
         setActiveTab={setActiveTab}
       />
 
-      {/* Main Layout: Left Icon Rail (Stationary) + Content Area (Scrollable cards) */}
+      {/* Main Layout: Left Icon Rail + Content Area */}
       <div className="relative z-10 flex flex-1 overflow-hidden min-h-0 w-full">
         <LeftRail
           activeTab={activeTab}
