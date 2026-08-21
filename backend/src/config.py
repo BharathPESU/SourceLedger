@@ -33,9 +33,9 @@ class Settings(BaseSettings):
         keys = []
         for i in range(1, 9):
             key = getattr(self, f"google_api_key{i}", "").strip()
-            if key:
+            if key and key not in keys:
                 keys.append(key)
-        if not keys and self.google_api_key.strip():
+        if self.google_api_key.strip() and self.google_api_key.strip() not in keys:
             keys.append(self.google_api_key.strip())
         return keys
 
