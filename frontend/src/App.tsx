@@ -9,6 +9,8 @@ import { ProductsCatalogView } from './components/ProductsCatalogView';
 import { IngestionSourcesView } from './components/IngestionSourcesView';
 import { DataQualityDashboardView } from './components/DataQualityDashboardView';
 import { CatalogCopilotView } from './components/CatalogCopilotView';
+import { SettingsView } from './components/SettingsView';
+import { OcrAgentView } from './components/OcrAgentView';
 import { IngestModal } from './components/IngestModal';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
