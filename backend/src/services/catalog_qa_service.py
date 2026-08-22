@@ -63,7 +63,7 @@ async def answer_catalog_question(
         
         response = key_rotator.call_with_rotation(
             client.models.generate_content,
-            model="gemini-2.0-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
         )
         text = response.text or ""
