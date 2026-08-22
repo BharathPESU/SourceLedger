@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     google_api_key7: str = ""
     google_api_key8: str = ""
     openai_api_key: str = ""
+    api_url: str = "https://free-api-erel.onrender.com/api/generate"
+    api_key: str = ""
 
     # Gemini Round-Robin Gateway Proxy Settings
     gemini_proxy_url: str = ""

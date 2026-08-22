@@ -37,7 +37,7 @@ export const SettingsView: React.FC = () => {
             Settings & <span className="font-didone-italic text-[#E8622C] font-normal">Model Thresholds</span>
           </h1>
           <p className="text-sm text-[#5C554D] mt-1 max-w-xl">
-            Configure automated commitment policies, confidence cutoff thresholds, and Gemini multimodal reasoning parameters for catalog ingestion.
+            Configure automated commitment policies, confidence cutoff thresholds, and Ledger multimodal reasoning parameters for catalog ingestion.
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export const SettingsView: React.FC = () => {
             </div>
             <div>
               <h3 className="font-display font-bold text-base text-[#191715]">
-                Gemini Extraction Engine
+                Ledger Extraction Engine
               </h3>
               <p className="text-xs text-[#8C8276]">
                 Multimodal OCR & reasoning model
@@ -137,7 +137,7 @@ export const SettingsView: React.FC = () => {
             >
               <div>
                 <span className="font-bold text-xs text-[#191715] block">
-                  Gemini 2.5 Flash (Recommended)
+                  Ledger 3.6 Flash (Recommended)
                 </span>
                 <span className="text-[11px] text-[#8C8276]">
                   Ultra-fast multimodal spatial OCR & spec table parsing
@@ -160,7 +160,7 @@ export const SettingsView: React.FC = () => {
             >
               <div>
                 <span className="font-bold text-xs text-[#191715] block">
-                  Gemini 2.5 Pro (Deep Cross-Reference)
+                  Ledger 3.6 Pro (Deep Cross-Reference)
                 </span>
                 <span className="text-[11px] text-[#8C8276]">
                   Complex CAD engineering drawings & multi-standard cross-verification

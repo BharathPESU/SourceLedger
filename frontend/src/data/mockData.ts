@@ -401,7 +401,7 @@ export const INITIAL_SOURCES: IngestionSource[] = [
     category: 'Audio & Acoustic',
     timestamp: 'Today at 06:45 AM',
     processingTimeSec: 14.2,
-    aiModelUsed: 'Gemini 2.5 Flash Multimodal OCR'
+    aiModelUsed: 'Ledger 3.6 Flash Multimodal OCR'
   },
   {
     id: 'src-2',
@@ -416,7 +416,7 @@ export const INITIAL_SOURCES: IngestionSource[] = [
     category: 'Industrial',
     timestamp: 'Today at 04:12 AM',
     processingTimeSec: 64.8,
-    aiModelUsed: 'Gemini 2.5 Flash Structured Schema Extractor'
+    aiModelUsed: 'Ledger 3.6 Flash Structured Schema Extractor'
   },
   {
     id: 'src-3',
@@ -431,7 +431,7 @@ export const INITIAL_SOURCES: IngestionSource[] = [
     category: 'Electronics',
     timestamp: 'Yesterday at 11:30 PM',
     processingTimeSec: 8.7,
-    aiModelUsed: 'Gemini 2.5 Pro High-Precision Reasoning'
+    aiModelUsed: 'Ledger 3.6 Pro High-Precision Reasoning'
   },
   {
     id: 'src-4',
@@ -446,7 +446,7 @@ export const INITIAL_SOURCES: IngestionSource[] = [
     category: 'Robotics & Automation',
     timestamp: 'Yesterday at 08:15 PM',
     processingTimeSec: 19.3,
-    aiModelUsed: 'Gemini 2.5 Flash Multimodal OCR'
+    aiModelUsed: 'Ledger 3.6 Flash Multimodal OCR'
   },
   {
     id: 'src-5',
@@ -461,7 +461,7 @@ export const INITIAL_SOURCES: IngestionSource[] = [
     category: 'Electronics',
     timestamp: 'Just now',
     processingTimeSec: 3.1,
-    aiModelUsed: 'Gemini 2.5 Flash API Streamer'
+    aiModelUsed: 'Ledger 3.6 Flash API Streamer'
   }
 ];
 
