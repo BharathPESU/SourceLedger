@@ -781,3 +781,43 @@ export async function getCopilotSuggestions(): Promise<Array<{ label: string; pr
   const res = await apiFetch<{ suggestions: Array<{ label: string; prompt: string; icon: string }> }>('/copilot/suggestions');
   return res.suggestions || [];
 }
+
+export interface SystemSettings {
+  auto_commit_threshold: number;
+  review_threshold: number;
+  active_model: string;
+  enable_refinement: boolean;
+  strict_tolerance: boolean;
+  proxy_url: string;
+  proxy_timeout: number;
+  auto_refresh_interval: number;
+  density_mode: string;
+}
+
+export interface SettingsTelemetry {
+  total_keys: number;
+  active_keys: number;
+  rate_limit_cooldown_seconds: number;
+  user_products_count: number;
+  user_sources_count: number;
+  database_path: string;
+  app_env: string;
+}
+
+export async function fetchSystemSettings(): Promise<{ settings: SystemSettings; telemetry: SettingsTelemetry }> {
+  return apiFetch<{ settings: SystemSettings; telemetry: SettingsTelemetry }>('/settings');
+}
+
+export async function saveSystemSettings(settings: SystemSettings): Promise<any> {
+  return apiFetch<any>('/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  });
+}
+
+export async function resetApiKeyRotator(): Promise<any> {
+  return apiFetch<any>('/settings/reset-keys', {
+    method: 'POST',
+  });
+}
