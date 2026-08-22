@@ -1,109 +1,109 @@
-# SourceLedger — Architecture & Engineering Principles
+# SourceLedger — System Architecture & Engineering Principles
 
 ## 1. Design Philosophy
 
-SourceLedger is built on four non-negotiable principles, chosen because they directly map to the hackathon's judging criteria (innovation, technical implementation, business relevance, impact):
+SourceLedger is built on five core architectural principles:
 
-1. **Explainability over opacity** — no field exists in the output without a traceable source. This is a hard architectural constraint, not a UI afterthought: the data model itself requires a citation and confidence value alongside every extracted field.
-2. **Separation of concerns via agent boundaries** — each pipeline stage (ingest, extract, enrich, validate) is an independent, testable unit with a defined input/output contract. No stage reaches into another's internals.
-3. **Fail loud, not silent** — low-confidence or conflicting data is never guessed past; it is surfaced to a human. The system is designed to know what it doesn't know.
-4. **Design for scale from day one** — even in an MVP, data models and storage choices assume thousands of SKUs, not one. Dedup and taxonomy mapping are core, not bolted on later.
+1. **Explainability over opacity**: No field exists in the catalog without a traceable, verbatim source citation, confidence score (0–100%), and reasoning chain.
+2. **Modular Agent Boundaries**: Ingestion, Extraction, Enrichment, Validation, and Explainability operate as isolated pipeline stages with explicit Pydantic contracts.
+3. **Fail Loud & Human-in-the-Loop**: Low-confidence attributes (< 80%) or cross-source conflicts are surfaced to a dedicated Review Queue rather than guessed silently.
+4. **Resilient Multi-Key Rotator**: Concurrent requests cycle through an 8-key Gemini API pool (`GEMINI_API_KEY_1` to `GEMINI_API_KEY_8`) with thread-safe round-robin allocation.
+5. **Domain-Specific Schema Locking**: Extracted attributes are constrained to domain category models (`industrial_pump`, `electrical_connector`, `safety_fastener`, `power_tool`, `home_appliance`, `generic`).
+
+---
 
 ## 2. High-Level System Architecture
 
 ```
-                        ┌─────────────────────────────┐
-                        │        Client Layer          │
-                        │  Dashboard (React) + Field   │
-                        │  Inspector + Review Queue UI │
-                        └───────────────┬──────────────┘
-                                        │ REST/WebSocket
-                        ┌───────────────▼──────────────┐
-                        │          API Layer            │
-                        │        FastAPI (Python)       │
-                        └───────────────┬──────────────┘
-                                        │
-              ┌─────────────────────────┼─────────────────────────┐
-              │                Agent Orchestration Layer            │
-              │                   (LangGraph state machine)         │
-              │                                                     │
-   ┌──────────▼─────────┐ ┌────────────▼───────────┐ ┌─────────────▼───────────┐
-   │  Ingestion Agent    │ │   Extraction Agent      │ │   Enrichment Agent       │
-   │  PDF / web / OCR    │ │   Schema-locked LLM      │ │   Cross-source fill,     │
-   │                     │ │   structured output      │ │   taxonomy lookup        │
-   └──────────┬─────────┘ └────────────┬───────────┘ └─────────────┬───────────┘
-              │                        │                            │
-              └────────────┬───────────┴────────────┬───────────────┘
-                            │                        │
-                 ┌──────────▼───────────┐ ┌──────────▼───────────┐
-                 │  Validation Agent     │ │  Explainability Layer │
-                 │  Conflict resolution, │ │  Source citation +    │
-                 │  confidence scoring   │ │  reasoning chain      │
-                 └──────────┬───────────┘ └──────────┬───────────┘
-                            │                        │
-                            └────────────┬───────────┘
-                                        │
-                        ┌───────────────▼──────────────┐
-                        │        Data Layer              │
-                        │  PostgreSQL (structured        │
-                        │  catalog) + Vector DB (dedup,   │
-                        │  similarity) + Object storage    │
-                        │  (source documents)             │
-                        └────────────────────────────────┘
+                       ┌─────────────────────────────────────────┐
+                       │             Client Layer                │
+                       │   React 18 + TypeScript + Vite +        │
+                       │   Tailwind CSS v4 + Background Video    │
+                       └────────────────────┬────────────────────┘
+                                            │ REST / JSON
+                       ┌────────────────────▼────────────────────┐
+                       │              API Layer                  │
+                       │           FastAPI (Python)              │
+                       └────────────────────┬────────────────────┘
+                                            │
+                       ┌────────────────────▼────────────────────┐
+                       │       Multi-Key Rotator Pool            │
+                       │      Round-robin (8 Gemini Keys)        │
+                       └────────────────────┬────────────────────┘
+                                            │
+        ┌───────────────────────────────────┼───────────────────────────────────┐
+        │                       Agent Pipeline Orchestration                    │
+        │                                                                       │
+  ┌─────▼──────────────┐ ┌───────────────────▼──┐ ┌─────────────────────▼──┐
+  │  Ingestion Agent   │ │   Extraction Agent   │ │   Enrichment Agent      │
+  │  PDF / Web / CSV   │ │   Schema-locked LLM  │ │   Cross-source gap fill │
+  │  SHA-256 Hash      │ │   Pydantic Validation│ │   UNSPSC Taxonomy       │
+  └─────┬──────────────┘ └───────────────────┬──┘ └─────────────────────┬──┘
+        │                                    │                             │
+        └───────────────────┬────────────────┴──────────────┬──────────────┘
+                            │                               │
+                 ┌──────────▼───────────┐       ┌───────────▼──────────┐
+                 │   Validation Agent   │       │ Explainability Layer │
+                 │  Trust-tier ranking, │       │ Source citation &    │
+                 │  confidence scoring  │       │ reasoning annotation │
+                 └──────────┬───────────┘       └───────────┬──────────┘
+                            │                               │
+                            └───────────────┬───────────────┘
+                                            │
+                       ┌────────────────────▼────────────────────┐
+                       │            Data Layer                   │
+                       │  PostgreSQL / Supabase / SQLite         │
+                       │  Object Storage (raw PDF/HTML sources)  │
+                       └─────────────────────────────────────────┘
 ```
+
+---
 
 ## 3. Component Responsibilities
 
-| Component | Responsibility | Key architectural rule |
-|---|---|---|
-| Ingestion Agent | Normalize any input format into raw text + metadata | Never discards the original source — always stored for citation |
-| Extraction Agent | Produce a schema-locked structured draft from raw text | Output must validate against a Pydantic/JSON-schema model or it is rejected, not passed forward |
-| Enrichment Agent | Fill gaps using other sources / catalog similarity | Every added field must attach a source reference |
-| Validation Agent | Resolve conflicts, assign confidence, flag for review | Nothing below the confidence threshold is auto-committed |
-| Explainability Layer | Attach citation + reasoning to every field | Read-only pass — cannot alter data, only annotate it |
-| Catalog Engine | Dedup, taxonomy mapping, storage | Idempotent — re-ingesting the same source must not create duplicates |
-| Dashboard | Field Inspector, review queue, bulk quality view | Never shows a field without its confidence and source together |
-
-## 4. Data Model (Core Entities)
-
-- **ProductRecord**: id, category, schema_version, fields[], confidence_overall, taxonomy_code, dedup_cluster_id
-- **Field**: name, value, confidence, source_ref, reasoning, status (`auto_committed` / `needs_review` / `human_corrected`)
-- **Source**: id, type (pdf/web/image), raw_content_ref, trust_tier
-- **ReviewAction**: field_id, original_value, corrected_value, reviewer, timestamp — this is what feeds the active learning loop
-
-Keeping `Field` as its own entity (rather than flattening product records into plain key-value JSON) is what makes explainability and confidence-per-field possible — this is the most important modeling decision in the whole system.
-
-## 5. Software Engineering Principles to Apply
-
-- **Contract-first development**: define the Pydantic schemas and API contracts before writing agent logic, so every stage can be built and tested independently
-- **Idempotency**: re-running ingestion on the same source must not duplicate catalog entries — enforced via content hashing
-- **Graceful degradation**: if enrichment or an external lookup fails, the pipeline still returns whatever was extracted with lower confidence, rather than failing the whole record
-- **Observability by default**: every agent step logs its input, output, and duration — necessary both for debugging and for the "day 1 vs day 30" active-learning demo narrative
-- **Twelve-factor config**: no hardcoded API keys or environment assumptions; all config via environment variables
-- **Testability**: each agent is a pure function over (input, context) → output wherever possible, so it can be unit tested without hitting a live LLM
-- **Small, reviewable commits** mapped to pipeline stages, not to "day 1 dump" — matters for judges who review your repo history
-
-## 6. Recommended Tech Stack
-
-| Layer | Choice | Why |
-|---|---|---|
-| Agent orchestration | LangGraph | Explicit state machine over agent steps — better fit than a linear chain for conflict-resolution branching and human-in-the-loop routing |
-| LLM | Gemini or GPT-4-class model via API, with structured/JSON output mode | Structured output mode enforces schema compliance at the model level, reducing parsing failures |
-| Vision/OCR | Gemini vision (or Tesseract as a lighter fallback) | Needed for scanned/photographed catalog pages |
-| Backend API | FastAPI | Async-friendly, auto-generates OpenAPI docs, fast to build and demo |
-| Structured storage | PostgreSQL | Relational integrity for product records and review history |
-| Vector storage | Qdrant or Chroma | Embedding similarity for dedup and "similar SKU" enrichment lookups |
-| Object storage | Local filesystem or S3-compatible bucket | Keeps original source documents for citation/audit |
-| Frontend | React + Tailwind | Fast to build a clean, professional dashboard; component reuse for Field Inspector and Review Queue |
-| Task queue (stretch) | Redis + a worker process | Needed only if demoing true bulk/batch ingestion at scale |
-| Containerization | Docker Compose | One-command spin-up for judges/demo reliability |
-
-## 7. Non-Functional Requirements
-
-- **Reliability during demo**: the live demo path must work offline from flaky wifi where possible — pre-cache or mock external calls if network is a risk during judging
-- **Latency**: single-product extraction should complete in well under 30 seconds to keep a live demo compelling
-- **Auditability**: every committed field must be traceable to a source and timestamp indefinitely (no silent overwrites)
-- **Security**: no secrets committed to the repo; API keys via `.env`, excluded from version control
+| Component | Class / File | Responsibility | Key Architectural Rule |
+|---|---|---|---|
+| **Ingestion Agent** | `IngestionAgent` (`backend/src/agents/ingestion_agent.py`) | Parse PDFs, web HTML, and raw text into normalized content with SHA-256 hash | Never discards raw source content; assigns trust tier (Tier 1 OEM, Tier 2 Distributor, Tier 3 Catalog) |
+| **Extraction Agent** | `ExtractionAgent` (`backend/src/agents/extraction_agent.py`) | Execute schema-locked LLM extraction against category Pydantic models | Must return JSON matching category fields or trigger automatic JSON repair |
+| **Enrichment Agent** | `EnrichmentAgent` (`backend/src/agents/enrichment_agent.py`) | Fill missing required fields from secondary sources and taxonomy lookups | Attaches explicit citation for every filled field |
+| **Validation Agent** | `ValidationAgent` (`backend/src/agents/validation_agent.py`) | Calculate weighted confidence score and resolve conflicts | Assigns `auto_committed` ($\ge 80\%$) or `needs_review` ($< 80\%$) |
+| **Explainability Layer** | `ExplainabilityLayer` (`backend/src/agents/explainability_layer.py`) | Attach verbatim quote citations and audit reasoning chains | Read-only pass; annotates fields without altering data |
+| **Key Rotator** | `KeyRotator` (`backend/src/agents/main.py`) | Thread-safe round-robin pool cycling 8 Gemini API keys | Prevents HTTP 429 Rate Limit errors during batch runs |
+| **CSV Exporter** | `CSVProcessor` (`backend/src/services/csv_processor.py`) | Transform catalog records into delivery CSV format | Produces standardized `Unihack_ Output - Delivery Format.csv` |
 
 ---
-*See `product-idea.md` for the full feature set, `prd.md` for the phased build plan.*
+
+## 4. Category Schema Architecture (`backend/src/models/schemas.py`)
+
+SourceLedger implements category-specific Pydantic schemas:
+
+1. **`industrial_pump`**: `manufacturer`, `model_number`, `pump_type`, `flow_rate` (m³/h), `head_pressure` (m), `power_rating` (kW), `inlet_size`, `outlet_size`, `material_body`, `material_impeller`, `temperature_range`, `max_pressure`, `voltage`, `weight`, `certifications`.
+2. **`electrical_connector`**: `manufacturer`, `part_number`, `connector_type`, `number_of_contacts`, `contact_pitch` (mm), `voltage_rating` (V), `current_rating` (A), `gender`, `mounting_type`, `ip_rating`, `material_housing`, `material_contacts`, `wire_gauge_range`, `certifications`.
+3. **`safety_fastener`**: `manufacturer`, `part_number`, `fastener_type`, `thread_size`, `thread_pitch` (mm), `length` (mm), `material`, `grade_class`, `finish`, `tensile_strength` (MPa), `proof_load` (kN), `head_type`, `drive_type`, `locking_mechanism`, `certifications`.
+4. **`power_tool`**: `manufacturer`, `model_number`, `tool_type`, `voltage` (V), `battery_system`, `is_bare_tool`, `drive_size`, `no_load_rpm`, `torque`, `weight`, `nail_gauge`, `nail_length_range`, `certifications`, `color`, `country_of_manufacture`, `upc`.
+5. **`home_appliance`**: `manufacturer`, `model_number`, `appliance_type`, `color_finish`, `energy_star`, `capacity`, `number_of_cycles`, `decibel_level` (dBA), `installation_type`, `dimensions`, `certifications`.
+6. **`generic`**: Universal fallback schema for unclassified industrial products.
+
+---
+
+## 5. Technology Stack Upgrades
+
+| Layer | Selection | Upgrade Details |
+|---|---|---|
+| **Agent SDK** | Official `google.genai` SDK | Upgraded from legacy `google-generativeai` to `google.genai.Client` |
+| **Backend API** | FastAPI + Uvicorn | Async route handlers, CORS middleware, OpenAPI docs |
+| **Key Management** | `KeyRotator` | Multi-key pool managing `GEMINI_API_KEY_1` through `GEMINI_API_KEY_8` |
+| **Frontend UI** | React 18 + TypeScript | Strict typing, full state management, 5s live polling sync |
+| **Styling** | Tailwind CSS v4 + HSL Tokens | Custom design system (`#F5E9D8`, `#E8622C`, `#191715`) |
+| **Background Visuals** | Hardware-Accelerated MP4 | Replaced canvas 2D animation with `<video>` loop (`/background.mp4`) |
+| **Database** | SQLite / Supabase | Relational schema (`products`, `fields`, `sources`, `review_actions`) |
+| **CSV Engine** | Python `csv` + Pydantic | Standardized delivery format exporter |
+
+---
+
+## 6. Security & Non-Functional Requirements
+
+- **API Key Protection**: Server-side key rotation; no keys exposed in client bundles or git repositories.
+- **Auditability**: Every field edit generates an immutable `ReviewAction` log entry.
+- **Idempotency**: Source content hashing (SHA-256) prevents duplicate record creation.
+- **Performance**: Single-item extraction completes in $< 10$ seconds; full batch export processes seamlessly via `run_batch_processing.py`.
