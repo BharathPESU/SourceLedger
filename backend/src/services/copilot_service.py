@@ -7,10 +7,8 @@ ExplainabilityLayer) on demand over SQLite database records.
 
 from typing import Any, Dict, List, Optional
 import json
-import os
 import re
 from uuid import UUID
-from google import genai
 
 from ..db.store import store as default_store
 from ..models.product_record import ProductRecord
@@ -135,11 +133,8 @@ class CopilotEngine:
         )
 
         try:
-            api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or "proxy-enabled"
-            client = genai.Client(api_key=api_key)
-
             response = key_rotator.call_with_rotation(
-                client.models.generate_content,
+                None,  # func unused — key_rotator creates fresh client internally
                 model="gemini-3.6-flash",
                 contents=system_prompt,
             )
