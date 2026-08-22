@@ -59,20 +59,33 @@ function MainAppContent() {
 
         if (isMounted) {
           setIsLiveConnected(true);
-          setProducts(liveProducts || []);
-          setSources(liveSources || []);
+          
+          setSources(prev => {
+            const live = liveSources || [];
+            const liveIds = new Set(live.map(s => s.id));
+            const missingFromLive = prev.filter(s => !liveIds.has(s.id));
+            return [...missingFromLive, ...live];
+          });
 
-          if (liveProducts && liveProducts.length > 0) {
-            setSelectedProduct(prev => {
-              if (!prev) return liveProducts[0];
-              const match = liveProducts.find(p => p.id === prev.id);
-              return match || prev;
-            });
-            setCategories(buildCategoryOverviews(liveProducts));
-          } else {
-            setSelectedProduct(null);
-            setCategories([]);
-          }
+          setProducts(prev => {
+            const live = liveProducts || [];
+            const liveIds = new Set(live.map(p => p.id));
+            const missingFromLive = prev.filter(p => !liveIds.has(p.id));
+            const merged = [...missingFromLive, ...live];
+            
+            if (merged && merged.length > 0) {
+              setSelectedProduct(prevSel => {
+                if (!prevSel) return merged[0];
+                const match = merged.find(p => p.id === prevSel.id);
+                return match || prevSel;
+              });
+              setCategories(buildCategoryOverviews(merged));
+            } else {
+              setSelectedProduct(prevSel => prevSel ? prevSel : null);
+              setCategories([]);
+            }
+            return merged;
+          });
         }
 
       } catch (err) {
