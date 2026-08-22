@@ -138,13 +138,24 @@ class CopilotEngine:
                 model="gemini-3.6-flash",
                 contents=system_prompt,
             )
-            text = response.text or ""
-            match = re.search(r"\{.*\}", text, re.DOTALL)
+            text = (response.text or "").strip()
+            
+            # Clean markdown code blocks if present (```json ... ```)
+            clean_text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+            clean_text = re.sub(r"\s*```$", "", clean_text)
+            
+            parsed = None
+            match = re.search(r"\{.*\}", clean_text, re.DOTALL)
             if match:
-                parsed = json.loads(match.group(0))
+                try:
+                    parsed = json.loads(match.group(0))
+                except Exception:
+                    parsed = None
+
+            if parsed and isinstance(parsed, dict) and "answer" in parsed:
                 return {
                     "question": prompt,
-                    "answer": parsed.get("answer", "Analyzed catalog and data records."),
+                    "answer": str(parsed["answer"]),
                     "cited_skus": cited_skus,
                     "executed_tools": executed_tools,
                     "data_preview": data_preview,
@@ -154,15 +165,45 @@ class CopilotEngine:
                         "Export clean delivery catalog"
                     ]),
                 }
+            elif text:
+                # LLM responded with direct text response instead of JSON format
+                return {
+                    "question": prompt,
+                    "answer": text,
+                    "cited_skus": cited_skus,
+                    "executed_tools": executed_tools,
+                    "data_preview": data_preview,
+                    "suggested_actions": [
+                        "Inspect cited product fields",
+                        "Run conflict resolution scan",
+                        "Export clean delivery catalog"
+                    ],
+                }
         except Exception as e:
             logger.warning("Copilot Gemini API call fallback: %s", e)
 
-        # Fallback response generation
-        fallback_answer = (
-            f"**SourceLedger Copilot Analysis**\n\n"
-            f"Found **{len(data_preview)} matching products** in the active catalog.\n"
-            f"Executed {len(executed_tools)} multi-agent tool checks across the database."
-        )
+        # Dynamic Data-Driven Fallback response generation when LLM keys are on temporary cooldown
+        lines = [
+            f"**SourceLedger Catalog Analysis**",
+            f"",
+            f"Found **{len(products)} total products** ({len(data_preview)} matching query context) in active catalog.",
+        ]
+        
+        if executed_tools:
+            lines.append(f"\n**Executed Multi-Agent Tools:**")
+            for t in executed_tools:
+                lines.append(f"- **{t.get('agent')}** (`{t.get('tool_name')}`): {t.get('summary')}")
+
+        if data_preview:
+            lines.append(f"\n**Catalog Summary:**")
+            for item in data_preview[:5]:
+                sku_str = item.get('sku', 'N/A')
+                name_str = item.get('name', 'N/A')
+                cat_str = item.get('category', 'generic')
+                conf_str = f"{item.get('confidence_overall', 80)}%"
+                lines.append(f"- **{name_str}** (SKU: `{sku_str}`, Category: `{cat_str}`, Confidence: {conf_str})")
+
+        fallback_answer = "\n".join(lines)
         return {
             "question": prompt,
             "answer": fallback_answer,
