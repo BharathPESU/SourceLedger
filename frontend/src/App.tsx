@@ -7,8 +7,7 @@ import { FieldInspectorView } from './components/FieldInspectorView';
 import { ReviewQueueView } from './components/ReviewQueueView';
 import { ProductsCatalogView } from './components/ProductsCatalogView';
 import { IngestionSourcesView } from './components/IngestionSourcesView';
-import { SettingsView } from './components/SettingsView';
-import { OcrAgentView } from './components/OcrAgentView';
+import { DataQualityDashboardView } from './components/DataQualityDashboardView';
 import { IngestModal } from './components/IngestModal';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
@@ -287,6 +286,12 @@ export default function App() {
                   onApproveProduct={handleApproveProduct}
                   onOpenIngestModal={() => setIsIngestModalOpen(true)}
                   onNavigateToTab={(tab) => setActiveTab(tab)}
+                />
+              )}
+
+              {activeTab === 'quality_dashboard' && (
+                <DataQualityDashboardView
+                  onNavigateToReview={() => setActiveTab('review_queue')}
                 />
               )}
 

@@ -5,10 +5,8 @@ import {
   Boxes, 
   CheckSquare, 
   ScanLine, 
-  ScanText,
+  ShieldCheck,
   Sliders, 
-  FileSpreadsheet,
-  HelpCircle
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 
@@ -29,6 +27,12 @@ export const LeftRail: React.FC<LeftRailProps> = ({
       label: 'Dashboard',
       icon: LayoutDashboard,
       shortcut: '1'
+    },
+    {
+      id: 'quality_dashboard' as ActiveTab,
+      label: 'Data Quality & Trust QA',
+      icon: ShieldCheck,
+      shortcut: 'Q'
     },
     {
       id: 'sources' as ActiveTab,

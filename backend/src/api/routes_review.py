@@ -100,7 +100,63 @@ async def review_field(
     )
     await store.save_review_action(review_action)
 
+    # Active Learning CorrectionPattern tracking (Phase 10)
+    from ..models.schemas import CorrectionPattern
+    mfr_val = next((str(f.value) for f in product.fields if f.name.lower() in ("manufacturer", "brand", "part_manuf")), None)
+    patterns = store.get_correction_patterns()
+    pat_id = f"{product.category}:{field.name}:{mfr_val or 'all'}"
+    existing = next((p for p in patterns if f"{p.category}:{p.field_name}:{p.manufacturer or 'all'}" == pat_id), None)
+    new_count = (existing.correction_count + 1) if existing else 1
+    
+    pat = CorrectionPattern(
+        category=product.category,
+        field_name=field.name,
+        manufacturer=mfr_val,
+        correction_count=new_count,
+        avg_confidence_before_correction=float(field.confidence),
+        last_updated=datetime.now(timezone.utc),
+    )
+    store.save_correction_pattern(pat)
+
     return ReviewActionResponse(
         review_action=review_action,
         updated_field=field,
     )
+
+
+@router.post("/products/{product_id}/fields/{field_id}/review/bulk")
+async def bulk_review_field(
+    product_id: UUID,
+    field_id: UUID,
+    request: ReviewActionRequest,
+):
+    """One-click bulk correction (Phase 12b).
+
+    Applies the reviewer's correction to all other needs_review items sharing
+    the same category, field name, and original value pattern across the catalog.
+    """
+    primary_res = await review_field(product_id, field_id, request)
+    
+    # Query all matching records needing review
+    all_queue = await store.get_review_queue()
+    matching_targets = [
+        item for item in all_queue
+        if item["field"].name == primary_res.updated_field.name
+        and item["field"].value == primary_res.review_action.original_value
+        and item["product_id"] != product_id
+    ]
+
+    bulk_count = 0
+    for target in matching_targets:
+        try:
+            await review_field(target["product_id"], target["field"].id, request)
+            bulk_count += 1
+        except Exception:
+            pass
+
+    return {
+        "status": "success",
+        "primary_action": primary_res,
+        "bulk_applied_count": bulk_count,
+        "message": f"Successfully applied bulk correction across {bulk_count + 1} matching records.",
+    }

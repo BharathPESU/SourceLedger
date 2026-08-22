@@ -7,6 +7,7 @@ extracted fields, and review actions survive server restarts.
 Also syncs records to Supabase Postgres if configured in environment.
 """
 
+import json
 import os
 import sqlite3
 from typing import Optional
@@ -19,7 +20,12 @@ from ..models.product_record import (
     ReviewAction,
     Source,
 )
-from ..models.schemas import CATEGORY_REGISTRY
+from ..models.schemas import (
+    CATEGORY_REGISTRY,
+    CorrectionPattern,
+    FieldConflict,
+    ProductRelationship,
+)
 from ..utils.logging import get_logger
 from .supabase_client import sync_product_to_supabase
 
@@ -85,6 +91,42 @@ class ProductStore:
                         product_id TEXT,
                         data TEXT NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS field_conflicts (
+                        id TEXT PRIMARY KEY,
+                        product_id TEXT NOT NULL,
+                        field_name TEXT NOT NULL,
+                        data TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS product_relationships (
+                        id TEXT PRIMARY KEY,
+                        source_sku TEXT NOT NULL,
+                        target_sku TEXT NOT NULL,
+                        relationship_type TEXT NOT NULL,
+                        confidence INTEGER NOT NULL,
+                        data TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS correction_patterns (
+                        id TEXT PRIMARY KEY,
+                        category TEXT NOT NULL,
+                        field_name TEXT NOT NULL,
+                        manufacturer TEXT,
+                        data TEXT NOT NULL,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
                 )
@@ -363,6 +405,138 @@ class ProductStore:
             },
             "records_by_category": records_by_cat,
         }
+
+    # ── Phase 7: Field Conflicts Methods ─────────────────────────────────
+
+    def save_field_conflict(self, conflict: FieldConflict) -> None:
+        """Persist a FieldConflict entity to SQLite."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO field_conflicts (id, product_id, field_name, data)
+                    VALUES (?, ?, ?, ?)
+                """,
+                    (
+                        str(conflict.id),
+                        str(conflict.product_id),
+                        conflict.field_name,
+                        conflict.model_dump_json(),
+                    ),
+                )
+                conn.commit()
+            logger.info(
+                "✓ Saved FieldConflict for product %s, field %s",
+                str(conflict.product_id)[:8],
+                conflict.field_name,
+            )
+        except Exception as e:
+            logger.error("Failed to save FieldConflict: %s", e)
+
+    def list_field_conflicts(self, product_id: Optional[UUID] = None) -> list[FieldConflict]:
+        """Fetch all field conflicts, optionally filtered by product_id."""
+        conflicts: list[FieldConflict] = []
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                if product_id:
+                    cursor.execute(
+                        "SELECT data FROM field_conflicts WHERE product_id = ?",
+                        (str(product_id),),
+                    )
+                else:
+                    cursor.execute("SELECT data FROM field_conflicts")
+                for row in cursor.fetchall():
+                    conflicts.append(FieldConflict.model_validate_json(row["data"]))
+        except Exception as e:
+            logger.error("Failed to list field conflicts: %s", e)
+        return conflicts
+
+    # ── Phase 8: Product Relationships Methods ────────────────────────────
+
+    def save_product_relationship(self, rel: ProductRelationship) -> None:
+        """Persist a ProductRelationship graph edge to SQLite."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO product_relationships
+                    (id, source_sku, target_sku, relationship_type, confidence, data)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        str(rel.id),
+                        rel.source_sku,
+                        rel.target_sku,
+                        rel.relationship_type,
+                        rel.confidence,
+                        rel.model_dump_json(),
+                    ),
+                )
+                conn.commit()
+            logger.info("✓ Saved ProductRelationship %s -> %s", rel.source_sku, rel.target_sku)
+        except Exception as e:
+            logger.error("Failed to save ProductRelationship: %s", e)
+
+    def list_product_relationships(self, sku: Optional[str] = None) -> list[ProductRelationship]:
+        """Fetch graph relationships, optionally filtered by SKU."""
+        rels: list[ProductRelationship] = []
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                if sku:
+                    cursor.execute(
+                        "SELECT data FROM product_relationships WHERE source_sku = ? OR target_sku = ?",
+                        (sku, sku),
+                    )
+                else:
+                    cursor.execute("SELECT data FROM product_relationships")
+                for row in cursor.fetchall():
+                    rels.append(ProductRelationship.model_validate_json(row["data"]))
+        except Exception as e:
+            logger.error("Failed to list product relationships: %s", e)
+        return rels
+
+    # ── Phase 10: Correction Pattern Active Learning Methods ──────────────
+
+    def save_correction_pattern(self, pattern: CorrectionPattern) -> None:
+        """Persist or update a CorrectionPattern."""
+        pat_id = f"{pattern.category}:{pattern.field_name}:{pattern.manufacturer or 'all'}"
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO correction_patterns
+                    (id, category, field_name, manufacturer, data)
+                    VALUES (?, ?, ?, ?, ?)
+                """,
+                    (
+                        pat_id,
+                        pattern.category,
+                        pattern.field_name,
+                        pattern.manufacturer or "all",
+                        pattern.model_dump_json(),
+                    ),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error("Failed to save CorrectionPattern: %s", e)
+
+    def get_correction_patterns(self) -> list[CorrectionPattern]:
+        """List all active learning correction patterns."""
+        patterns: list[CorrectionPattern] = []
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT data FROM correction_patterns")
+                for row in cursor.fetchall():
+                    patterns.append(CorrectionPattern.model_validate_json(row["data"]))
+        except Exception as e:
+            logger.error("Failed to get correction patterns: %s", e)
+        return patterns
 
 
 # ── Singleton ────────────────────────────────────────────────────────

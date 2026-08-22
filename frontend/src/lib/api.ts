@@ -234,6 +234,7 @@ function mapBackendProductToFrontend(
     confidenceLevel: confidenceToLevel(product.confidence_overall),
     status,
     lastUpdated: formatRelativeTime(product.updated_at),
+    createdAt: product.created_at || product.updated_at,
     sourceDocument: sourceDisplayName,
     fieldsCount: product.fields.length,
     fieldsReviewedCount: reviewedCount,
@@ -670,5 +671,66 @@ export async function checkBackendHealth(): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+export interface SuspiciousFillAlert {
+  field_name: string;
+  repeated_value: string;
+  repetition_count: number;
+  repetition_share_pct: number;
+  severity: 'CRITICAL' | 'WARNING';
+  recommendation: string;
+}
+
+export interface ClassificationDiversityAlert {
+  taxonomy_path: string;
+  record_count: number;
+  coverage_pct: number;
+  severity: string;
+  recommendation: string;
+}
+
+export interface QualityDashboardData {
+  total_records: number;
+  total_sources: number;
+  coverage_pct: number;
+  confidence_overall_avg: number;
+  auto_committed_pct: number;
+  needs_review_pct: number;
+  needs_review_count: number;
+  suspicious_fill_alerts: SuspiciousFillAlert[];
+  classification_diversity_alerts: ClassificationDiversityAlert[];
+  confidence_histogram: {
+    high: number;
+    medium: number;
+    low: number;
+  };
+  aging_summary: {
+    less_than_1h: number;
+    '1h_to_24h': number;
+    more_than_24h: number;
+  };
+}
+
+export async function getQualityDashboard(): Promise<QualityDashboardData> {
+  return apiFetch<QualityDashboardData>('/dashboard/quality');
+}
+
+export interface ProductRelationshipData {
+  id: string;
+  source_sku: string;
+  target_sku: string;
+  relationship_type: 'variant_of' | 'substitute_for' | 'compatible_with' | 'accessory_for' | 'same_family';
+  confidence: number;
+  reasoning: string;
+  evidence_field?: string;
+}
+
+export async function getProductRelationships(sku: string): Promise<ProductRelationshipData[]> {
+  try {
+    return await apiFetch<ProductRelationshipData[]>(`/products/${encodeURIComponent(sku)}/relationships`);
+  } catch {
+    return [];
   }
 }
