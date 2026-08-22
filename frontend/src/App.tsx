@@ -260,8 +260,8 @@ function MainAppContent() {
 
   // Handle newly ingested source
   const handleIngestSuccess = (newProduct: ProductRecord, newSource: IngestionSource) => {
-    setProducts(prev => [newProduct, ...prev]);
-    setSources(prev => [newSource, ...prev]);
+    setProducts(prev => [newProduct, ...prev.filter(p => p.id !== newProduct.id)]);
+    setSources(prev => [newSource, ...prev.filter(s => s.id !== newSource.id)]);
     setSelectedProduct(newProduct);
     setActiveTab('field_inspector');
   };

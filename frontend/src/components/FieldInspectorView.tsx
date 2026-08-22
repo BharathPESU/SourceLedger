@@ -48,6 +48,7 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
   const [activeInspectorTab, setActiveInspectorTab] = useState<'fields' | 'history' | 'document_preview'>('fields');
   const [filterConfidence, setFilterConfidence] = useState<'all' | 'needs_review' | 'high'>('all');
   const [relationships, setRelationships] = useState<ProductRelationshipData[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     if (product && product.sku) {
@@ -98,8 +99,6 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
   const handleRevertField = (fieldId: string, valueToRestore: string) => {
     onUpdateField(product.id, fieldId, valueToRestore, true);
   };
-
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const getFieldCategory = (fieldName: string): 'identity' | 'descriptions' | 'features' | 'specs' | 'logistics' => {
     const nameLower = fieldName.toLowerCase();
