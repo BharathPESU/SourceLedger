@@ -110,31 +110,46 @@ class GeminiGatewayClient:
         Native pass-through generation supporting multimodal (image + text) payloads.
         Attempts primary model and falls back to alternative models if rate limited.
         """
-        # Try direct Google GenAI SDK first with KeyRotator if GOOGLE_API_KEY is available
-        direct_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY1")
-        if direct_key:
-            try:
-                from google import genai
-                from google.genai import types
-                client = genai.Client(api_key=direct_key)
-                contents = [
-                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                    prompt
-                ]
-                config = types.GenerateContentConfig(
-                    temperature=temperature,
-                    response_mime_type=response_mime_type,
-                    system_instruction=system_instruction
-                )
-                res = client.models.generate_content(
-                    model=model,
-                    contents=contents,
-                    config=config
-                )
-                if res.text:
-                    return res.text
-            except Exception as direct_err:
-                logger.warning(f"Direct Google GenAI SDK multimodal failed: {direct_err}. Trying HTTP gateway...")
+        # Rotate through all available GOOGLE_API_KEY* env vars to beat per-key rate limits
+        direct_keys = []
+        for env_var in ["GOOGLE_API_KEY"] + [f"GOOGLE_API_KEY{i}" for i in range(1, 9)]:
+            k = os.getenv(env_var)
+            if k and k not in direct_keys:
+                direct_keys.append(k)
+
+        if direct_keys:
+            from google import genai
+            from google.genai import types
+            for key_idx, direct_key in enumerate(direct_keys):
+                try:
+                    client = genai.Client(api_key=direct_key)
+                    contents = [
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        prompt
+                    ]
+                    config = types.GenerateContentConfig(
+                        temperature=temperature,
+                        response_mime_type=response_mime_type,
+                        system_instruction=system_instruction
+                    )
+                    res = client.models.generate_content(
+                        model=model,
+                        contents=contents,
+                        config=config
+                    )
+                    if res.text:
+                        logger.info(f"Direct GenAI SDK succeeded with key index {key_idx}")
+                        return res.text
+                except Exception as direct_err:
+                    err_str = str(direct_err)
+                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                        logger.warning(f"Key {key_idx} rate-limited (429). Trying next key...")
+                        continue
+                    else:
+                        logger.warning(f"Key {key_idx} failed: {direct_err}. Trying next key...")
+                        continue
+            logger.warning("All direct Google API keys exhausted. Falling back to HTTP gateway...")
+
 
         models_to_try = [model] + [m for m in DEFAULT_MODELS if m != model]
         base64_data = base64.b64encode(image_bytes).decode("utf-8")
