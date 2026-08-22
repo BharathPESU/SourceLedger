@@ -171,8 +171,21 @@ class ExtractionAgent:
         rotation and Gateway Proxy configuration take effect on every call.
         Returns None if no key or proxy is configured.
         """
-        proxy_url = os.environ.get("GEMINI_PROXY_URL", "").strip() or settings.gemini_proxy_url.strip() or settings.proxy_url.strip()
-        proxy_token = os.environ.get("PROXY_AUTH_TOKEN", "").strip() or settings.gemini_proxy_token.strip() or settings.proxy_auth_token.strip()
+        raw_proxy = (
+            os.environ.get("GEMINI_PROXY_URL", "").strip()
+            or os.environ.get("API_URL", "").strip()
+            or settings.gemini_proxy_url.strip()
+            or settings.proxy_url.strip()
+            or settings.api_url.strip()
+        )
+        proxy_url = raw_proxy.replace("/api/generate", "").rstrip("/")
+        proxy_token = (
+            os.environ.get("PROXY_AUTH_TOKEN", "").strip()
+            or os.environ.get("API_KEY", "").strip()
+            or settings.gemini_proxy_token.strip()
+            or settings.proxy_auth_token.strip()
+            or settings.api_key.strip()
+        )
 
         api_key = (
             os.environ.get("GOOGLE_API_KEY", "").strip()

@@ -1,6 +1,7 @@
 """Product record API routes."""
 
 from typing import Optional
+from uuid import UUID
 from fastapi import APIRouter, Header, HTTPException
 
 from ..db.store import store

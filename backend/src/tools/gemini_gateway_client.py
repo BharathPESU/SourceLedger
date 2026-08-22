@@ -24,8 +24,19 @@ class GeminiGatewayClient:
         default_model: str = "gemini-3.6-flash",
         timeout: float = 60.0,
     ) -> None:
-        self.base_url = (base_url or getattr(settings, "gemini_proxy_url", "") or getattr(settings, "proxy_url", "")).rstrip("/")
-        self.auth_token = auth_token or getattr(settings, "gemini_proxy_token", "") or getattr(settings, "proxy_auth_token", "")
+        raw_url = (
+            base_url
+            or getattr(settings, "gemini_proxy_url", "")
+            or getattr(settings, "proxy_url", "")
+            or getattr(settings, "api_url", "")
+        )
+        self.base_url = raw_url.replace("/api/generate", "").rstrip("/")
+        self.auth_token = (
+            auth_token
+            or getattr(settings, "gemini_proxy_token", "")
+            or getattr(settings, "proxy_auth_token", "")
+            or getattr(settings, "api_key", "")
+        )
         self.default_model = default_model
         self.timeout = timeout
 
