@@ -190,7 +190,6 @@ class ExtractionAgent:
         api_key = (
             os.environ.get("GOOGLE_API_KEY", "").strip()
             or settings.google_api_key.strip()
-            or proxy_token
         )
         if not api_key and not proxy_url:
             logger.warning("No GOOGLE_API_KEY or PROXY_URL set — using demo extraction mode")
@@ -200,8 +199,9 @@ class ExtractionAgent:
             from google import genai
             from google.genai import types
 
+            # Only attach custom proxy http_options if no direct Google API key is provided
             http_options = None
-            if proxy_url:
+            if not api_key and proxy_url:
                 headers = {}
                 if proxy_token:
                     headers["Authorization"] = f"Bearer {proxy_token}"
@@ -209,8 +209,8 @@ class ExtractionAgent:
                     headers["x-goog-api-key"] = proxy_token
                 http_options = types.HttpOptions(base_url=proxy_url, headers=headers if headers else None)
 
-            client = genai.Client(api_key=api_key or "proxy-enabled", http_options=http_options)
-            logger.debug("ExtractionAgent initialized (proxy_enabled=%s)", bool(proxy_url))
+            client = genai.Client(api_key=api_key or proxy_token or "proxy-enabled", http_options=http_options)
+            logger.debug("ExtractionAgent initialized (proxy_enabled=%s)", bool(http_options))
             return client
         except Exception as e:
             logger.error("Failed to initialize Google GenAI Client: %s", e)
@@ -244,10 +244,15 @@ class ExtractionAgent:
                     )
                     image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
                     from .key_rotator import key_rotator
-                    response = key_rotator.call_with_rotation(
-                        client.models.generate_content,
-                        model="gemini-3.6-flash",
-                        contents=[prompt, image_part],
+                    def _call_vlm():
+                        return client.models.generate_content(
+                            model="gemini-3.6-flash",
+                            contents=[prompt, image_part],
+                        )
+                    
+                    response = await asyncio.wait_for(
+                        asyncio.to_thread(key_rotator.call_with_rotation, _call_vlm),
+                        timeout=3.0
                     )
 
                     text = response.text or ""
@@ -396,50 +401,36 @@ class ExtractionAgent:
                         _aug_fields: list = list(result.fields)
                         _aug_names: set = set(_deterministic_names)
 
-                        # Phase 2 — descriptions + features (5 at a time)
-                        logger.info(
-                            "ExtractionAgent Phase 2: descriptions/features for '%s'",
-                            result.product_name[:50],
-                        )
-                        try:
-                            _p2 = await _phase_ex.phase2_descriptions(_identity_ctx)
-                            for _f in _p2.fields:
-                                if _f.name not in _aug_names:
-                                    _aug_fields.append(_f)
-                                    _aug_names.add(_f.name)
-                            logger.info("Phase 2: %d new description/feature fields", len(_p2.fields))
-                        except Exception as _e:
-                            logger.warning("Phase 2 augmentation failed: %s", _e)
+                        # Run Phase 2, Phase 3, and Phase 4 concurrently with a strict 3.0s timeout
+                        async def _run_p2():
+                            try:
+                                return await asyncio.wait_for(_phase_ex.phase2_descriptions(_identity_ctx), timeout=3.0)
+                            except Exception as _e:
+                                logger.warning("Phase 2 augmentation skipped/timed out: %s", _e)
+                                return None
 
-                        # Phase 3 — technical attribute triplets (10 at a time)
-                        logger.info(
-                            "ExtractionAgent Phase 3: attributes for '%s'",
-                            result.product_name[:50],
-                        )
-                        try:
-                            _p3 = await _phase_ex.phase3_attributes(_identity_ctx, _aug_names)
-                            for _f in _p3.fields:
-                                if _f.name not in _aug_names:
-                                    _aug_fields.append(_f)
-                                    _aug_names.add(_f.name)
-                            logger.info("Phase 3: %d new attribute fields", len(_p3.fields))
-                        except Exception as _e:
-                            logger.warning("Phase 3 augmentation failed: %s", _e)
+                        async def _run_p3():
+                            try:
+                                return await asyncio.wait_for(_phase_ex.phase3_attributes(_identity_ctx, _aug_names), timeout=3.0)
+                            except Exception as _e:
+                                logger.warning("Phase 3 augmentation skipped/timed out: %s", _e)
+                                return None
 
-                        # Phase 4 — logistics, dimensions, UNSPSC, compliance
-                        logger.info(
-                            "ExtractionAgent Phase 4: logistics for '%s'",
-                            result.product_name[:50],
-                        )
-                        try:
-                            _p4 = await _phase_ex.phase4_logistics(_identity_ctx)
-                            for _f in _p4.fields:
-                                if _f.name not in _aug_names:
-                                    _aug_fields.append(_f)
-                                    _aug_names.add(_f.name)
-                            logger.info("Phase 4: %d new logistics fields", len(_p4.fields))
-                        except Exception as _e:
-                            logger.warning("Phase 4 augmentation failed: %s", _e)
+                        async def _run_p4():
+                            try:
+                                return await asyncio.wait_for(_phase_ex.phase4_logistics(_identity_ctx), timeout=3.0)
+                            except Exception as _e:
+                                logger.warning("Phase 4 augmentation skipped/timed out: %s", _e)
+                                return None
+
+                        _res_p2, _res_p3, _res_p4 = await asyncio.gather(_run_p2(), _run_p3(), _run_p4())
+
+                        for _p in (_res_p2, _res_p3, _res_p4):
+                            if _p and hasattr(_p, "fields"):
+                                for _f in _p.fields:
+                                    if _f.name not in _aug_names:
+                                        _aug_fields.append(_f)
+                                        _aug_names.add(_f.name)
 
                         result = ExtractionResult(
                             product_name=result.product_name,
