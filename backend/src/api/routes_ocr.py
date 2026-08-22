@@ -97,7 +97,8 @@ async def extract_document_image(
         result = agent.extract_structured_text(
             image_input=image_bytes,
             document_type=doc_type_enum,
-            enable_refinement=enable_refinement
+            enable_refinement=enable_refinement,
+            filename=file.filename
         )
 
         # Persist OCR extraction into backend store so it shows up across Dashboard, Catalog, Review Queue, and Sources

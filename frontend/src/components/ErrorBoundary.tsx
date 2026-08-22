@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
@@ -9,34 +9,37 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: ErrorInfo | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null,
-    errorInfo: null,
-  };
-
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+export class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    (this as any).state = {
+      hasError: false,
+      error: null,
+    };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Uncaught React ErrorBoundary error:', error, errorInfo);
-    this.setState({ errorInfo });
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+    (this as any).setState({ hasError: false, error: null });
     window.location.reload();
   };
 
   public render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
+    const { hasError, error } = (this as any).state || {};
+    const { children, fallback } = (this as any).props || {};
+
+    if (hasError) {
+      if (fallback) {
+        return fallback;
       }
 
       return (
@@ -53,9 +56,9 @@ export class ErrorBoundary extends Component<Props, State> {
             A rendering issue occurred while displaying live catalog telemetry.
           </p>
 
-          {this.state.error && (
+          {error && (
             <div className="mt-4 p-3 rounded-xl bg-[#191715] text-[#FAF4EB] text-[11px] font-mono max-w-lg text-left overflow-x-auto border border-white/10">
-              {this.state.error.toString()}
+              {error.toString()}
             </div>
           )}
 
@@ -70,6 +73,6 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return children;
   }
 }

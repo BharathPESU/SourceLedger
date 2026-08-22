@@ -20,8 +20,21 @@ import {
 } from './lib/api';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthContainer } from './components/auth/AuthContainer';
+import { VerifyEmailView } from './components/auth/VerifyEmailView';
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <MainAppContent />
+    </AuthProvider>
+  );
+}
+
+function MainAppContent() {
+  const { session, user, loading, isEmailVerified } = useAuth();
+
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [sources, setSources] = useState<IngestionSource[]>([]);
   const [categories, setCategories] = useState<CategoryOverview[]>([]);
@@ -111,7 +124,7 @@ export default function App() {
           previousValue: `${p.fieldsReviewedCount}/${p.fieldsCount} Reviewed`,
           newValue: 'All Attributes Approved & Committed',
           changedBy: 'Lead Catalog Engineer',
-          changeType: 'human_correction',
+          changeType: 'manual_override',
           confidenceBefore: p.confidence,
           confidenceAfter: 98,
           reason: 'Manual validation of extraction fields',
@@ -246,6 +259,30 @@ export default function App() {
 
   const reviewQueueCount = (products || []).filter(p => p.status === 'needs_review' || p.status === 'flagged_conflict').length;
 
+  // 1. Loading state during session restoration
+  if (loading) {
+    return (
+      <div className="relative h-screen w-full bg-[#F5E9D8] text-[#191715] flex flex-col items-center justify-center font-sans">
+        <BackgroundVideo />
+        <div className="relative z-10 flex flex-col items-center gap-3 p-6 rounded-3xl bg-white/70 backdrop-blur-2xl border border-white/80 shadow-lg">
+          <div className="w-10 h-10 border-3 border-[#E8622C] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-[#191715]">Authenticating Session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated user -> render Auth Flow (SignIn, SignUp, ForgotPassword, ResetPassword)
+  if (!session || !user) {
+    return <AuthContainer />;
+  }
+
+  // 3. Authenticated BUT email not verified -> render VerifyEmailView block
+  if (!isEmailVerified) {
+    return <VerifyEmailView />;
+  }
+
+  // 4. Authenticated & Email Verified -> Render Protected SourceLedger Application
   return (
     <div className="relative h-screen w-full bg-[#F5E9D8] text-[#191715] flex flex-col font-sans selection:bg-[#E8622C] selection:text-white overflow-hidden">
       {/* Background Abstract Shapes Video */}

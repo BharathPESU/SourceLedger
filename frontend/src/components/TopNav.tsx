@@ -11,6 +11,7 @@ import {
   X
 } from 'lucide-react';
 import { ProductRecord } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface TopNavProps {
   onOpenIngestModal: () => void;
@@ -208,10 +209,8 @@ export const TopNav: React.FC<TopNavProps> = ({
               )}
             </div>
 
-            {/* User Profile Avatar */}
-            <div className="w-9 h-9 rounded-full bg-[#191715] text-white flex items-center justify-center text-xs font-bold shadow-md">
-              JD
-            </div>
+            {/* User Profile Avatar & Dropdown */}
+            <UserProfileDropdown />
           </div>
 
           {/* Primary Action Button */}
@@ -225,5 +224,57 @@ export const TopNav: React.FC<TopNavProps> = ({
         </div>
       </div>
     </header>
+  );
+};
+
+const UserProfileDropdown: React.FC = () => {
+  const { user, signOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const email = user?.email || 'authenticated_user';
+  const initial = email.charAt(0).toUpperCase();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-9 h-9 rounded-full bg-[#191715] text-white flex items-center justify-center text-xs font-bold shadow-md hover:scale-105 transition-transform cursor-pointer ring-2 ring-white/60"
+        title={email}
+      >
+        {initial}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-3 w-64 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2">
+          <div className="px-3 py-2 bg-[#FAF4EB] rounded-xl border border-white">
+            <p className="text-[10px] font-bold text-[#8C8276] uppercase tracking-wider">Signed In As</p>
+            <p className="text-xs font-bold text-[#191715] truncate mt-0.5" title={email}>
+              {email}
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              signOut();
+            }}
+            className="w-full py-2 px-3 rounded-xl bg-[#FFF0ED] hover:bg-[#FFE0D9] text-[#D45320] text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-2 border border-[#D45320]/20"
+          >
+            <span>Sign Out</span>
+          </button>
+        </div>
+      )}
+    </div>
   );
 };

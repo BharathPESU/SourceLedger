@@ -170,16 +170,24 @@ Material Grade: Alloy Steel, Quenched and Tempered`
 
   const handleOcrFileChange = (file: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setErrorMsg('Please select a valid document image file (PNG, JPEG, WEBP, BMP, GIF, TIFF).');
+    const lowerName = file.name.toLowerCase();
+    const isPdf = file.type === 'application/pdf' || lowerName.endsWith('.pdf');
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp|gif|tiff?)$/.test(lowerName);
+
+    if (!isPdf && !isImage) {
+      setErrorMsg('Please select a valid document PDF or image file (PDF, PNG, JPEG, WEBP, BMP, GIF, TIFF).');
       return;
     }
     setErrorMsg(null);
     setOcrFile(file);
 
-    const reader = new FileReader();
-    reader.onload = (e) => setOcrPreviewUrl(e.target?.result as string);
-    reader.readAsDataURL(file);
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onload = (e) => setOcrPreviewUrl(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setOcrPreviewUrl(null);
+    }
   };
 
   const handleSelectPreset = (preset: typeof samplePresets[0]) => {
@@ -371,38 +379,53 @@ Material Grade: Alloy Steel, Quenched and Tempered`
                 <input
                   ref={ocrFileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.gif,.tiff,image/*,application/pdf"
                   onChange={(e) => e.target.files && handleOcrFileChange(e.target.files[0])}
                   className="hidden"
                 />
 
-                {/* Image Dropzone matching PDF Upload Box */}
+                {/* File Dropzone for PDF or Image */}
                 <div
                   onClick={() => ocrFileInputRef.current?.click()}
                   className="border-2 border-dashed border-white/90 hover:border-[#E8622C] bg-white/50 backdrop-blur-md hover:bg-white/80 rounded-3xl p-6 text-center shadow-inner transition-all cursor-pointer group"
                 >
-                  {ocrPreviewUrl ? (
-                    <div className="space-y-2">
-                      <img
-                        src={ocrPreviewUrl}
-                        alt="OCR Document Preview"
-                        className="max-h-36 mx-auto rounded-xl object-contain shadow-xs border border-white/80"
-                      />
-                      <p className="font-display font-bold text-xs text-[#191715] truncate">
-                        Selected: {ocrFile?.name}
-                      </p>
-                      <span className="text-[11px] text-[#E8622C] underline">Click or drop to change image</span>
-                    </div>
+                  {ocrFile ? (
+                    ocrPreviewUrl ? (
+                      <div className="space-y-2">
+                        <img
+                          src={ocrPreviewUrl}
+                          alt="OCR Document Preview"
+                          className="max-h-36 mx-auto rounded-xl object-contain shadow-xs border border-white/80"
+                        />
+                        <p className="font-display font-bold text-xs text-[#191715] truncate">
+                          Selected Image: {ocrFile.name}
+                        </p>
+                        <span className="text-[11px] text-[#E8622C] underline">Click or drop to change file</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 py-2">
+                        <div className="w-12 h-12 rounded-2xl bg-[#E8622C]/10 text-[#E8622C] mx-auto flex items-center justify-center border border-[#E8622C]/20 shadow-xs">
+                          <FileType className="w-6 h-6" />
+                        </div>
+                        <p className="font-display font-bold text-sm text-[#191715] truncate">
+                          Selected PDF: {ocrFile.name}
+                        </p>
+                        <p className="text-xs text-[#8C8276]">
+                          {Math.round(ocrFile.size / 1024)} KB — Multi-page PDF page screenshots will be rendered & extracted
+                        </p>
+                        <span className="text-[11px] text-[#E8622C] underline">Click or drop to change PDF</span>
+                      </div>
+                    )
                   ) : (
                     <>
                       <div className="w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md shadow-xs mx-auto flex items-center justify-center text-[#E8622C] group-hover:scale-110 border border-white/80 transition-transform">
                         <FileType className="w-6 h-6" />
                       </div>
                       <p className="font-display font-bold text-sm text-[#191715] mt-3">
-                        Click or drop document photo/image here
+                        Click or drop PDF document or photo/image here
                       </p>
                       <p className="text-xs text-[#8C8276] mt-0.5">
-                        Supports PNG, JPEG, WEBP, BMP, GIF, TIFF
+                        Supports Multi-Page PDFs, PNG, JPEG, WEBP, BMP, GIF, TIFF
                       </p>
                     </>
                   )}

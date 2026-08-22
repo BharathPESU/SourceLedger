@@ -34,42 +34,45 @@ class OCRAgentSystem:
         self,
         image_input: Any,
         document_type: DocumentType = DocumentType.GENERAL,
-        enable_refinement: bool = True
+        enable_refinement: bool = True,
+        filename: Optional[str] = None
     ) -> ExtractionResult:
         """
         Main Agent Execution Pipeline:
-        1. Tool: Image Preprocessing
-        2. Tool: Multimodal Extraction via Gemini API Gateway
-        3. Tool: Output Validation & Math Audit
-        4. Tool (Iterative): Refinement Loop if errors detected
+        1. Tool: Image / PDF Preprocessing (Renders PDF pages to Screenshots 1..N if PDF)
+        2. Tool: Multimodal Vision Extraction per Page Screenshot via Gemini API Gateway
+        3. Tool: Output Aggregation & Consolidation across pages
+        4. Tool: Output Validation & Math Audit
+        5. Tool (Iterative): Refinement Loop if errors detected
         """
         trajectory: List[AgentStep] = []
         step_counter = 1
 
-        # Step 1: Preprocessing Tool
-        logger.info(f"Agent Step {step_counter}: Running Image Preprocessor Tool...")
+        # Step 1: Preprocessing Tool (PDF page screenshot rendering or Image loading)
+        logger.info(f"Agent Step {step_counter}: Running Document Preprocessor Tool...")
         try:
-            image_bytes, mime_type, meta = ImagePreprocessorTool.preprocess_image(image_input)
+            pages = ImagePreprocessorTool.process_document_to_page_images(image_input, filename=filename)
+            page_count = len(pages)
             trajectory.append(
                 AgentStep(
                     step_number=step_counter,
                     tool_name="ImagePreprocessorTool",
-                    action_summary=f"Processed input image to {meta['final_mime_type']} ({meta['width']}x{meta['height']}, {meta['byte_size']} bytes)",
+                    action_summary=f"Processed document into {page_count} page screenshot(s) for vision analysis",
                     status="SUCCESS",
-                    output_summary=f"Format: {meta['final_mime_type']}, Size: {meta['width']}x{meta['height']}px"
+                    output_summary=f"Total Page Screenshots: {page_count}"
                 )
             )
         except Exception as e:
-            logger.error(f"Image preprocessing failed: {e}")
+            logger.error(f"Document preprocessing failed: {e}")
             return ExtractionResult(
                 document_type=document_type,
-                structured_data={"error": f"Image preprocessing failed: {e}"},
+                structured_data={"error": f"Document preprocessing failed: {e}"},
                 validation_report=ValidationReport(is_valid=False, confidence_score=0.0, issues=[]),
                 agent_trajectory=[
                     AgentStep(
                         step_number=step_counter,
                         tool_name="ImagePreprocessorTool",
-                        action_summary=f"Failed to process image: {e}",
+                        action_summary=f"Failed to process input: {e}",
                         status="FAILED"
                     )
                 ]
@@ -77,53 +80,75 @@ class OCRAgentSystem:
 
         step_counter += 1
 
-        # Step 2: Initial Multimodal Extraction Tool
-        logger.info(f"Agent Step {step_counter}: Running Multimodal Extraction Tool...")
-        try:
-            extracted_data = MultimodalExtractorTool.extract(
-                client=self.client,
-                image_bytes=image_bytes,
-                mime_type=mime_type,
-                document_type=document_type
-            )
-            raw_text = extracted_data.get("raw_text", "")
-            trajectory.append(
-                AgentStep(
-                    step_number=step_counter,
-                    tool_name="MultimodalExtractionTool",
-                    action_summary=f"Extracted initial structured data using document type '{document_type.value}'",
-                    status="SUCCESS",
-                    output_summary=f"Extracted {len(extracted_data)} top-level fields"
+        # Step 2: Multi-Page Multimodal Extraction Loop
+        logger.info(f"Agent Step {step_counter}: Running Multimodal Extraction Tool across {len(pages)} page screenshot(s)...")
+        aggregated_data: Dict[str, Any] = {}
+        all_raw_texts: List[str] = []
+        primary_image_bytes, primary_mime_type, _ = pages[0]
+
+        for p_idx, (p_bytes, p_mime, p_meta) in enumerate(pages):
+            page_num = p_meta.get("page_number", p_idx + 1)
+            logger.info(f"Extracting structured text from Page {page_num}/{len(pages)} screenshot...")
+            
+            try:
+                page_data = MultimodalExtractorTool.extract(
+                    client=self.client,
+                    image_bytes=p_bytes,
+                    mime_type=p_mime,
+                    document_type=document_type
                 )
-            )
-        except Exception as e:
-            logger.error(f"Multimodal extraction failed: {e}")
-            return ExtractionResult(
-                document_type=document_type,
-                structured_data={"error": f"Extraction failed: {e}"},
-                validation_report=ValidationReport(is_valid=False, confidence_score=0.0, issues=[]),
-                agent_trajectory=trajectory + [
+                
+                p_text = page_data.get("raw_text", "")
+                if p_text:
+                    all_raw_texts.append(f"--- Page {page_num} ---\n{p_text}")
+
+                # Merge top-level dict attributes
+                for k, v in page_data.items():
+                    if k == "raw_text":
+                        continue
+                    if k not in aggregated_data or aggregated_data[k] is None or aggregated_data[k] == "":
+                        aggregated_data[k] = v
+                    elif isinstance(v, list) and isinstance(aggregated_data[k], list):
+                        aggregated_data[k].extend(v)
+                    elif isinstance(v, dict) and isinstance(aggregated_data[k], dict):
+                        aggregated_data[k].update(v)
+
+                trajectory.append(
                     AgentStep(
                         step_number=step_counter,
                         tool_name="MultimodalExtractionTool",
-                        action_summary=f"API extraction failed: {e}",
-                        status="FAILED"
+                        action_summary=f"[Page {page_num}/{len(pages)}] Extracted vision attributes from screenshot",
+                        status="SUCCESS",
+                        output_summary=f"Extracted {len(page_data)} attributes from Page {page_num}"
                     )
-                ]
-            )
+                )
+            except Exception as p_err:
+                logger.warning(f"Vision extraction failed for Page {page_num}: {p_err}")
+                trajectory.append(
+                    AgentStep(
+                        step_number=step_counter,
+                        tool_name="MultimodalExtractionTool",
+                        action_summary=f"[Page {page_num}/{len(pages)}] Vision extraction warning: {p_err}",
+                        status="WARNING"
+                    )
+                )
+            
+            step_counter += 1
 
-        step_counter += 1
+        combined_raw_text = "\n\n".join(all_raw_texts)
+        if combined_raw_text:
+            aggregated_data["raw_text"] = combined_raw_text
 
-        # Step 3: Validation Tool
-        logger.info(f"Agent Step {step_counter}: Running Validation Tool...")
-        val_report = ValidationTool.validate(extracted_data, document_type)
+        # Step 3: Validation Tool on Combined Aggregated Output
+        logger.info(f"Agent Step {step_counter}: Running Validation Tool on combined document data...")
+        val_report = ValidationTool.validate(aggregated_data, document_type)
         trajectory.append(
             AgentStep(
                 step_number=step_counter,
                 tool_name="ValidationTool",
-                action_summary=f"Audited extraction: Valid={val_report.is_valid}, Confidence={val_report.confidence_score}, MathPassed={val_report.math_checks_passed}",
+                action_summary=f"Audited combined multi-page document: Valid={val_report.is_valid}, Confidence={val_report.confidence_score}, MathPassed={val_report.math_checks_passed}",
                 status="SUCCESS",
-                output_summary=f"{len(val_report.issues)} issue(s) detected. Refinement Recommended: {val_report.refinement_recommended}"
+                output_summary=f"{len(val_report.issues)} issue(s) detected across {len(pages)} page(s). Refinement Recommended: {val_report.refinement_recommended}"
             )
         )
 
@@ -142,9 +167,9 @@ class OCRAgentSystem:
             try:
                 refined_data = RefinementTool.refine(
                     client=self.client,
-                    image_bytes=image_bytes,
-                    mime_type=mime_type,
-                    previous_data=extracted_data,
+                    image_bytes=primary_image_bytes,
+                    mime_type=primary_mime_type,
+                    previous_data=aggregated_data,
                     report=val_report
                 )
 
@@ -161,10 +186,8 @@ class OCRAgentSystem:
                     )
                 )
 
-                extracted_data = refined_data
+                aggregated_data = refined_data
                 val_report = new_val_report
-                if raw_text == "" and "raw_text" in extracted_data:
-                    raw_text = extracted_data["raw_text"]
 
             except Exception as ref_err:
                 logger.warning(f"Refinement iteration {iteration} failed: {ref_err}")
@@ -182,8 +205,8 @@ class OCRAgentSystem:
 
         return ExtractionResult(
             document_type=document_type,
-            structured_data=extracted_data,
+            structured_data=aggregated_data,
             validation_report=val_report,
-            raw_text=raw_text,
+            raw_text=aggregated_data.get("raw_text", combined_raw_text),
             agent_trajectory=trajectory
         )
