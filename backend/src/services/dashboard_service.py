@@ -15,11 +15,14 @@ from ..utils.logging import get_logger
 logger = get_logger("dashboard_service")
 
 
-async def compute_quality_dashboard_metrics(store_instance: Optional[Any] = None) -> Dict[str, Any]:
-    """Compute live catalog metrics, suspicious fill flags, and classification diversity."""
+async def compute_quality_dashboard_metrics(
+    store_instance: Optional[Any] = None,
+    user_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Compute live catalog metrics, suspicious fill flags, and classification diversity for user."""
     target_store = store_instance or store
-    products = await target_store.list_products()
-    sources = await target_store.list_sources()
+    products = await target_store.list_products(user_id=user_id)
+    sources = await target_store.list_sources(user_id=user_id)
 
     total_records = len(products)
     total_sources = len(sources)

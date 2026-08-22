@@ -1,8 +1,7 @@
 """Product record API routes."""
 
-from uuid import UUID
-
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Header, HTTPException
 
 from ..db.store import store
 from ..models.api import ProductDetailResponse, ProductListResponse, ProductSummary
@@ -13,9 +12,9 @@ router = APIRouter(prefix="/api", tags=["products"])
 
 
 @router.get("/products", response_model=ProductListResponse)
-async def list_products() -> ProductListResponse:
-    """List all product records with summary info."""
-    products = await store.list_products()
+async def list_products(x_user_id: Optional[str] = Header(None, alias="x-user-id")) -> ProductListResponse:
+    """List all product records with summary info for the authenticated user."""
+    products = await store.list_products(user_id=x_user_id)
     summaries = []
     for p in products:
         schema = CATEGORY_REGISTRY.get(p.category)

@@ -58,7 +58,7 @@ class ProductStore:
         return conn
 
     def _init_sqlite(self) -> None:
-        """Create tables if they do not exist."""
+        """Create tables if they do not exist and ensure user_id column exists."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -68,6 +68,7 @@ class ProductStore:
                         id TEXT PRIMARY KEY,
                         content_hash TEXT,
                         data TEXT NOT NULL,
+                        user_id TEXT DEFAULT 'default_user',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
@@ -80,6 +81,7 @@ class ProductStore:
                         name TEXT,
                         confidence INTEGER,
                         data TEXT NOT NULL,
+                        user_id TEXT DEFAULT 'default_user',
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
@@ -90,6 +92,7 @@ class ProductStore:
                         id TEXT PRIMARY KEY,
                         product_id TEXT,
                         data TEXT NOT NULL,
+                        user_id TEXT DEFAULT 'default_user',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
@@ -101,6 +104,7 @@ class ProductStore:
                         product_id TEXT NOT NULL,
                         field_name TEXT NOT NULL,
                         data TEXT NOT NULL,
+                        user_id TEXT DEFAULT 'default_user',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
@@ -114,6 +118,7 @@ class ProductStore:
                         relationship_type TEXT NOT NULL,
                         confidence INTEGER NOT NULL,
                         data TEXT NOT NULL,
+                        user_id TEXT DEFAULT 'default_user',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
@@ -126,10 +131,18 @@ class ProductStore:
                         field_name TEXT NOT NULL,
                         manufacturer TEXT,
                         data TEXT NOT NULL,
+                        user_id TEXT DEFAULT 'default_user',
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
                 )
+                
+                # Migration: add user_id column to existing tables if missing
+                for tbl in ["sources", "products", "review_actions", "field_conflicts", "product_relationships", "correction_patterns"]:
+                    try:
+                        cursor.execute(f"ALTER TABLE {tbl} ADD COLUMN user_id TEXT DEFAULT 'default_user'")
+                    except Exception:
+                        pass
                 conn.commit()
             logger.info("✓ SQLite database initialized at %s", self.db_path)
         except Exception as e:
@@ -196,17 +209,17 @@ class ProductStore:
 
     # ── Sources ──────────────────────────────────────────────────────
 
-    async def save_source(self, source: Source) -> Source:
+    async def save_source(self, source: Source, user_id: str = "default_user") -> Source:
         self._sources[source.id] = source
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT OR REPLACE INTO sources (id, content_hash, data) VALUES (?, ?, ?)",
-                    (str(source.id), source.content_hash, source.model_dump_json()),
+                    "INSERT OR REPLACE INTO sources (id, content_hash, data, user_id) VALUES (?, ?, ?, ?)",
+                    (str(source.id), source.content_hash, source.model_dump_json(), user_id),
                 )
                 conn.commit()
-            logger.info("Saved source %s to SQLite DB", source.id)
+            logger.info("Saved source %s (user=%s) to SQLite DB", source.id, user_id)
         except Exception as e:
             logger.error("Failed to save source to SQLite DB: %s", e)
         return source
@@ -221,32 +234,45 @@ class ProductStore:
                 return source
         return None
 
-    async def list_sources(self) -> list[Source]:
-        return list(self._sources.values())
+    async def list_sources(self, user_id: Optional[str] = None) -> list[Source]:
+        if not user_id:
+            return list(self._sources.values())
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT data FROM sources WHERE user_id = ?", (user_id,))
+                res = []
+                for row in cursor.fetchall():
+                    res.append(Source.model_validate_json(row["data"]))
+                return res
+        except Exception:
+            return list(self._sources.values())
 
     # ── Products ─────────────────────────────────────────────────────
 
-    async def save_product(self, product: ProductRecord) -> ProductRecord:
+    async def save_product(self, product: ProductRecord, user_id: str = "default_user") -> ProductRecord:
         self._products[product.id] = product
         try:
             json_data = product.model_dump_json()
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT OR REPLACE INTO products (id, category, name, confidence, data) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT OR REPLACE INTO products (id, category, name, confidence, data, user_id) VALUES (?, ?, ?, ?, ?, ?)",
                     (
                         str(product.id),
                         product.category,
                         product.name,
                         product.confidence_overall,
                         json_data,
+                        user_id,
                     ),
                 )
                 conn.commit()
             logger.info(
-                "Saved product %s '%s' to SQLite DB (category=%s, confidence=%d, fields=%d)",
+                "Saved product %s '%s' (user=%s) to SQLite DB (category=%s, confidence=%d, fields=%d)",
                 product.id,
                 product.name,
+                user_id,
                 product.category,
                 product.confidence_overall,
                 len(product.fields),
@@ -269,8 +295,19 @@ class ProductStore:
     async def get_product(self, product_id: UUID) -> Optional[ProductRecord]:
         return self._products.get(product_id)
 
-    async def list_products(self) -> list[ProductRecord]:
-        return list(self._products.values())
+    async def list_products(self, user_id: Optional[str] = None) -> list[ProductRecord]:
+        if not user_id:
+            return list(self._products.values())
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT data FROM products WHERE user_id = ?", (user_id,))
+                res = []
+                for row in cursor.fetchall():
+                    res.append(ProductRecord.model_validate_json(row["data"]))
+                return res
+        except Exception:
+            return list(self._products.values())
 
     async def update_product(self, product: ProductRecord) -> ProductRecord:
         """Replace a product record entirely (used after review actions)."""
@@ -306,10 +343,11 @@ class ProductStore:
 
     # ── Review Queue ─────────────────────────────────────────────────
 
-    async def get_review_queue(self) -> list[dict]:
-        """Return all fields with status needs_review across all products."""
+    async def get_review_queue(self, user_id: Optional[str] = None) -> list[dict]:
+        """Return all fields with status needs_review across all products for user."""
+        products = await self.list_products(user_id=user_id)
         items = []
-        for product in self._products.values():
+        for product in products:
             schema = CATEGORY_REGISTRY.get(product.category)
             display_name = schema.display_name if schema else product.category
             for field in product.fields:
@@ -325,33 +363,45 @@ class ProductStore:
                     )
         return items
 
-    async def save_review_action(self, action: ReviewAction) -> ReviewAction:
+    async def save_review_action(self, action: ReviewAction, user_id: str = "default_user") -> ReviewAction:
         self._review_actions.append(action)
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT OR REPLACE INTO review_actions (id, product_id, data) VALUES (?, ?, ?)",
-                    (str(action.id), str(action.product_id), action.model_dump_json()),
+                    "INSERT OR REPLACE INTO review_actions (id, product_id, data, user_id) VALUES (?, ?, ?, ?)",
+                    (str(action.id), str(action.product_id), action.model_dump_json(), user_id),
                 )
                 conn.commit()
             logger.info(
-                "Saved review action: %s on field %s to SQLite DB",
+                "Saved review action: %s on field %s (user=%s) to SQLite DB",
                 action.action.value,
                 action.field_id,
+                user_id,
             )
         except Exception as e:
             logger.error("Failed to save review action to SQLite DB: %s", e)
         return action
 
-    async def get_review_actions(self) -> list[ReviewAction]:
-        return list(self._review_actions)
+    async def get_review_actions(self, user_id: Optional[str] = None) -> list[ReviewAction]:
+        if not user_id:
+            return list(self._review_actions)
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT data FROM review_actions WHERE user_id = ?", (user_id,))
+                res = []
+                for row in cursor.fetchall():
+                    res.append(ReviewAction.model_validate_json(row["data"]))
+                return res
+        except Exception:
+            return list(self._review_actions)
 
     # ── Dashboard Stats ──────────────────────────────────────────────
 
-    async def get_dashboard_stats(self) -> dict:
-        """Compute catalog-wide quality statistics."""
-        products = list(self._products.values())
+    async def get_dashboard_stats(self, user_id: Optional[str] = None) -> dict:
+        """Compute catalog-wide quality statistics for user."""
+        products = await self.list_products(user_id=user_id)
         all_fields: list[ProductField] = []
         for p in products:
             all_fields.extend(p.fields)
@@ -408,42 +458,54 @@ class ProductStore:
 
     # ── Phase 7: Field Conflicts Methods ─────────────────────────────────
 
-    def save_field_conflict(self, conflict: FieldConflict) -> None:
+    def save_field_conflict(self, conflict: FieldConflict, user_id: str = "default_user") -> None:
         """Persist a FieldConflict entity to SQLite."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO field_conflicts (id, product_id, field_name, data)
-                    VALUES (?, ?, ?, ?)
+                    INSERT OR REPLACE INTO field_conflicts (id, product_id, field_name, data, user_id)
+                    VALUES (?, ?, ?, ?, ?)
                 """,
                     (
                         str(conflict.id),
                         str(conflict.product_id),
                         conflict.field_name,
                         conflict.model_dump_json(),
+                        user_id,
                     ),
                 )
                 conn.commit()
             logger.info(
-                "✓ Saved FieldConflict for product %s, field %s",
+                "✓ Saved FieldConflict for product %s, field %s (user=%s)",
                 str(conflict.product_id)[:8],
                 conflict.field_name,
+                user_id,
             )
         except Exception as e:
             logger.error("Failed to save FieldConflict: %s", e)
 
-    def list_field_conflicts(self, product_id: Optional[UUID] = None) -> list[FieldConflict]:
-        """Fetch all field conflicts, optionally filtered by product_id."""
+    def list_field_conflicts(self, product_id: Optional[UUID] = None, user_id: Optional[str] = None) -> list[FieldConflict]:
+        """Fetch all field conflicts, optionally filtered by product_id and user_id."""
         conflicts: list[FieldConflict] = []
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                if product_id:
+                if product_id and user_id:
+                    cursor.execute(
+                        "SELECT data FROM field_conflicts WHERE product_id = ? AND user_id = ?",
+                        (str(product_id), user_id),
+                    )
+                elif product_id:
                     cursor.execute(
                         "SELECT data FROM field_conflicts WHERE product_id = ?",
                         (str(product_id),),
+                    )
+                elif user_id:
+                    cursor.execute(
+                        "SELECT data FROM field_conflicts WHERE user_id = ?",
+                        (user_id,),
                     )
                 else:
                     cursor.execute("SELECT data FROM field_conflicts")
@@ -455,7 +517,7 @@ class ProductStore:
 
     # ── Phase 8: Product Relationships Methods ────────────────────────────
 
-    def save_product_relationship(self, rel: ProductRelationship) -> None:
+    def save_product_relationship(self, rel: ProductRelationship, user_id: str = "default_user") -> None:
         """Persist a ProductRelationship graph edge to SQLite."""
         try:
             with self._get_connection() as conn:
@@ -463,8 +525,8 @@ class ProductStore:
                 cursor.execute(
                     """
                     INSERT OR REPLACE INTO product_relationships
-                    (id, source_sku, target_sku, relationship_type, confidence, data)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    (id, source_sku, target_sku, relationship_type, confidence, data, user_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         str(rel.id),
@@ -473,24 +535,32 @@ class ProductStore:
                         rel.relationship_type,
                         rel.confidence,
                         rel.model_dump_json(),
+                        user_id,
                     ),
                 )
                 conn.commit()
-            logger.info("✓ Saved ProductRelationship %s -> %s", rel.source_sku, rel.target_sku)
+            logger.info("✓ Saved ProductRelationship %s -> %s (user=%s)", rel.source_sku, rel.target_sku, user_id)
         except Exception as e:
             logger.error("Failed to save ProductRelationship: %s", e)
 
-    def list_product_relationships(self, sku: Optional[str] = None) -> list[ProductRelationship]:
-        """Fetch graph relationships, optionally filtered by SKU."""
+    def list_product_relationships(self, sku: Optional[str] = None, user_id: Optional[str] = None) -> list[ProductRelationship]:
+        """Fetch graph relationships, optionally filtered by SKU and user_id."""
         rels: list[ProductRelationship] = []
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                if sku:
+                if sku and user_id:
+                    cursor.execute(
+                        "SELECT data FROM product_relationships WHERE (source_sku = ? OR target_sku = ?) AND user_id = ?",
+                        (sku, sku, user_id),
+                    )
+                elif sku:
                     cursor.execute(
                         "SELECT data FROM product_relationships WHERE source_sku = ? OR target_sku = ?",
                         (sku, sku),
                     )
+                elif user_id:
+                    cursor.execute("SELECT data FROM product_relationships WHERE user_id = ?", (user_id,))
                 else:
                     cursor.execute("SELECT data FROM product_relationships")
                 for row in cursor.fetchall():

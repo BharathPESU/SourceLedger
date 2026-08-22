@@ -18,13 +18,24 @@ import {
   FieldAuditEntry,
 } from '../types';
 
+import { supabase } from './supabase';
+
 const BASE_URL = '/api';
 
 // ── Low-level fetch helper ─────────────────────────────────────────────
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const customHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const currentUserId = session?.user?.id || session?.user?.email;
+    if (currentUserId) {
+      customHeaders['x-user-id'] = currentUserId;
+    }
+  } catch {}
+
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: { ...customHeaders, ...init?.headers },
     ...init,
   });
   if (!res.ok) {

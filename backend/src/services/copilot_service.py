@@ -35,10 +35,10 @@ class CopilotEngine:
         self.enrichment_agent = EnrichmentAgent()
         self.explainability_layer = ExplainabilityLayer()
 
-    async def chat(self, prompt: str) -> Dict[str, Any]:
-        """Process a natural language user query with live DB grounding and tool execution."""
-        products = await self.store.list_products()
-        sources = await self.store.list_sources()
+    async def chat(self, prompt: str, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Process a natural language user query with live DB grounding and tool execution for user."""
+        products = await self.store.list_products(user_id=user_id)
+        sources = await self.store.list_sources(user_id=user_id)
         
         executed_tools: List[Dict[str, Any]] = []
         data_preview: List[Dict[str, Any]] = []
@@ -49,7 +49,7 @@ class CopilotEngine:
         if any(w in p_lower for w in ["conflict", "disagree", "mismatch", "validate", "review"]):
             conflicts_all = []
             for p in products:
-                confs = self.store.list_field_conflicts(p.id)
+                confs = self.store.list_field_conflicts(p.id, user_id=user_id)
                 conflicts_all.extend(confs)
             executed_tools.append({
                 "agent": "ValidationAgent",
@@ -89,7 +89,7 @@ class CopilotEngine:
 
         # ── Tool Execution 3: DashboardService / Quality & Anti-Hardcoding ───
         if any(w in p_lower for w in ["quality", "hardcode", "suspicious", "fake", "trust", "health"]):
-            metrics = await compute_quality_dashboard_metrics(store_instance=self.store)
+            metrics = await compute_quality_dashboard_metrics(store_instance=self.store, user_id=user_id)
             executed_tools.append({
                 "agent": "DashboardService",
                 "tool_name": "compute_quality_dashboard_metrics",

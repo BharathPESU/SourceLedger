@@ -1,7 +1,7 @@
 """API Endpoints for Catalog Copilot & Multi-Agent Data Chat (SourceLedger)."""
 
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from ..services.copilot_service import copilot_engine
@@ -17,14 +17,17 @@ class CopilotChatRequest(BaseModel):
 
 
 @router.post("/chat")
-async def copilot_chat(req: CopilotChatRequest) -> Dict[str, Any]:
+async def copilot_chat(
+    req: CopilotChatRequest,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+) -> Dict[str, Any]:
     """Execute Copilot natural language data query with multi-agent tool execution."""
     try:
         if not req.prompt or not req.prompt.strip():
             raise HTTPException(status_code=400, detail="User prompt cannot be empty.")
         
-        logger.info("Received Copilot query: %s", req.prompt)
-        res = await copilot_engine.chat(req.prompt)
+        logger.info("Received Copilot query (user=%s): %s", x_user_id, req.prompt)
+        res = await copilot_engine.chat(req.prompt, user_id=x_user_id)
         return res
     except HTTPException:
         raise

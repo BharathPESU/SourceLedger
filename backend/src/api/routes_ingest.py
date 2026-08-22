@@ -5,8 +5,9 @@ import csv
 import io
 import json
 from uuid import UUID, uuid4
+from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 
 from ..models.api import IngestRequest, IngestResponse
@@ -70,9 +71,10 @@ async def _process_remaining_dataset_rows(
     category: str | None,
     filename: str | None,
     trust_tier: TrustTier,
+    user_id: str = "default_user",
 ) -> None:
     """Process remaining dataset rows (1..N) asynchronously in background."""
-    logger.info("Background dataset processing started for %d remaining rows", len(rows))
+    logger.info("Background dataset processing started for %d remaining rows (user=%s)", len(rows), user_id)
     for i, row_dict in enumerate(rows):
         if not row_dict or not any(row_dict.values()):
             continue
@@ -85,6 +87,7 @@ async def _process_remaining_dataset_rows(
                     category=category,
                     filename=filename,
                     trust_tier=trust_tier,
+                    user_id=user_id,
                 )
             logger.info("Background dataset row %d/%d completed", i + 1, len(rows))
         except Exception as row_err:
@@ -96,6 +99,7 @@ async def _process_remaining_dataset_rows(
 async def ingest_source(
     request: IngestRequest,
     background_tasks: BackgroundTasks,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ) -> IngestResponse:
     """Ingest a single source or multi-row dataset (CSV/Excel) into product records.
 
@@ -115,6 +119,8 @@ async def ingest_source(
                 detail=f"Invalid trust_tier: {request.trust_tier}. Use 1 (manufacturer), 2 (distributor), or 3 (marketplace).",
             )
 
+    active_user = x_user_id or "default_user"
+
     try:
         # Check if content is a multi-row Excel (.xlsx) or CSV dataset (e.g. 1000 items)
         dataset_rows = extract_dataset_rows(request.content, request.filename or "")
@@ -129,6 +135,7 @@ async def ingest_source(
                 category=request.category,
                 filename=request.filename,
                 trust_tier=trust_tier,
+                user_id=active_user,
             )
 
             # Queue remaining rows in background
@@ -139,6 +146,7 @@ async def ingest_source(
                     request.category,
                     request.filename,
                     trust_tier,
+                    active_user,
                 )
 
             remaining_count = len(dataset_rows) - 1
@@ -164,6 +172,7 @@ async def ingest_source(
             category=request.category,
             filename=request.filename,
             trust_tier=trust_tier,
+            user_id=active_user,
         )
 
         return IngestResponse(

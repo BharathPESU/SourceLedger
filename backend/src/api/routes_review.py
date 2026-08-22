@@ -3,7 +3,8 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Header, HTTPException
 
 from ..db.store import store
 from ..models.api import (
@@ -18,9 +19,9 @@ router = APIRouter(prefix="/api", tags=["review"])
 
 
 @router.get("/review", response_model=ReviewQueueResponse)
-async def get_review_queue() -> ReviewQueueResponse:
-    """List all fields needing human review across all products."""
-    items_raw = await store.get_review_queue()
+async def get_review_queue(x_user_id: Optional[str] = Header(None, alias="x-user-id")) -> ReviewQueueResponse:
+    """List all fields needing human review across all products for authenticated user."""
+    items_raw = await store.get_review_queue(user_id=x_user_id)
     items = [
         ReviewQueueItem(
             field=item["field"],
@@ -42,13 +43,9 @@ async def review_field(
     product_id: UUID,
     field_id: UUID,
     request: ReviewActionRequest,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ) -> ReviewActionResponse:
-    """Accept, edit, or reject a field value in the review queue.
-
-    - accept: mark field as auto_committed with its current value
-    - edit: update value to corrected_value, mark as human_corrected
-    - reject: set value to None, mark as needs_review (stays in queue)
-    """
+    """Accept, edit, or reject a field value in the review queue."""
     product = await store.get_product(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -89,6 +86,7 @@ async def review_field(
         product_id, field_id, new_value=field.value, new_status=field.status
     )
 
+    active_user = x_user_id or "default_user"
     # Record the review action for audit trail and active learning
     review_action = ReviewAction(
         field_id=field_id,
@@ -98,7 +96,7 @@ async def review_field(
         corrected_value=request.corrected_value,
         reviewer=request.reviewer,
     )
-    await store.save_review_action(review_action)
+    await store.save_review_action(review_action, user_id=active_user)
 
     # Active Learning CorrectionPattern tracking (Phase 10)
     from ..models.schemas import CorrectionPattern

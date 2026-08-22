@@ -16,10 +16,14 @@ from ..utils.logging import get_logger
 logger = get_logger("catalog_qa_service")
 
 
-async def answer_catalog_question(question: str, store_instance: Optional[Any] = None) -> Dict[str, Any]:
-    """Answer natural language catalog queries grounded on live ProductRecord database."""
+async def answer_catalog_question(
+    question: str,
+    store_instance: Optional[Any] = None,
+    user_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Answer natural language catalog queries grounded on live ProductRecord database for user."""
     target_store = store_instance or store
-    products = await target_store.list_products()
+    products = await target_store.list_products(user_id=user_id)
     
     if not products:
         return {
