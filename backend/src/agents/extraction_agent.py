@@ -246,7 +246,7 @@ class ExtractionAgent:
                     from .key_rotator import key_rotator
                     def _call_vlm():
                         return client.models.generate_content(
-                            model="gemini-3.6-flash",
+                            model="gemini-2.0-flash",
                             contents=[prompt, image_part],
                         )
                     
@@ -715,10 +715,10 @@ class ExtractionAgent:
 
         for attempt in range(MAX_RETRIES + 1):
             try:
-                # Use gemini-3.6-flash for structured product attribute extraction
+                # Use gemini-2.0-flash for structured product attribute extraction
                 response = await asyncio.to_thread(
                     client.models.generate_content,
-                    model="gemini-3.6-flash",
+                    model="gemini-2.0-flash",
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         temperature=0.1,  # Low temperature for consistent structured output

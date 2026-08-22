@@ -172,7 +172,7 @@ class MultiPhaseExtractor:
         source_text: str,
         source_id: UUID,
         *,
-        model: str = "gemini-3.6-flash",
+        model: str = "gemini-2.0-flash",
         temperature: float = 0.05,
 
     ) -> None:

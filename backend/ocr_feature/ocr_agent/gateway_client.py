@@ -18,8 +18,7 @@ def _resolve_base_url(url: Optional[str]) -> str:
 
 def _resolve_auth_token(token: Optional[str]) -> str:
     return token or os.getenv("API_KEY") or ""
-
-DEFAULT_MODELS = ["gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+DEFAULT_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 
 class GeminiGatewayClient:
     """
@@ -56,7 +55,7 @@ class GeminiGatewayClient:
     def generate_text(
         self,
         prompt: str,
-        model: str = "gemini-3.6-flash",
+        model: str = "gemini-2.0-flash",
         temperature: float = 0.2
     ) -> str:
         """
@@ -103,7 +102,7 @@ class GeminiGatewayClient:
         mime_type: str,
         prompt: str,
         system_instruction: Optional[str] = None,
-        model: str = "gemini-3.6-flash",
+        model: str = "gemini-2.0-flash",
         temperature: float = 0.1,
         response_mime_type: Optional[str] = "application/json"
     ) -> str:
@@ -175,7 +174,7 @@ class GeminiGatewayClient:
 
             try:
                 response = requests.post(
-                    url, json=payload, headers=self.headers, timeout=5
+                    url, json=payload, headers=self.headers, timeout=self.timeout
                 )
                 
                 # If model parameter endpoint returned 404 or unsupported model, try next

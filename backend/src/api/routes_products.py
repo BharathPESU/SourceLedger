@@ -73,8 +73,8 @@ async def get_product(product_id: UUID) -> ProductDetailResponse:
 
 
 @router.delete("/products")
-async def clear_all_products() -> dict:
-    """Clear all products, sources, and audit logs from store."""
-    store.clear()
-    return {"status": "success", "message": "All product catalog data cleared"}
+async def clear_all_products(x_user_id: Optional[str] = Header(None, alias="x-user-id")) -> dict:
+    """Clear all products, sources, and audit logs from store for the current user."""
+    store.clear(user_id=x_user_id)
+    return {"status": "success", "message": "Product catalog data cleared for user"}
 

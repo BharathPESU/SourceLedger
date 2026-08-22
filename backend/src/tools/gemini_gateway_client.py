@@ -21,7 +21,7 @@ class GeminiGatewayClient:
         self,
         base_url: Optional[str] = None,
         auth_token: Optional[str] = None,
-        default_model: str = "gemini-3.6-flash",
+        default_model: str = "gemini-2.0-flash",
         timeout: float = 60.0,
     ) -> None:
         raw_url = (

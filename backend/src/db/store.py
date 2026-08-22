@@ -148,19 +148,36 @@ class ProductStore:
         except Exception as e:
             logger.error("Failed to initialize SQLite database: %s", e)
 
-    def clear(self) -> None:
+    def clear(self, user_id: Optional[str] = None) -> None:
         """Clear all stored products, sources, and review actions from DB and memory."""
-        self._products.clear()
-        self._sources.clear()
-        self._review_actions.clear()
+        if user_id:
+            keys_to_remove = [k for k, v in self._products.items() if v.user_id == user_id]
+            for k in keys_to_remove:
+                del self._products[k]
+                
+            src_keys_to_remove = [k for k, v in self._sources.items() if v.user_id == user_id]
+            for k in src_keys_to_remove:
+                del self._sources[k]
+                
+            self._review_actions = [a for a in self._review_actions if a.user_id != user_id]
+        else:
+            self._products.clear()
+            self._sources.clear()
+            self._review_actions.clear()
+            
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM products")
-                cursor.execute("DELETE FROM sources")
-                cursor.execute("DELETE FROM review_actions")
+                if user_id:
+                    cursor.execute("DELETE FROM products WHERE user_id = ?", (user_id,))
+                    cursor.execute("DELETE FROM sources WHERE user_id = ?", (user_id,))
+                    cursor.execute("DELETE FROM review_actions WHERE user_id = ?", (user_id,))
+                else:
+                    cursor.execute("DELETE FROM products")
+                    cursor.execute("DELETE FROM sources")
+                    cursor.execute("DELETE FROM review_actions")
                 conn.commit()
-            logger.info("✓ Cleared all records from SQLite database")
+            logger.info(f"✓ Cleared records for user_id={user_id} from SQLite database")
         except Exception as e:
             logger.error("Failed to clear SQLite database: %s", e)
 
