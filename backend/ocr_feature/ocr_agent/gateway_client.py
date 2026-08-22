@@ -111,6 +111,32 @@ class GeminiGatewayClient:
         Native pass-through generation supporting multimodal (image + text) payloads.
         Attempts primary model and falls back to alternative models if rate limited.
         """
+        # Try direct Google GenAI SDK first with KeyRotator if GOOGLE_API_KEY is available
+        direct_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY1")
+        if direct_key:
+            try:
+                from google import genai
+                from google.genai import types
+                client = genai.Client(api_key=direct_key)
+                contents = [
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                    prompt
+                ]
+                config = types.GenerateContentConfig(
+                    temperature=temperature,
+                    response_mime_type=response_mime_type,
+                    system_instruction=system_instruction
+                )
+                res = client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                    config=config
+                )
+                if res.text:
+                    return res.text
+            except Exception as direct_err:
+                logger.warning(f"Direct Google GenAI SDK multimodal failed: {direct_err}. Trying HTTP gateway...")
+
         models_to_try = [model] + [m for m in DEFAULT_MODELS if m != model]
         base64_data = base64.b64encode(image_bytes).decode("utf-8")
 
@@ -149,7 +175,7 @@ class GeminiGatewayClient:
 
             try:
                 response = requests.post(
-                    url, json=payload, headers=self.headers, timeout=self.timeout
+                    url, json=payload, headers=self.headers, timeout=5
                 )
                 
                 # If model parameter endpoint returned 404 or unsupported model, try next
