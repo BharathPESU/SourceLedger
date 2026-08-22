@@ -458,7 +458,7 @@ export const SettingsView: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#8C8276]">Rate-Limit Recovery Window:</span>
-                  <span className="font-bold text-[#191715]">{RATE_LIMIT_COOLDOWN_SECONDS}s Cooldown</span>
+                  <span className="font-bold text-[#191715]">{telemetry?.rate_limit_cooldown_seconds || 60}s Cooldown</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#8C8276]">Quota Failure Policy:</span>
