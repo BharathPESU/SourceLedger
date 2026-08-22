@@ -94,18 +94,24 @@ export const OcrAgentView: React.FC = () => {
   // Handle File Selection
   const handleFileChange = (file: File | null) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setErrorMessage('Please select a valid image file (PNG, JPEG, WEBP, BMP, GIF, TIFF).');
+    const lowerName = file.name.toLowerCase();
+    const isPdf = file.type === 'application/pdf' || lowerName.endsWith('.pdf');
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp|gif|tiff?)$/.test(lowerName);
+
+    if (!isPdf && !isImage) {
+      setErrorMessage('Please select a valid PDF or image file (PDF, PNG, JPEG, WEBP, BMP, GIF, TIFF).');
       return;
     }
     setErrorMessage(null);
     setSelectedFile(file);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreviewUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreviewUrl(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreviewUrl(null);
+    }
   };
 
   // Drag & Drop
@@ -352,34 +358,51 @@ export const OcrAgentView: React.FC = () => {
                   type="file"
                   ref={fileInputRef}
                   onChange={(e) => e.target.files && handleFileChange(e.target.files[0])}
-                  accept="image/*"
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.gif,.tiff,image/*,application/pdf"
                   className="hidden"
                 />
 
-                {imagePreviewUrl ? (
-                  <div className="space-y-3">
-                    <img
-                      src={imagePreviewUrl}
-                      alt="Document Preview"
-                      className="max-h-48 mx-auto rounded-xl object-contain shadow-md border border-white/60"
-                    />
-                    <p className="text-xs font-medium text-[#191715] truncate">
-                      {selectedFile?.name || 'Selected Document Image'}
-                    </p>
-                    <span className="inline-block text-[11px] text-[#8C8276] hover:text-[#E8622C]">
-                      Click or drag to change image
-                    </span>
-                  </div>
+                {selectedFile ? (
+                  imagePreviewUrl ? (
+                    <div className="space-y-3">
+                      <img
+                        src={imagePreviewUrl}
+                        alt="Document Preview"
+                        className="max-h-48 mx-auto rounded-xl object-contain shadow-md border border-white/60"
+                      />
+                      <p className="text-xs font-medium text-[#191715] truncate">
+                        Selected Image: {selectedFile.name}
+                      </p>
+                      <span className="inline-block text-[11px] text-[#8C8276] hover:text-[#E8622C]">
+                        Click or drag to change file
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 py-4">
+                      <div className="w-12 h-12 rounded-2xl bg-[#E8622C]/10 text-[#E8622C] mx-auto flex items-center justify-center border border-[#E8622C]/20 shadow-xs">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-[#191715] truncate">
+                        Selected PDF: {selectedFile.name}
+                      </p>
+                      <p className="text-xs text-[#8C8276]">
+                        {Math.round(selectedFile.size / 1024)} KB — Multi-page PDF page screenshots will be rendered & extracted
+                      </p>
+                      <span className="inline-block text-[11px] text-[#E8622C] underline">
+                        Click or drag to change PDF
+                      </span>
+                    </div>
+                  )
                 ) : (
                   <div className="space-y-2 py-4">
                     <div className="w-12 h-12 rounded-full bg-[#E8622C]/10 text-[#E8622C] mx-auto flex items-center justify-center">
                       <ImageIcon className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-semibold text-[#191715]">
-                      Drop document image here or <span className="text-[#E8622C] underline">browse</span>
+                      Drop PDF or document image here or <span className="text-[#E8622C] underline">browse</span>
                     </p>
                     <p className="text-xs text-[#8C8276]">
-                      PNG, JPEG, WEBP, BMP, GIF, TIFF
+                      Supports Multi-Page PDFs, PNG, JPEG, WEBP, BMP, GIF, TIFF
                     </p>
                   </div>
                 )}

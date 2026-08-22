@@ -8,9 +8,11 @@ import {
   ScanText,
   Sliders, 
   FileSpreadsheet,
-  HelpCircle
+  HelpCircle,
+  LogOut
 } from 'lucide-react';
 import { ActiveTab } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface LeftRailProps {
   activeTab: ActiveTab;
@@ -107,6 +109,30 @@ export const LeftRail: React.FC<LeftRailProps> = ({
           );
         })}
       </div>
+
+      <div className="w-8 border-t border-[#191715]/10 my-1" />
+
+      {/* Sign Out Button */}
+      <SignOutRailButton />
     </aside>
+  );
+};
+
+const SignOutRailButton: React.FC = () => {
+  const { signOut } = useAuth();
+  return (
+    <div className="relative group flex items-center justify-center w-full px-2">
+      <button
+        onClick={() => signOut()}
+        className="w-11 h-11 rounded-2xl flex items-center justify-center text-[#D45320] hover:bg-[#FFF0ED] hover:scale-105 transition-all cursor-pointer border border-transparent hover:border-[#D45320]/20"
+        aria-label="Sign Out"
+      >
+        <LogOut className="w-5 h-5 stroke-[2]" />
+      </button>
+
+      <div className="absolute left-full ml-3.5 px-3 py-1.5 bg-[#191715] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 whitespace-nowrap border border-white/10">
+        <span>Sign Out</span>
+      </div>
+    </div>
   );
 };

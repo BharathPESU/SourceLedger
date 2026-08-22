@@ -67,9 +67,9 @@ if [ ! -d "$VENV_PATH" ]; then
     echo -e "  ${GREEN}✓ Virtual environment created successfully.${NC}"
 fi
 
-# Verify core Python dependencies (FastAPI, uvicorn, pydantic, dotenv, google-genai)
+# Verify core Python dependencies (FastAPI, uvicorn, pydantic, dotenv, google-genai, PIL, fitz, pypdfium2)
 MISSING_PY_DEPS=0
-"$PYTHON_VENV" -c "import fastapi, uvicorn, pydantic, pydantic_settings, dotenv, google.genai" 2>/dev/null || MISSING_PY_DEPS=1
+"$PYTHON_VENV" -c "import fastapi, uvicorn, pydantic, pydantic_settings, dotenv, PIL, fitz, pypdfium2" 2>/dev/null || MISSING_PY_DEPS=1
 
 if [ "$MISSING_PY_DEPS" -eq 1 ]; then
     echo -e "  ${YELLOW}▶ Missing or incomplete Python dependencies. Installing from requirements.txt...${NC}"

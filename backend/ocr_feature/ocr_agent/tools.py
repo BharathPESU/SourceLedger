@@ -31,8 +31,104 @@ MAX_DIMENSION = 3072
 
 class ImagePreprocessorTool:
     """
-    Tool for loading, validating, converting, and resizing image formats.
+    Tool for loading, validating, converting, resizing image formats,
+    and rendering multi-page PDF document pages to image screenshots.
     """
+    @staticmethod
+    def render_pdf_pages(pdf_bytes: bytes) -> List[Tuple[bytes, str, Dict[str, Any]]]:
+        """
+        Renders each page of a PDF document into a list of page screenshot PNG images.
+        """
+        pages_output = []
+        
+        # Method 1: PyMuPDF (fitz)
+        try:
+            import fitz
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            for page_num in range(len(doc)):
+                page = doc.load_page(page_num)
+                pix = page.get_pixmap(dpi=150)
+                img_bytes = pix.tobytes("png")
+                img = Image.open(io.BytesIO(img_bytes))
+                w, h = img.size
+                pages_output.append((
+                    img_bytes,
+                    "image/png",
+                    {
+                        "width": w,
+                        "height": h,
+                        "original_format": "PDF_PAGE",
+                        "final_mime_type": "image/png",
+                        "byte_size": len(img_bytes),
+                        "page_number": page_num + 1,
+                        "total_pages": len(doc),
+                    }
+                ))
+            if pages_output:
+                logger.info(f"Rendered {len(pages_output)} PDF page screenshots using PyMuPDF (fitz)")
+                return pages_output
+        except Exception as err:
+            logger.warning(f"PyMuPDF rendering failed, falling back to pypdfium2: {err}")
+
+        # Method 2: pypdfium2
+        try:
+            import pypdfium2 as pdfium
+            pdf = pdfium.PdfDocument(pdf_bytes)
+            num_pages = len(pdf)
+            for page_num, page in enumerate(pdf):
+                pil_image = page.render(scale=2).to_pil()
+                buf = io.BytesIO()
+                pil_image.save(buf, format="PNG")
+                img_bytes = buf.getvalue()
+                w, h = pil_image.size
+                pages_output.append((
+                    img_bytes,
+                    "image/png",
+                    {
+                        "width": w,
+                        "height": h,
+                        "original_format": "PDF_PAGE",
+                        "final_mime_type": "image/png",
+                        "byte_size": len(img_bytes),
+                        "page_number": page_num + 1,
+                        "total_pages": num_pages,
+                    }
+                ))
+            if pages_output:
+                logger.info(f"Rendered {len(pages_output)} PDF page screenshots using pypdfium2")
+                return pages_output
+        except Exception as p_err:
+            logger.error(f"pypdfium2 rendering failed: {p_err}")
+            raise ValueError(f"Could not render PDF document pages to screenshots: {p_err}")
+
+        raise ValueError("Failed to render PDF document to page screenshots.")
+
+    @classmethod
+    def process_document_to_page_images(cls, doc_input: Any, filename: Optional[str] = None) -> List[Tuple[bytes, str, Dict[str, Any]]]:
+        """
+        Accepts PDF or Image input (file path, bytes, or PIL Image).
+        Returns a list of page screenshot tuples: [(page_bytes, mime_type, metadata_dict), ...]
+        """
+        is_pdf = False
+        raw_bytes = None
+
+        if isinstance(doc_input, str):
+            if doc_input.lower().endswith(".pdf"):
+                is_pdf = True
+            with open(doc_input, "rb") as f:
+                raw_bytes = f.read()
+        elif isinstance(doc_input, bytes):
+            raw_bytes = doc_input
+            if raw_bytes.startswith(b"%PDF") or (filename and filename.lower().endswith(".pdf")):
+                is_pdf = True
+
+        if is_pdf and raw_bytes:
+            return cls.render_pdf_pages(raw_bytes)
+
+        # Single Image processing
+        single_page = cls.preprocess_image(doc_input if raw_bytes is None else raw_bytes)
+        return [single_page]
+
     @staticmethod
     def preprocess_image(image_input: Any) -> Tuple[bytes, str, Dict[str, Any]]:
         """

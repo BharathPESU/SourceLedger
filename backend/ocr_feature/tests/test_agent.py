@@ -103,3 +103,26 @@ def test_full_ocr_agent_extraction():
     print(f"\nExtracted Merchant: {result.structured_data.get('merchant_name')}")
     print(f"Extracted Total: {result.structured_data.get('total_amount')}")
     print(f"Validation Confidence: {result.validation_report.confidence_score}")
+
+def test_pdf_document_processing():
+    import fitz
+    doc = fitz.open()
+    page1 = doc.new_page(width=595, height=842)
+    page1.insert_text((50, 100), "INDUSTRIAL PUMP SPECIFICATION SHEET - PAGE 1\nModel: PUMP-2000X\nFlow Rate: 150 GPM")
+    page2 = doc.new_page(width=595, height=842)
+    page2.insert_text((50, 100), "INDUSTRIAL PUMP SPECIFICATION SHEET - PAGE 2\nVoltage: 480V\nPower: 25 HP")
+    pdf_bytes = doc.tobytes()
+
+    pages = ImagePreprocessorTool.process_document_to_page_images(pdf_bytes, filename="pump_spec.pdf")
+    assert len(pages) == 2
+    assert pages[0][1] == "image/png"
+    assert pages[1][1] == "image/png"
+
+    agent = OCRAgentSystem()
+    result = agent.extract_structured_text(
+        image_input=pdf_bytes,
+        document_type=DocumentType.GENERAL,
+        filename="pump_spec.pdf"
+    )
+    assert len(result.agent_trajectory) >= 3
+
