@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 from ..agents.main import AgentPipeline, key_rotator
 from ..models.product_record import SourceType, TrustTier
+from ..models.unihack_schema import map_product_fields_to_unihack_row
 from ..utils.logging import get_logger
 
 logger = get_logger("CSVProcessor")
@@ -143,49 +144,31 @@ class CSVProcessor:
                     trust_tier=TrustTier.DISTRIBUTOR,
                 )
 
-                # Construct exact 252 column delivery row dictionary
-                d_row = {h: "" for h in headers}
+                # Map every agent-produced field through the canonical delivery
+                # formatter so live URLs/specs do not get discarded.
+                mapped_row = map_product_fields_to_unihack_row(
+                    product.fields,
+                    title=product.name,
+                    sku=mfg_part_num,
+                )
+                d_row = {header: mapped_row.get(header, "") for header in headers}
 
-                # Preserve original input columns
-                d_row["Mfg_Part_Num"] = mfg_part_num
-                d_row["Part_Desc"] = part_desc
-                d_row["E1_Brand"] = e1_brand
-                d_row["Unilog_Brand"] = unilog_brand
-                d_row["DIB_Brand"] = dib_brand
-                d_row["Part_Manuf"] = part_manuf
+                # Preserve source-provided CSV identity fields verbatim.
+                for header, value in {
+                    "Mfg_Part_Num": mfg_part_num,
+                    "PART_NUMBER": mfg_part_num,
+                    "MANUFACTURER_PART_NUMBER": mfg_part_num,
+                    "SKU - MY_PART_NUMBER": mfg_part_num,
+                    "Part_Desc": part_desc,
+                    "E1_Brand": e1_brand,
+                    "Unilog_Brand": unilog_brand,
+                    "DIB_Brand": dib_brand,
+                    "Part_Manuf": part_manuf,
+                }.items():
+                    if value:
+                        d_row[header] = value
 
-                # Primary Identifiers
-                d_row["PART_NUMBER"] = mfg_part_num
-                d_row["MANUFACTURER_PART_NUMBER"] = mfg_part_num
-                d_row["SKU - MY_PART_NUMBER"] = mfg_part_num
-                d_row["MANUFACTURER_NAME"] = part_manuf.split("(")[0].strip() if part_manuf else ""
-
-                # Extract Brand Name
-                brand_candidates = [b for b in [e1_brand, unilog_brand, dib_brand] if b and not b.startswith("--")]
-                d_row["BRAND_NAME"] = brand_candidates[0] if brand_candidates else part_manuf.split("(")[0].strip()
-
-                # Descriptions
-                d_row["SHORT_DESC"] = part_desc
-                d_row["MOBILE_DESC"] = f"{d_row['MANUFACTURER_NAME']}, {product.name}, {mfg_part_num}"
-                d_row["INVOICE_DESC"] = part_desc[:40].upper()
-                d_row["LONG_DESC1"] = f"{part_desc}. {product.name} extracted with {product.confidence_overall}% confidence."
-                d_row["RETAIL_DESC"] = part_desc
-                d_row["Product Name"] = product.name or part_desc.split(" ")[0]
-                d_row["Actual Image (Yes/No)"] = "Yes"
-
-                # Populate ATTRIBUTE_LABEL i, ATTRIBUTE_VALUE i, ATTRIBUTE_UOM i
-                for i, field in enumerate(product.fields[:50], start=1):
-                    lbl_key = f"ATTRIBUTE_LABEL {i}"
-                    val_key = f"ATTRIBUTE_VALUE {i}"
-                    uom_key = f"ATTRIBUTE_UOM {i}"
-
-                    if lbl_key in d_row:
-                        d_row[lbl_key] = field.display_name or field.name
-                    if val_key in d_row:
-                        d_row[val_key] = str(field.value) if field.value is not None else ""
-                    if uom_key in d_row:
-                        d_row[uom_key] = field.unit or ""
-
+                d_row["Product Name"] = product.name or part_desc
                 delivery_rows.append(d_row)
 
                 json_records.append({
@@ -214,7 +197,7 @@ class CSVProcessor:
                 d_row = {h: "" for h in headers}
                 d_row["Mfg_Part_Num"] = mfg_part_num
                 d_row["Part_Desc"] = part_desc
-                d_row["SHORT_DESC"] = f"ERROR: {e}"
+                # Failed rows intentionally contain no synthetic product description.
                 delivery_rows.append(d_row)
 
         # Write Output Delivery CSV
@@ -247,9 +230,11 @@ class CSVProcessor:
 
     def _detect_category_from_row(self, raw_text: str) -> str:
         text_lower = raw_text.lower()
-        if any(kw in text_lower for kw in ["connector", "contact", "pin", "plug", "socket", "voltage"]):
+        if any(kw in text_lower for kw in ["connector", "contact", "pin", "plug", "socket", "terminal block"]):
             return "electrical_connector"
         elif any(kw in text_lower for kw in ["bolt", "nut", "screw", "fastener", "washer", "thread"]):
             return "safety_fastener"
-        else:
+        elif any(kw in text_lower for kw in ["centrifugal pump", "flow rate", "head pressure", "impeller"]):
             return "industrial_pump"
+        else:
+            return "generic"

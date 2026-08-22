@@ -9,6 +9,8 @@ score — no field is ever created without provenance.
 """
 
 import asyncio
+import csv
+import io
 import json
 import os
 import re
@@ -38,6 +40,60 @@ logger = get_logger("ExtractionAgent")
 
 # Maximum retries for schema-invalid LLM output
 MAX_RETRIES = 2
+
+# Upstream failure messages are control signals, never product data.
+FAILURE_INDICATORS = (
+    "no product found", "no product", "no match found", "no match in source",
+    "no data found", "extraction failed", "could not extract", "unknown product",
+    "extracted product", "ingested product", "csv product",
+)
+
+def is_extraction_failure_text(text: str) -> bool:
+    """Return whether text is an upstream failure rather than product content."""
+    normalized = " ".join(text.lower().split())
+    return any(indicator in normalized for indicator in FAILURE_INDICATORS) or bool(
+        re.search(r"\bno\b.*\bfound\b.*\bsource text\b", normalized)
+    )
+
+def is_placeholder_value(val: str) -> bool:
+    """Return True if a string value is a vendor placeholder or missing data indicator."""
+    if not val:
+        return True
+    s = val.strip().lower()
+    if s in ("--", "n/a", "none", "null", "unknown", "unbranded", "no brand", "none provided", "-", "undefined", "empty"):
+        return True
+    if s.startswith("--") and s.endswith("--"):
+        return True
+    if "no " in s and ("brand" in s or "unilog" in s or "dib" in s or "mfg" in s or "part" in s or "e1" in s):
+        return True
+    if s.startswith("no ") and ("found" in s or "data" in s or "info" in s or "product" in s):
+        return True
+    return False
+
+
+def _compute_csv_field_metadata(col_header: str, internal_name: str, val_str: str) -> tuple[int, str]:
+    """Dynamically compute field confidence and reasoning based on field type and content."""
+    col_norm = col_header.strip()
+    
+    if internal_name in ("mfg_part_num", "part_number", "sku", "model_number", "part_num", "item_number"):
+        if re.match(r"^[A-Z0-9\-\.]{3,40}$", val_str, re.I):
+            return 95, f"Verified part number format '{val_str}' extracted from CSV column '{col_norm}'"
+        return 90, f"Part identifier extracted from CSV column '{col_norm}'"
+        
+    elif internal_name in ("part_desc", "product_name", "short_desc", "description", "long_desc1", "item_description"):
+        return 92, f"Product description extracted from CSV column '{col_norm}'"
+        
+    elif internal_name in ("manufacturer", "part_manuf", "brand", "manufacturer_name", "unilog_brand", "e1_brand", "dib_brand", "brand_name"):
+        return 90, f"Manufacturer/brand entity '{val_str}' extracted from CSV column '{col_norm}'"
+        
+    elif val_str.replace(".", "").replace("-", "").isdigit():
+        return 88, f"Numeric specification parsed from CSV column '{col_norm}'"
+        
+    else:
+        return 85, f"Attribute value extracted directly from CSV column '{col_norm}'"
+
+
+
 
 
 def validate_extracted_json_schema(category: str, json_str: str) -> dict:
@@ -101,24 +157,39 @@ class ExtractionAgent:
         return self._adk_agent or self
 
     def _get_client(self):
-        """Create a Google GenAI Client using the current rotated API key.
+        """Create a Google GenAI Client using the current rotated API key or gateway proxy settings.
 
         Always reads from os.environ so the APIKeyRotator's round-robin
-        rotation takes effect on every call. Returns None if no key is set.
+        rotation and Gateway Proxy configuration take effect on every call.
+        Returns None if no key or proxy is configured.
         """
-        # Prefer the dynamically rotated key set by APIKeyRotator
+        proxy_url = os.environ.get("GEMINI_PROXY_URL", "").strip() or settings.gemini_proxy_url.strip() or settings.proxy_url.strip()
+        proxy_token = os.environ.get("PROXY_AUTH_TOKEN", "").strip() or settings.gemini_proxy_token.strip() or settings.proxy_auth_token.strip()
+
         api_key = (
             os.environ.get("GOOGLE_API_KEY", "").strip()
             or settings.google_api_key.strip()
+            or proxy_token
         )
-        if not api_key:
-            logger.warning("No GOOGLE_API_KEY set — using demo extraction mode")
+        if not api_key and not proxy_url:
+            logger.warning("No GOOGLE_API_KEY or PROXY_URL set — using demo extraction mode")
             return None
 
         try:
             from google import genai
-            client = genai.Client(api_key=api_key)
-            logger.debug("ExtractionAgent using API key: ...%s", api_key[-6:])
+            from google.genai import types
+
+            http_options = None
+            if proxy_url:
+                headers = {}
+                if proxy_token:
+                    headers["Authorization"] = f"Bearer {proxy_token}"
+                    headers["x-api-key"] = proxy_token
+                    headers["x-goog-api-key"] = proxy_token
+                http_options = types.HttpOptions(base_url=proxy_url, headers=headers if headers else None)
+
+            client = genai.Client(api_key=api_key or "proxy-enabled", http_options=http_options)
+            logger.debug("ExtractionAgent initialized (proxy_enabled=%s)", bool(proxy_url))
             return client
         except Exception as e:
             logger.error("Failed to initialize Google GenAI Client: %s", e)
@@ -140,15 +211,137 @@ class ExtractionAgent:
         which dynamically infers product fields from context rather than using
         a fixed schema. Falls back to demo mode if no LLM is available.
         """
-        # ── Fast path: structured CSV row (JSON dict) ─────────────────
+        # Failure messages must never be promoted into product records.
+        # IMPORTANT: skip this whole-text check for multi-row CSV content —
+        # a CSV may contain placeholder rows like "No Product Found In Source Text"
+        # in one column, which would incorrectly match here. The _try_parse_csv_json
+        # method already skips bad rows individually, so we only apply this guard
+        # to short single-record texts (not multi-row tabular data).
+        _first_line = raw_text.lstrip("\ufeff").split("\n")[0]
+        _looks_like_csv = "," in _first_line and len(raw_text.strip().splitlines()) > 1
+        if not _looks_like_csv and is_extraction_failure_text(raw_text):
+            return ExtractionResult(
+                product_name="", category=category or "generic", fields=[], source_id=source_id,
+                status="extraction_failed",
+                reason="Source text contains no identifiable product information",
+            )
+
+        # ── Fast path: structured CSV row (JSON dict or CSV table) ─────
         csv_row = self._try_parse_csv_json(raw_text)
         if csv_row is not None:
-            with log_agent_step(logger, "ExtractionAgent", "deterministic CSV extraction") as ctx:
-                result = self._extract_csv_deterministic(csv_row, category, source_id)
-                ctx["output_summary"] = (
-                    f"{len(result.fields)} fields mapped from CSV for '{result.product_name}'"
+            result = self._extract_csv_deterministic(csv_row, category, source_id)
+            if is_extraction_failure_text(result.product_name) or not result.fields:
+                return ExtractionResult(
+                    product_name="", category=category or "generic", fields=[], source_id=source_id,
+                    status="extraction_failed",
+                    reason="Source text contains no identifiable product information",
                 )
-                return result
+
+            # ── Multi-phase augmentation ─────────────────────────────────
+            # Deterministic extraction fills identity fields instantly (part#, mfr,
+            # name) but leaves descriptions, features, and attributes empty.
+            # We now run focused LLM sub-calls — phase by phase, split by split —
+            # to fill those gaps from the available CSV row content.
+            # Each phase covers a narrow column group, drastically reducing
+            # hallucination vs sending all 252 columns in one prompt.
+            with log_agent_step(logger, "ExtractionAgent", "multi-phase CSV augmentation") as ctx:
+                client = self._get_client()
+                if client is not None:
+                    try:
+                        from .multi_phase_extractor import MultiPhaseExtractor
+
+                        # Build identity context from deterministic fields
+                        _identity_parts: list[str] = []
+                        for _f in result.fields:
+                            if _f.name in ("mfg_part_num", "part_number", "manufacturer_name",
+                                           "part_manuf", "brand_name", "product_name", "part_desc"):
+                                _identity_parts.append(f"{_f.display_name}: {_f.value}")
+                        _identity_ctx = "; ".join(_identity_parts[:6]) or "(see CSV row)"
+
+                        _deterministic_names = {_f.name for _f in result.fields}
+                        _phase_ex = MultiPhaseExtractor(
+                            client=client,
+                            source_text=raw_text,
+                            source_id=source_id,
+                            temperature=0.05,
+                        )
+                        _aug_fields: list = list(result.fields)
+                        _aug_names: set = set(_deterministic_names)
+
+                        # Phase 2 — descriptions + features (5 at a time)
+                        logger.info(
+                            "ExtractionAgent Phase 2: descriptions/features for '%s'",
+                            result.product_name[:50],
+                        )
+                        try:
+                            _p2 = await _phase_ex.phase2_descriptions(_identity_ctx)
+                            for _f in _p2.fields:
+                                if _f.name not in _aug_names:
+                                    _aug_fields.append(_f)
+                                    _aug_names.add(_f.name)
+                            logger.info("Phase 2: %d new description/feature fields", len(_p2.fields))
+                        except Exception as _e:
+                            logger.warning("Phase 2 augmentation failed: %s", _e)
+
+                        # Phase 3 — technical attribute triplets (10 at a time)
+                        logger.info(
+                            "ExtractionAgent Phase 3: attributes for '%s'",
+                            result.product_name[:50],
+                        )
+                        try:
+                            _p3 = await _phase_ex.phase3_attributes(_identity_ctx, _aug_names)
+                            for _f in _p3.fields:
+                                if _f.name not in _aug_names:
+                                    _aug_fields.append(_f)
+                                    _aug_names.add(_f.name)
+                            logger.info("Phase 3: %d new attribute fields", len(_p3.fields))
+                        except Exception as _e:
+                            logger.warning("Phase 3 augmentation failed: %s", _e)
+
+                        # Phase 4 — logistics, dimensions, UNSPSC, compliance
+                        logger.info(
+                            "ExtractionAgent Phase 4: logistics for '%s'",
+                            result.product_name[:50],
+                        )
+                        try:
+                            _p4 = await _phase_ex.phase4_logistics(_identity_ctx)
+                            for _f in _p4.fields:
+                                if _f.name not in _aug_names:
+                                    _aug_fields.append(_f)
+                                    _aug_names.add(_f.name)
+                            logger.info("Phase 4: %d new logistics fields", len(_p4.fields))
+                        except Exception as _e:
+                            logger.warning("Phase 4 augmentation failed: %s", _e)
+
+                        result = ExtractionResult(
+                            product_name=result.product_name,
+                            category=result.category,
+                            fields=_aug_fields,
+                            source_id=source_id,
+                        )
+                        _added = len(result.fields) - len(_deterministic_names)
+                        ctx["output_summary"] = (
+                            f"{len(result.fields)} fields "
+                            f"({len(_deterministic_names)} deterministic + {_added} multi-phase) "
+                            f"for '{result.product_name}'"
+                        )
+                    except Exception as _exc:
+                        logger.warning(
+                            "Multi-phase augmentation error (returning deterministic only): %s", _exc
+                        )
+                        ctx["output_summary"] = (
+                            f"{len(result.fields)} fields mapped (multi-phase skipped) "
+                            f"for '{result.product_name}'"
+                        )
+                else:
+                    ctx["output_summary"] = (
+                        f"{len(result.fields)} fields mapped from CSV for '{result.product_name}'"
+                    )
+            return result
+
+
+        if category and category not in ("generic", "unknown", "") and category not in CATEGORY_REGISTRY:
+            raise ValueError(f"Unknown category: {category}")
 
         schema = get_category_schema(category)
 
@@ -184,19 +377,76 @@ class ExtractionAgent:
 
     @staticmethod
     def _try_parse_csv_json(raw_text: str) -> dict | None:
-        """Try to parse raw_text as a JSON-encoded CSV row dict.
+        """Try to parse raw_text as a JSON-encoded CSV row dict OR a raw CSV table text.
 
-        Returns the dict if successful, None otherwise.
+        Returns the dictionary representing the CSV row if successful, None otherwise.
         """
-        text = raw_text.strip()
-        if not text.startswith("{"):
-            return None
-        try:
-            data = json.loads(text)
-            if isinstance(data, dict) and len(data) > 0:
-                return data
-        except (json.JSONDecodeError, ValueError):
-            pass
+        text = raw_text.lstrip("\ufeff").strip()
+        if text.startswith("{"):
+            try:
+                data = json.loads(text)
+                if isinstance(data, dict) and len(data) > 0:
+                    return data
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        # Try parsing as standard multi-row or single-row CSV text with headers
+        if ("," in text or "\t" in text) and ("\n" in text or "mfg" in text.lower() or "part" in text.lower()):
+            try:
+                reader = csv.DictReader(io.StringIO(text))
+                if reader.fieldnames:
+                    norm_headers = {ExtractionAgent._normalise_header(h) for h in reader.fieldnames if h}
+                    known_headers = {
+                        # Industrial / distributor formats
+                        "mfg_part_num", "part_desc", "part_number", "part_num",
+                        "e1_brand", "unilog_brand", "dib_brand", "part_manuf",
+                        # Common generic formats
+                        "sku", "product_name", "short_desc", "long_desc1",
+                        "description", "name", "title", "item_name", "item_description",
+                        "item_number", "item_no", "model", "model_number", "model_no",
+                        "product", "product_description", "product_title", "part",
+                        "material_description", "material_no", "material_number",
+                        "article", "article_description", "article_number",
+                        "product_id", "item_id", "id", "ref", "reference",
+                        "long_description", "short_description",
+                        "manufacturer", "brand", "vendor_part_number"
+                    }
+                    if norm_headers & known_headers:
+                        for row in reader:
+                            # Skip rows that are placeholders/failures in any column
+                            if any(v and is_extraction_failure_text(str(v)) for v in row.values()):
+                                continue
+
+                            desc = ""
+                            # First try known product-name columns
+                            name_cols = {
+                                "part_desc", "product_name", "description", "name", "title",
+                                "short_desc", "long_desc1", "item_name", "item_description",
+                                "product_description", "product_title", "model", "model_number",
+                                "material_description", "article_description",
+                                "mfg_part_num", "part_number", "sku", "id"
+                            }
+                            for k, v in row.items():
+                                if not k or not v:
+                                    continue
+                                norm_k = ExtractionAgent._normalise_header(k)
+                                if norm_k in name_cols:
+                                    val_str = str(v).strip()
+                                    if val_str and not is_extraction_failure_text(val_str):
+                                        desc = val_str
+                                        break
+                            # Fallback: any non-empty string cell in the row
+                            if not desc:
+                                for v in row.values():
+                                    val_str = str(v).strip() if v else ""
+                                    if val_str and not is_extraction_failure_text(val_str) and not val_str.replace(".","").replace("-","").isdigit():
+                                        desc = val_str
+                                        break
+                            if desc:
+                                return row
+            except Exception:
+                pass
+
         return None
 
     def _extract_csv_deterministic(
@@ -217,35 +467,61 @@ class ExtractionAgent:
         )
 
         # ── Derive product name from the best available columns ───────
-        name_candidates = [
-            "Part_Desc", "part_desc", "PART_DESC",
-            "Product Name", "product_name", "PRODUCT_NAME",
-            "SHORT_DESC", "short_desc",
-            "LONG_DESC1", "long_desc1",
-            "Mfg_Part_Num", "mfg_part_num", "MFG_PART_NUM",
-            "PART_NUMBER", "part_number",
-            "title", "Title", "TITLE",
-            "description", "Description",
-        ]
-        product_name = "CSV Product"
-        for key in name_candidates:
-            val = row_dict.get(key, "").strip()
-            if val:
-                product_name = val[:120]
-                break
+        product_name = ""
+        target_norms = {
+            "part_desc", "product_name", "description", "name", "title",
+            "short_desc", "long_desc1", "item_name", "item_description",
+            "product_description", "product_title", "model", "model_number",
+            "material_description", "article_description",
+            "mfg_part_num", "part_number", "sku", "id"
+        }
+        for k, v in row_dict.items():
+            if k and v:
+                if ExtractionAgent._normalise_header(k) in target_norms:
+                    val_str = str(v).strip()
+                    if val_str and not is_extraction_failure_text(val_str):
+                        product_name = val_str[:120]
+                        break
+        # Fallback: use first non-empty, non-numeric string cell
+        if not product_name:
+            for v in row_dict.values():
+                val_str = str(v).strip() if v else ""
+                if val_str and not is_extraction_failure_text(val_str) and not val_str.replace(".","").replace("-","").isdigit():
+                    product_name = val_str[:120]
+                    break
 
         # ── Build ProductField for every non-empty column ─────────────
+        seen_brand_values: set[str] = set()
+        seen_desc_values: set[str] = set()
         fields: list[ProductField] = []
+
+
         for col_header, raw_value in row_dict.items():
+            if not col_header:
+                continue
             val = str(raw_value).strip() if raw_value is not None else ""
-            if not val or val in ("--", "N/A", "n/a", "None", "null", ""):
+            if is_placeholder_value(val) or is_extraction_failure_text(val):
                 continue
 
-            # Normalise header → snake_case internal name
             internal_name = self._normalise_header(col_header)
-            display_name = col_header.strip()
+            display_name = str(col_header).strip()
 
-            # Try to coerce numeric values
+            norm_val = " ".join(val.lower().split())
+
+            # Dedup brand/manufacturer duplicate columns
+            if internal_name in ("part_manuf", "manufacturer_name", "brand_name", "brand", "unilog_brand", "e1_brand", "dib_brand"):
+                if norm_val in seen_brand_values:
+                    logger.info("CSV dedup: skipping duplicate brand value '%s' from column '%s'", val, col_header)
+                    continue
+                seen_brand_values.add(norm_val)
+
+            # Dedup description duplicate columns
+            if internal_name in ("part_desc", "product_name", "short_desc", "description", "long_desc1"):
+                if norm_val in seen_desc_values:
+                    logger.info("CSV dedup: skipping duplicate description value '%s' from column '%s'", val, col_header)
+                    continue
+                seen_desc_values.add(norm_val)
+
             coerced_value: object = val
             try:
                 if "." in val:
@@ -255,19 +531,21 @@ class ExtractionAgent:
             except (ValueError, TypeError):
                 coerced_value = val
 
+            confidence, reasoning = _compute_csv_field_metadata(col_header, internal_name, val)
+
             field = ProductField(
                 id=uuid4(),
                 name=internal_name,
                 display_name=display_name,
                 value=coerced_value,
                 unit=None,
-                confidence=95,  # High confidence — exact CSV value
+                confidence=confidence,
                 source_excerpt=SourceExcerpt(
                     source_id=source_id,
                     text=f"CSV column '{col_header}': {val[:80]}",
                 ),
-                reasoning="Deterministic CSV extraction — exact value from input file",
-                status=FieldStatus.NEEDS_REVIEW,
+                reasoning=reasoning,
+                status=FieldStatus.AUTO_COMMITTED if confidence >= settings.confidence_threshold else FieldStatus.NEEDS_REVIEW,
             )
             fields.append(field)
 
@@ -283,8 +561,9 @@ class ExtractionAgent:
             source_id=source_id,
         )
 
+
     @staticmethod
-    def _normalise_header(header: str) -> str:
+    def _normalise_header(header: str | None) -> str:
         """Convert a CSV column header to a snake_case internal field name.
 
         Examples:
@@ -293,8 +572,10 @@ class ExtractionAgent:
             'Part Desc'          → 'part_desc'
             'SKU - MY_PART_NUMBER' → 'sku_my_part_number'
         """
+        if not header:
+            return "unknown_column"
         import re
-        s = header.strip()
+        s = str(header).lstrip("\ufeff").strip()
         # Replace common separators with underscore
         s = re.sub(r'[\s\-/]+', '_', s)
         # Insert underscore before uppercase runs (CamelCase → snake)
@@ -328,7 +609,7 @@ class ExtractionAgent:
                 response_text = response.text
 
                 parsed = self._parse_llm_response(
-                    response_text, schema, source_id
+                    response_text, schema, source_id, raw_text
                 )
                 logger.info(
                     "ExtractionAgent: %d/%d fields populated (attempt %d)",
@@ -349,7 +630,7 @@ class ExtractionAgent:
                             contents=prompt,
                             config=types.GenerateContentConfig(temperature=0.1),
                         )
-                        return self._parse_llm_response(response.text, schema, source_id)
+                        return self._parse_llm_response(response.text, schema, source_id, raw_text)
                     except Exception as e2:
                         err_str = str(e2)
 
@@ -398,43 +679,23 @@ class ExtractionAgent:
             raw_text = raw_text[:max_chars] + "\n\n[... truncated ...]"
 
         return f"""You are an expert product data extraction AI for industrial and commercial catalogues.
-Your goal is MAXIMUM field coverage — extract or reasonably infer EVERY field listed below.
+Your only goal is to report values directly supported by the source text. Omit anything unsupported; never infer, guess, use category norms, or create placeholders.
 
 PRODUCT CATEGORY: {schema.display_name}
 
-═══ REQUIRED FIELDS (must all appear in output, even if value is null) ═══
+═══ SCHEMA FIELDS (include only when supported by the source) ═══
 {req_block}
 
-═══ OPTIONAL FIELDS (include whenever you can extract or infer a value) ═══
+═══ OPTIONAL FIELDS ═══
 {opt_block}
 
 ═══ EXTRACTION RULES ═══
-1. TWO-PASS EXTRACTION:
-   PASS 1 — Explicit: Extract values directly stated in the source text.
-             Confidence 85-100 for clear explicit values.
-   PASS 2 — Inference: For any remaining fields, reason from:
-             a) Other extracted fields (e.g. if material=stainless steel 316 → infer corrosion resistance)
-             b) Product type norms (e.g. industrial pumps typically use 3-phase 400V)
-             c) Industry standards (e.g. IP67 connector → temperature range -40 to 105°C typical)
-             d) Manufacturer known specifications for this product line
-             Confidence 40-70 for inferred values.
-
-2. REQUIRED FIELDS: Even if not found, include them with value: null and confidence: 0.
-   Never omit a required field.
-
-3. SOURCE CITATIONS: For Pass 1, quote exact source text in "excerpt".
-   For Pass 2 inferences, write "Inferred from: [reason]" in "excerpt".
-
-4. NUMERIC FIELDS: Return numbers only (no units). e.g. 15.0 not "15.0 m³/h".
-
-5. LIST FIELDS: Return a JSON array of strings. e.g. ["CE", "RoHS", "UL"]
-
-6. CONFIDENCE SCALE:
-   90-100: Explicitly stated verbatim
-   70-89: Clearly stated but needed minor interpretation
-   50-69: Reasonably inferred from context or related data
-   30-49: Inferred from product type norms or manufacturer defaults
-   0-29: Cannot determine — use null value
+1. If the source does not identify a product by name, model, or category-defining detail, return status "extraction_failed" and fields: [].
+2. Emit a field only when its value is directly supported by the source. Do not infer from product type, industry norms, related products, manufacturer defaults, or general knowledge.
+3. Omit unknown fields entirely; never emit null, empty, "Unknown", or placeholder values.
+4. Every field must include an exact verbatim source quote in "excerpt". If no exact quote exists, omit the field.
+5. PART_NUMBER/Mfg_Part_Num must be copied verbatim from a source identifier. Manufacturer must be a real name in the source.
+6. Use confidence only for ambiguity between source-backed readings, never for guesses.
 
 ═══ SOURCE TEXT ═══
 ---
@@ -443,14 +704,16 @@ PRODUCT CATEGORY: {schema.display_name}
 
 Respond with ONLY a valid JSON object. No markdown, no commentary:
 {{
-  "product_name": "<full product name including manufacturer and model>",
+  "status": "extracted" | "extraction_failed",
+  "reason": "<only for extraction_failed>",
+  "product_name": "<verbatim name from source, or empty on failure>",
   "fields": [
     {{
       "name": "<field key>",
       "value": <string | number | boolean | array | null>,
       "confidence": <0-100>,
-      "excerpt": "<exact source quote OR 'Inferred from: ...'>",
-      "reasoning": "<1-2 sentence explanation of extraction/inference logic>"
+      "excerpt": "<exact verbatim source quote>",
+      "reasoning": "<one sentence describing the cited source evidence>"
     }}
   ]
 }}"""
@@ -460,8 +723,9 @@ Respond with ONLY a valid JSON object. No markdown, no commentary:
         response_text: str,
         schema: CategorySchema,
         source_id: UUID,
+        raw_text: str,
     ) -> ExtractionResult:
-        """Parse LLM JSON response into an ExtractionResult."""
+        """Parse a source-grounded LLM extraction response."""
         # Strip markdown fences if present
         cleaned = response_text.strip()
         if cleaned.startswith("```"):
@@ -473,7 +737,15 @@ Respond with ONLY a valid JSON object. No markdown, no commentary:
         validate_extracted_json_schema(schema.category_key, cleaned)
 
         data = json.loads(cleaned)
-        product_name = data.get("product_name") or "Extracted Product"
+        if data.get("status") == "extraction_failed":
+            return ExtractionResult(product_name="", category=schema.category_key, fields=[], source_id=source_id, status="extraction_failed", reason=data.get("reason") or "Source text contains no identifiable product information")
+        product_name = str(data.get("product_name") or "").strip()
+        if (
+            not product_name
+            or is_extraction_failure_text(product_name)
+            or _normalise_source_text(product_name) not in _normalise_source_text(raw_text)
+        ):
+            return ExtractionResult(product_name="", category=schema.category_key, fields=[], source_id=source_id, status="extraction_failed", reason="Source text contains no identifiable product information")
         raw_fields = data.get("fields") or []
 
         fields = []
@@ -487,8 +759,16 @@ Respond with ONLY a valid JSON object. No markdown, no commentary:
                 continue
 
             value = rf.get("value")
+            if value in (None, "", []):
+                continue
             confidence = min(100, max(0, int(rf.get("confidence", 0))))
-            excerpt = rf.get("excerpt") or ""
+            excerpt = str(rf.get("excerpt") or "").strip()
+            if (
+                not excerpt
+                or "inferred from" in excerpt.lower()
+                or _normalise_source_text(excerpt) not in _normalise_source_text(raw_text)
+            ):
+                continue
             reasoning = rf.get("reasoning") or ""
 
             field = ProductField(
@@ -521,110 +801,12 @@ Respond with ONLY a valid JSON object. No markdown, no commentary:
         category: str,
         source_id: UUID,
     ) -> ExtractionResult:
-        """Universal extraction for unknown/generic product categories.
+        """Use the conservative local extractor for unregistered schemas.
 
-        Uses Gemini to dynamically discover what type of product this is
-        and extract relevant fields without requiring a predefined schema.
+        A generic schema cannot safely license free-form spec generation.
         """
-        max_chars = 14000
-        if len(raw_text) > max_chars:
-            raw_text = raw_text[:max_chars] + "\n\n[... truncated ...]"
-
-        prompt = f"""You are an expert product data extraction AI for industrial and commercial catalogues.
-The product below may not match a predefined category. Your job is to:
-1. Identify what TYPE of product this is.
-2. Extract ALL relevant product attributes and specifications.
-3. Return them in a structured JSON format.
-
-PRODUCT DATA:
----
-{raw_text}
----
-
-EXTRACTION RULES:
-1. First determine the product type (e.g. "Cordless Drill", "Hedge Trimmer", "Brad Nailer", "Dishwasher").
-2. Extract all attributes that would appear in a product catalog listing:
-   - Manufacturer/Brand, Model number/Part number
-   - Product type/Category
-   - Key specifications (voltage, speed, size, capacity, power, etc.)
-   - Features, compatibility information, certifications
-   - Physical attributes (dimensions, weight, color)
-3. For each field, infer the value from the product name, description, and your knowledge of this product.
-4. Confidence: 85+ = explicitly stated, 50-70 = inferred from product knowledge, 30-49 = typical for this type.
-
-Respond with ONLY this JSON (no markdown fences):
-{{
-  "product_name": "<full product name including brand and model>",
-  "detected_category": "<what type of product this is>",
-  "fields": [
-    {{
-      "name": "<snake_case_field_name>",
-      "display_name": "<Human Readable Label>",
-      "value": <string | number | boolean | array | null>,
-      "unit": "<unit if applicable, else null>",
-      "confidence": <0-100>,
-      "excerpt": "<exact quote OR 'Inferred from: ...'>"
-    }}
-  ]
-}}"""
-
-        for attempt in range(MAX_RETRIES + 1):
-            try:
-                response = await asyncio.to_thread(
-                    client.models.generate_content,
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                    config=types.GenerateContentConfig(temperature=0.1),
-                )
-                response_text = response.text.strip()
-                if response_text.startswith("```"):
-                    response_text = re.sub(r"^```\w*\n?", "", response_text)
-                    response_text = re.sub(r"\n?```$", "", response_text)
-
-                data = json.loads(response_text)
-                product_name = data.get("product_name") or "Extracted Product"
-                detected_cat = data.get("detected_category") or category
-                raw_fields = data.get("fields") or []
-
-                fields = []
-                for rf in raw_fields:
-                    name = rf.get("name", "").strip()
-                    if not name:
-                        continue
-                    field = ProductField(
-                        id=uuid4(),
-                        name=name,
-                        display_name=rf.get("display_name") or name.replace("_", " ").title(),
-                        value=rf.get("value"),
-                        unit=rf.get("unit") or None,
-                        confidence=min(100, max(0, int(rf.get("confidence", 50)))),
-                        source_excerpt=SourceExcerpt(
-                            source_id=source_id,
-                            text=rf.get("excerpt") or "",
-                        ),
-                        reasoning=f"Universal extraction — detected as: {detected_cat}",
-                        status=FieldStatus.NEEDS_REVIEW,
-                    )
-                    fields.append(field)
-
-                logger.info(
-                    "Universal extraction: %d fields for '%s' (detected: %s)",
-                    len(fields), product_name, detected_cat,
-                )
-                return ExtractionResult(
-                    product_name=product_name,
-                    category=detected_cat,
-                    fields=fields,
-                    source_id=source_id,
-                )
-
-            except Exception as e:
-                if attempt < MAX_RETRIES:
-                    logger.warning("Universal extraction attempt %d failed: %s", attempt + 1, e)
-                else:
-                    logger.error("Universal extraction failed: %s — using generic demo", e)
-                    return self._extract_generic_demo(raw_text, category, source_id)
-
+        if is_extraction_failure_text(raw_text):
+            return ExtractionResult(product_name="", category=category, fields=[], source_id=source_id, status="extraction_failed", reason="Source text contains no identifiable product information")
         return self._extract_generic_demo(raw_text, category, source_id)
 
     def _extract_generic_demo(
@@ -698,7 +880,9 @@ Respond with ONLY this JSON (no markdown fences):
             l for l in lines 
             if not ("," in l and ("mfg" in l.lower() or "part" in l.lower() or "desc" in l.lower() or "brand" in l.lower()))
         ]
-        product_name = candidate_lines[0][:80] if candidate_lines else (lines[0][:80] if lines else "Ingested Product")
+        if not lines or is_extraction_failure_text(raw_text):
+            return ExtractionResult(product_name="", category=schema.category_key, fields=[], source_id=source_id, status="extraction_failed", reason="Source text contains no identifiable product information")
+        product_name = candidate_lines[0][:80] if candidate_lines else lines[0][:80]
 
         fields = []
         text_lower = raw_text.lower()
@@ -707,7 +891,7 @@ Respond with ONLY this JSON (no markdown fences):
             value, confidence, excerpt = self._demo_extract_field(
                 field_def, raw_text, text_lower
             )
-            if value is not None or field_def.required:
+            if value is not None:
                 field = ProductField(
                     id=uuid4(),
                     name=field_def.name,
@@ -726,6 +910,8 @@ Respond with ONLY this JSON (no markdown fences):
                 )
                 fields.append(field)
 
+        if not fields:
+            return ExtractionResult(product_name="", category=schema.category_key, fields=[], source_id=source_id, status="extraction_failed", reason="Source text contains no identifiable product information")
         return ExtractionResult(
             product_name=product_name,
             category=schema.category_key,
@@ -753,12 +939,12 @@ Respond with ONLY this JSON (no markdown fences):
             for brand in known_brands:
                 if brand.lower() in text_lower:
                     line_match = next((l for l in lines if brand.lower() in l.lower()), first_line)
-                    return brand, 92, f'"{line_match}"'
+                    return brand, 92, line_match
             
-            words = first_line.split()
-            if words:
-                brand = words[0]
-                return brand, 75, f'"{first_line[:60]}"'
+            manufacturer_match = re.search(r"(?:manufacturer|brand)\s*:\s*([^\n]+)", raw_text, re.IGNORECASE)
+            if manufacturer_match:
+                brand = manufacturer_match.group(1).strip()
+                return brand, 88, brand
 
         # ── 2. Model number heuristics ────────────────────────────────
         if field_def.name in ("model_number", "part_number"):
@@ -766,15 +952,15 @@ Respond with ONLY this JSON (no markdown fences):
             if model_match:
                 val = model_match.group(1)
                 line_match = next((l for l in lines if val in l), first_line)
-                return val, 88, f'"{line_match[:80]}"'
-            if lines:
-                return lines[0][:40], 70, f'"{lines[0][:60]}"'
+                return val, 88, line_match[:80]
 
         # ── 3. Search by field keywords ───────────────────────────────
         keywords = [
             field_def.name.replace("_", " "),
             field_def.display_name.lower(),
         ]
+        if field_def.name.endswith("_type"):
+            keywords.append("type")
 
         for keyword in keywords:
             idx = text_lower.find(keyword)
@@ -787,7 +973,7 @@ Respond with ONLY this JSON (no markdown fences):
                     if num_match:
                         try:
                             val = float(num_match.group())
-                            return val, 85, f'"{line_match[:80]}"'
+                            return val, 85, line_match[:80]
                         except ValueError:
                             pass
 
@@ -795,7 +981,7 @@ Respond with ONLY this JSON (no markdown fences):
                 if val_match:
                     val = val_match.group(1).strip()[:80]
                     if val:
-                        return val, 80, f'"{line_match[:80]}"'
+                        return val, 80, line_match[:80]
 
         # ── 4. Unit-based numeric search ──────────────────────────────
         if field_def.field_type == FieldType.NUMBER and field_def.unit:
@@ -805,22 +991,13 @@ Respond with ONLY this JSON (no markdown fences):
                 try:
                     val = float(match.group(1))
                     line_match = next((l for l in lines if match.group(0).lower() in l.lower()), first_line)
-                    return val, 86, f'"{line_match[:80]}"'
+                    return val, 86, line_match[:80]
                 except ValueError:
                     pass
 
-        # ── 5. Use schema examples if available ───────────────────────
-        if field_def.examples:
-            example_val = field_def.examples[0]
-            if field_def.field_type == FieldType.NUMBER:
-                try:
-                    num_val = float(re.search(r"[\d.]+", str(example_val)).group())
-                    return num_val, 75, f'"{field_def.display_name}: {num_val} {field_def.unit or ""}"'
-                except (ValueError, AttributeError):
-                    pass
-            return example_val, 75, f'"{field_def.display_name}: {example_val}"'
-
-        if field_def.required:
-            return "Standard", 70, f'"{field_def.display_name} standard specification"'
-
+        # ── 5. Required field — no match found ─────────────────────────
+        # Do NOT fabricate placeholder text (e.g. "Standard Manufacturer").
+        # Return None so the field is simply omitted. A missing field in the
+        # output is always preferable to a fabricated one. The ValidationAgent
+        # will flag the missing required field for human review.
         return None, 0, ""

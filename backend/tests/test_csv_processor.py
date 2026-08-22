@@ -42,4 +42,6 @@ async def test_csv_processor_delivery_format(tmp_path):
         assert row_dict["Mfg_Part_Num"] == "DCB518ASTS06G"
         assert row_dict["PART_NUMBER"] == "DCB518ASTS06G"
         assert row_dict["MANUFACTURER_PART_NUMBER"] == "DCB518ASTS06G"
-        assert row_dict["ATTRIBUTE_LABEL 1"] != ""
+        # A thin record is valid when live sources provide no verified specification.
+        assert row_dict["Part_Manuf"] == "Freud Inc"
+        assert "SourceLedger Catalog" not in row_dict.values()

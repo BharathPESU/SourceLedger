@@ -98,9 +98,10 @@ class ValidationAgent:
         category: str,
     ) -> ValidationResult:
         """Validate fields, adjust confidence, and set commit/review status."""
+        from ..models.schemas import CATEGORY_REGISTRY
         schema = get_category_schema(category)
-        if not schema:
-            # Without a schema, mark everything for review
+        if not schema or (category and category not in ("generic", "unknown") and category not in CATEGORY_REGISTRY):
+            # Without a registered schema, mark everything for review
             for f in fields:
                 f.status = FieldStatus.NEEDS_REVIEW
             return ValidationResult(
@@ -155,6 +156,31 @@ class ValidationAgent:
                 auto_committed_count=auto_committed,
             )
 
+    #: Known field alias mapping to schema standard field definitions
+    _FIELD_ALIASES = {
+        "mfg_part_num": "model_number",
+        "part_number": "model_number",
+        "part_num": "model_number",
+        "item_number": "model_number",
+        "sku": "model_number",
+        "part_manuf": "manufacturer",
+        "manufacturer_name": "manufacturer",
+        "brand_name": "manufacturer",
+        "brand": "manufacturer",
+        "e1_brand": "manufacturer",
+        "unilog_brand": "manufacturer",
+        "dib_brand": "manufacturer",
+        "part_desc": "short_desc",
+        "product_name": "short_desc",
+        "description": "short_desc",
+        "name": "short_desc",
+        "title": "short_desc",
+        "item_name": "short_desc",
+        "item_description": "short_desc",
+        "unspsc_code": "unspsc",
+        "certifications": "standards_approvals",
+    }
+
     def _validate_field(
         self,
         field: ProductField,
@@ -162,34 +188,53 @@ class ValidationAgent:
         threshold: int,
     ) -> ProductField:
         """Validate a single field: type-check, adjust confidence, set status."""
+        target_name = self._FIELD_ALIASES.get(field.name.lower(), field.name)
         schema_field = next(
-            (f for f in schema.fields if f.name == field.name), None
+            (f for f in schema.fields if f.name in (field.name.lower(), target_name)), None
         )
 
-        if not schema_field:
-            # Field not in schema — lower confidence, mark for review
-            field.confidence = min(field.confidence, 30)
-            field.status = FieldStatus.NEEDS_REVIEW
-            field.reasoning += " | Not in category schema — may be irrelevant."
-            return field
+        if schema_field:
+            # Type validation for schema-matched or alias-matched field
+            type_valid = self._check_type(field.value, schema_field.field_type)
+            if not type_valid:
+                field.confidence = max(0, field.confidence - 20)
+                field.reasoning += (
+                    f" | Type mismatch: expected {schema_field.field_type.value}, "
+                    f"got {type(field.value).__name__}."
+                )
+        else:
+            # Field is not explicitly listed in static category schema.
+            # Check if this is a dynamic product attribute (e.g. attribute_*, item_features_*, UNSPSC, barcodes, custom CSV columns)
+            # If it has a non-empty value and valid source excerpt/provenance, preserve its extracted confidence!
+            is_dynamic_attribute = (
+                field.name.startswith("attribute_")
+                or field.name.startswith("item_features_")
+                or field.name.startswith("feature_")
+                or field.name in ("mfr_url", "specification_sheet", "owners_manual", "product_image", "upc", "ean", "gtin", "unspsc", "list_price")
+                or (field.source_excerpt and field.source_excerpt.text and "CSV column" in field.source_excerpt.text)
+            )
+
+            has_valid_source = bool(
+                field.source_excerpt
+                and field.source_excerpt.text
+                and not field.source_excerpt.text.startswith("(")
+            )
+
+            if is_dynamic_attribute or has_valid_source:
+                # Valid product attribute with grounded source provenance — preserve confidence!
+                pass
+            else:
+                # Truly ungrounded or unknown field without source backing
+                field.confidence = min(field.confidence, 40)
+                field.reasoning += " | Uncertified field without strong source backing."
 
         # Null/empty value check
         if field.value is None or field.value == "" or field.value == []:
             field.confidence = 0
             field.status = FieldStatus.NEEDS_REVIEW
-            if schema_field.required:
+            if schema_field and schema_field.required:
                 field.reasoning += " | Required field with no value — needs manual entry."
             return field
-
-        # Type validation
-        type_valid = self._check_type(field.value, schema_field.field_type)
-        if not type_valid:
-            # Penalize confidence for type mismatch but don't discard
-            field.confidence = max(0, field.confidence - 20)
-            field.reasoning += (
-                f" | Type mismatch: expected {schema_field.field_type.value}, "
-                f"got {type(field.value).__name__}."
-            )
 
         # Source quality check: empty excerpt lowers confidence
         if not field.source_excerpt.text or field.source_excerpt.text.startswith("("):
@@ -203,6 +248,7 @@ class ValidationAgent:
             field.status = FieldStatus.NEEDS_REVIEW
 
         return field
+
 
     def _check_type(self, value: object, expected: FieldType) -> bool:
         """Check if a value matches the expected field type."""

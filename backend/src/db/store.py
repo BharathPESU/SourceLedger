@@ -93,6 +93,23 @@ class ProductStore:
         except Exception as e:
             logger.error("Failed to initialize SQLite database: %s", e)
 
+    def clear(self) -> None:
+        """Clear all stored products, sources, and review actions from DB and memory."""
+        self._products.clear()
+        self._sources.clear()
+        self._review_actions.clear()
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM products")
+                cursor.execute("DELETE FROM sources")
+                cursor.execute("DELETE FROM review_actions")
+                conn.commit()
+            logger.info("✓ Cleared all records from SQLite database")
+        except Exception as e:
+            logger.error("Failed to clear SQLite database: %s", e)
+
+
     def _load_from_db(self) -> None:
         """Load stored records from SQLite DB into in-memory cache on startup."""
         try:

@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     of each setting.
     """
 
-    # ── LLM API ──────────────────────────────────────────────────────
+    # ── LLM API & Gateway Proxy ───────────────────────────────────────
     google_api_key: str = ""
     google_api_key1: str = ""
     google_api_key2: str = ""
@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     google_api_key7: str = ""
     google_api_key8: str = ""
     openai_api_key: str = ""
+
+    # Gemini Round-Robin Gateway Proxy Settings
+    gemini_proxy_url: str = ""
+    gemini_proxy_token: str = ""
+    proxy_auth_token: str = ""
+    proxy_url: str = ""
 
     def get_google_api_keys(self) -> list[str]:
         """Collect all configured Google Gemini API keys."""

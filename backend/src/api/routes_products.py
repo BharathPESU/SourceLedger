@@ -70,3 +70,11 @@ async def get_product(product_id: UUID) -> ProductDetailResponse:
         sources=sources,
         category_schema=schema,
     )
+
+
+@router.delete("/products")
+async def clear_all_products() -> dict:
+    """Clear all products, sources, and audit logs from store."""
+    store.clear()
+    return {"status": "success", "message": "All product catalog data cleared"}
+

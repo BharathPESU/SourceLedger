@@ -4,6 +4,16 @@ All notable changes to the SourceLedger project are documented in this file.
 
 ---
 
+## [0.5.0] — 2026-08-22
+
+### Added
+- Integrated **Gemini API Round-Robin Gateway & Proxy** support (`backend/src/tools/gemini_gateway_client.py`).
+- Added proxy settings `GEMINI_PROXY_URL` and `PROXY_AUTH_TOKEN` in `backend/src/config.py`, `.env`, and `.env.example`.
+- Created unit test suite `backend/tests/test_gemini_gateway_client.py` (4 unit tests passing).
+- Configured client adapters in `ExtractionAgent` and `EnrichmentAgent` to route requests dynamically through the Gateway Proxy.
+
+---
+
 ## [0.4.0] — 2026-08-22
 
 ### Added

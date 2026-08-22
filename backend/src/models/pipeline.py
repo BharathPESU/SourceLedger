@@ -45,6 +45,8 @@ class ExtractionResult(BaseModel):
     category: str
     fields: list[ProductField]
     source_id: UUID  # Which source these fields were extracted from
+    status: str = "extracted"
+    reason: str | None = None
 
 
 class EnrichmentResult(BaseModel):

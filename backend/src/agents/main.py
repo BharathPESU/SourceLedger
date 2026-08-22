@@ -111,11 +111,6 @@ class AgentPipeline:
         api_key = self.key_rotator.get_next_key()
         if api_key:
             os.environ["GOOGLE_API_KEY"] = api_key
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-            except Exception as e:
-                logger.debug("Failed to configure genai key: %s", e)
         return api_key
 
     async def run(
@@ -155,6 +150,9 @@ class AgentPipeline:
                 source_id=ingestion_res.source.id,
             )
 
+            if extraction_res.status == "extraction_failed":
+                raise ValueError(extraction_res.reason or "Extraction failed: source contains no identifiable product information")
+
             # Step 3: Enrichment
             current_key = self.get_rotated_api_key()
             logger.info("Stage 3: EnrichmentAgent starting (Key: %s...)", current_key[:8] if current_key else "demo")
@@ -184,7 +182,10 @@ class AgentPipeline:
                 name=extraction_res.product_name,
                 category=category,
                 fields=annotated_fields,
-                source_ids=[ingestion_res.source.id],
+                source_ids=[
+                    ingestion_res.source.id,
+                    *(source.id for source in enrichment_res.enrichment_sources),
+                ],
                 confidence_overall=validation_res.confidence_overall,
             )
 

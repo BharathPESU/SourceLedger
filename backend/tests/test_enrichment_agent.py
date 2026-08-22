@@ -17,8 +17,8 @@ async def test_enrichment_agent_adk_agent_initialization():
 
 
 @pytest.mark.asyncio
-async def test_enrichment_agent_adds_missing_required_fields():
-    """Test that missing required fields are added as placeholders."""
+async def test_enrichment_agent_does_not_add_missing_required_fields_without_a_source():
+    """Missing values stay absent when no separately cited source is supplied."""
     agent = EnrichmentAgent()
     source_id = uuid4()
     fields = []  # No fields provided
@@ -29,15 +29,13 @@ async def test_enrichment_agent_adds_missing_required_fields():
         source_id=source_id,
     )
 
-    assert len(result.fields_added) > 0
-    added_names = set(result.fields_added)
-    assert "manufacturer" in added_names
-    assert "flow_rate" in added_names
+    assert result.fields == []
+    assert result.fields_added == []
 
 
 @pytest.mark.asyncio
-async def test_enrichment_agent_flags_empty_certifications():
-    """Test that empty certifications field gets flagged with reasoning."""
+async def test_enrichment_agent_preserves_empty_certifications_without_inventing_defaults():
+    """An empty source field is retained, not filled from category defaults."""
     agent = EnrichmentAgent()
     source_id = uuid4()
     cert_field = ProductField(
@@ -57,7 +55,8 @@ async def test_enrichment_agent_flags_empty_certifications():
         source_id=source_id,
     )
 
-    assert "certifications" in result.fields_updated
+    assert result.fields_updated == []
     updated_cert = next(f for f in result.fields if f.name == "certifications")
-    assert updated_cert.confidence <= 30
-    assert "buyers often filter by certifications" in updated_cert.reasoning
+    assert updated_cert.value == []
+    assert updated_cert.confidence == 80
+    assert updated_cert.reasoning == "Initial reasoning"

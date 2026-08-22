@@ -42,6 +42,7 @@ class SourceType(str, Enum):
     WEB = "web"
     IMAGE = "image"
     CSV = "csv"
+    XLSX = "xlsx"
     MANUAL = "manual"
 
 
@@ -171,6 +172,12 @@ class ProductRecord(BaseModel):
     fields: list[ProductField] = Field(default_factory=list)
     source_ids: list[UUID] = Field(default_factory=list)
     confidence_overall: int = Field(ge=0, le=100, default=0)
+    # Canonical part-number key — populated by the pipeline after extraction
+    # by scanning extracted fields for mfg_part_num > part_number > sku.
+    # Used for export deduplication: when the same part number appears
+    # multiple times (re-upload, duplicate row), only the highest-confidence
+    # record is exported. None when the source had no identifiable part number.
+    mfg_part_num: Optional[str] = None
     taxonomy_code: Optional[str] = None  # UNSPSC/eCl@ss code (stretch)
     dedup_cluster_id: Optional[UUID] = None  # Dedup cluster (stretch)
     created_at: datetime = Field(

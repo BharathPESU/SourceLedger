@@ -219,11 +219,7 @@ def product_record_to_row(product: ProductRecord) -> Dict[str, str]:
     if not row["E1_Brand"]:
         row["E1_Brand"] = row["BRAND_NAME"]
 
-    # Default brand placeholders matching the expected format
-    if not row["Unilog_Brand"]:
-        row["Unilog_Brand"] = "-- No Unilog Brand --"
-    if not row["DIB_Brand"]:
-        row["DIB_Brand"] = "-- No DIB Brand --"
+    # Brand columns remain empty when no source-backed brand exists.
 
     # Taxonomy defaults
     if not row["Dept"]:

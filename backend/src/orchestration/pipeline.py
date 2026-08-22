@@ -126,7 +126,13 @@ async def run_pipeline(
 
         # ── Auto-detect category if not provided ──────────────────────
         if not category:
-            category = _detect_category(ingestion_result.raw_text)
+            if (filename and filename.endswith(".csv")) or (
+                "\n" in ingestion_result.raw_text
+                and "," in ingestion_result.raw_text.split("\n")[0]
+            ):
+                category = "generic"
+            else:
+                category = _detect_category(ingestion_result.raw_text)
         logger.info("Category: %s", category)
 
         # ── Stage 3: Extraction ───────────────────────────────────────
@@ -158,12 +164,44 @@ async def run_pipeline(
             "unknown product",
             "extracted product",
             "ingested product",
-            "csv product",  # fallback name from deterministic extraction with 0 useful fields
+            "csv product",  # old fallback — kept for safety
         ]
+
+        # If name is empty but we have real fields, derive it from the best field
+        if not _name_lower and extraction_result.fields:
+            _name_priority = [
+                "part_desc", "product_name", "description", "name", "title",
+                "item_name", "item_description", "model", "model_number",
+                "mfg_part_num", "part_number", "sku",
+            ]
+            for _priority_key in _name_priority:
+                _match = next(
+                    (f for f in extraction_result.fields if f.name == _priority_key and f.value),
+                    None
+                )
+                if _match:
+                    extraction_result.product_name = str(_match.value)[:120]
+                    _name_lower = extraction_result.product_name.lower().strip()
+                    break
+            # Ultimate fallback: first non-empty field value
+            if not _name_lower:
+                _first = next(
+                    (f for f in extraction_result.fields if f.value and str(f.value).strip()),
+                    None
+                )
+                if _first:
+                    extraction_result.product_name = str(_first.value)[:120]
+                    _name_lower = extraction_result.product_name.lower().strip()
+
         _is_failure = (
             not _name_lower
             or any(indicator in _name_lower for indicator in _FAILURE_INDICATORS)
             or len(extraction_result.fields) == 0
+            # Catch names that are error-message strings, not real product names:
+            # e.g. "No Power Tool Found In Source Text", "found in source"
+            or "found in source" in _name_lower
+            or "no product" in _name_lower
+            or "not found" in _name_lower
         )
         if _is_failure:
             logger.error(
@@ -194,6 +232,38 @@ async def run_pipeline(
             "Stage 3 complete: %d fields after enrichment",
             len(enrichment_result.fields),
         )
+
+        for enrichment_source in enrichment_result.enrichment_sources:
+            await store.save_source(enrichment_source)
+
+        # ── Post-enrichment hallucination guard ───────────────────────────
+        # If extraction produced very few fields (≤ 3 identity fields) and
+        # enrichment exploded to > 25 fields, the enrichment agent probably
+        # fabricated data from a mismatched web page. Demote all enrichment
+        # fields to confidence = 5 + NEEDS_REVIEW so a human reviewer sees them.
+        _extraction_field_count = len(extraction_result.fields)
+        _enrichment_field_count = len(enrichment_result.fields)
+        _enrichment_added = _enrichment_field_count - _extraction_field_count
+        if _extraction_field_count <= 3 and _enrichment_added > 25:
+            logger.warning(
+                "⚠️ POST-ENRICHMENT SANITY: extraction had %d fields, enrichment "
+                "added %d more (%d total) — possible fabrication. Demoting all "
+                "enrichment-only fields to confidence=5.",
+                _extraction_field_count, _enrichment_added, _enrichment_field_count,
+            )
+            from ..models.product_record import FieldStatus
+            _extraction_names = {f.name for f in extraction_result.fields}
+            for _ef in enrichment_result.fields:
+                if _ef.name not in _extraction_names:
+                    _ef.confidence = 5
+                    _ef.status = FieldStatus.NEEDS_REVIEW
+                    if _ef.reasoning:
+                        _ef.reasoning = (
+                            "[SANITY DEMOTED — low extraction coverage: "
+                            f"{_extraction_field_count} fields before enrichment] "
+                            + _ef.reasoning
+                        )
+
 
         # ── Stage 5: Validation ───────────────────────────────────────
         _rotate_key()
@@ -230,10 +300,31 @@ async def run_pipeline(
             name=extraction_result.product_name,
             category=category,
             fields=annotated_fields,
-            source_ids=[ingestion_result.source.id],
+            source_ids=[
+                ingestion_result.source.id,
+                *(source.id for source in enrichment_result.enrichment_sources),
+            ],
             confidence_overall=validation_result.confidence_overall,
             dedup_cluster_id=dedup_id,
         )
+
+        # Populate the canonical part-number key for export deduplication.
+        # Scan extracted fields in priority order — generic, works for any
+        # CSV layout or product domain. The key is used to deduplicate
+        # identical part numbers across multiple uploads or duplicate rows.
+        _PN_FIELD_PRIORITY = (
+            "mfg_part_num", "part_number", "manufacturer_part_number",
+            "model_number", "sku", "item_number", "item_id",
+            "catalog_number", "vendor_part_number", "supplier_part_number",
+        )
+        for _pn_key in _PN_FIELD_PRIORITY:
+            _pn_field = next(
+                (f for f in annotated_fields if f.name == _pn_key and f.value and str(f.value).strip()),
+                None,
+            )
+            if _pn_field:
+                product.mfg_part_num = str(_pn_field.value).strip()
+                break
 
         await store.save_product(product)
 

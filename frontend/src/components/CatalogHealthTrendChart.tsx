@@ -28,13 +28,35 @@ import {
   Filter,
   FileText
 } from 'lucide-react';
-import { generate30DayTrendData, DailyTrendPoint, TrendAnnotation } from '../data/trendData';
+import { ProductRecord } from '../types';
+
+// Keep type for chart compatibility
+export interface DailyTrendPoint {
+  date: string;
+  day: number;
+  confidence: number;
+  confidenceDelta: number;
+  autoCommitRate: number;
+  resolvedConflicts: number;
+  healthIndex: number;
+  totalSkus: number;
+  annotation?: {
+    type: 'spike' | 'dip' | 'milestone' | 'steady';
+    title: string;
+    cause: string;
+    impact: string;
+    badge: string;
+    sourceType?: string;
+  };
+}
 
 interface CatalogHealthTrendChartProps {
+  products: ProductRecord[];
   currentLiveScore?: number;
 }
 
 export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = ({
+  products,
   currentLiveScore
 }) => {
   const [timeframe, setTimeframe] = useState<'30' | '14' | '7'>('30');
@@ -43,16 +65,82 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
   const [eventFilter, setEventFilter] = useState<'all' | 'spikes' | 'dips' | 'milestones'>('all');
   const [selectedPoint, setSelectedPoint] = useState<DailyTrendPoint | null>(null);
 
-  const rawData = useMemo(() => generate30DayTrendData(), []);
+  // ── Compute REAL trend data from actual products ──────────────────
+  const rawData = useMemo<DailyTrendPoint[]>(() => {
+    const safeProducts = products || [];
+    if (safeProducts.length === 0) return [];
+
+    const sorted = [...safeProducts];
+    let runningConfSum = 0;
+    let autoCount = 0;
+    let reviewedCount = 0;
+
+    return sorted.map((p, idx) => {
+      const pConf = typeof p?.confidence === 'number' && !isNaN(p.confidence) ? p.confidence : 0;
+      const pName = p?.name || 'Product';
+      const pCategory = p?.category || 'Uncategorized';
+      const pFieldsCount = p?.fieldsCount || 0;
+
+      runningConfSum += pConf;
+      const avgConf = +(runningConfSum / (idx + 1)).toFixed(1);
+      if (p?.status === 'auto_committed' || p?.status === 'human_corrected') autoCount++;
+      if (p?.status === 'human_corrected') reviewedCount++;
+      const autoRate = +((autoCount / (idx + 1)) * 100).toFixed(1);
+      const healthIdx = +(avgConf * 0.7 + autoRate * 0.3).toFixed(1);
+      const prevConf = idx > 0 ? +(runningConfSum - pConf) / idx : 0;
+      const delta = idx > 0 ? +(avgConf - prevConf).toFixed(1) : 0;
+
+      const point: DailyTrendPoint = {
+        date: `Item ${idx + 1}`,
+        day: idx + 1,
+        confidence: isNaN(avgConf) ? 0 : avgConf,
+        confidenceDelta: isNaN(delta) ? 0 : delta,
+        autoCommitRate: isNaN(autoRate) ? 0 : autoRate,
+        resolvedConflicts: reviewedCount,
+        healthIndex: isNaN(healthIdx) ? 0 : healthIdx,
+        totalSkus: idx + 1,
+      };
+
+      if (idx === 0) {
+        point.annotation = {
+          type: 'milestone',
+          title: 'First Product Ingested',
+          cause: `"${pName.slice(0, 50)}" extracted with ${pFieldsCount} fields.`,
+          impact: `Baseline confidence: ${pConf}%`,
+          badge: 'Pipeline Start',
+          sourceType: pCategory,
+        };
+      } else if (avgConf >= 90 && (idx === 0 || +(runningConfSum - pConf) / idx < 90)) {
+        point.annotation = {
+          type: 'milestone',
+          title: '90% Confidence Achieved',
+          cause: `Running average crossed 90% after ${idx + 1} products.`,
+          impact: `${autoCount} products auto-committed.`,
+          badge: 'Quality Milestone',
+        };
+      }
+
+      return point;
+    });
+  }, [products]);
 
   const filteredData = useMemo(() => {
-    const days = parseInt(timeframe, 10);
-    return rawData.slice(rawData.length - days);
+    const count = parseInt(timeframe, 10);
+    return rawData.slice(Math.max(0, rawData.length - count));
   }, [rawData, timeframe]);
 
   const startPoint = filteredData[0];
   const endPoint = filteredData[filteredData.length - 1];
   const deltaConfidence = endPoint && startPoint ? +(endPoint.confidence - startPoint.confidence).toFixed(1) : 0;
+
+  // Compute real stats safely
+  const safeProds = products || [];
+  const totalProducts = safeProds.length;
+  const autoCommitted = safeProds.filter(p => p?.status === 'auto_committed' || p?.status === 'human_corrected').length;
+  const autoCommitRate = totalProducts > 0 ? +((autoCommitted / totalProducts) * 100).toFixed(1) : 0;
+  const avgConfidence = totalProducts > 0 ? Math.round(safeProds.reduce((s, p) => s + (p?.confidence || 0), 0) / totalProducts) : 0;
+  const reviewedFields = safeProds.reduce((s, p) => s + (p?.fieldsReviewedCount || 0), 0);
+  const healthScore = totalProducts > 0 ? +(avgConfidence * 0.7 + autoCommitRate * 0.3).toFixed(1) : 0;
 
   // Annotated events in current filtered timeframe
   const eventsInView = useMemo(() => {
@@ -65,17 +153,16 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
     });
   }, [filteredData, eventFilter]);
 
-  // Custom Dot for Primary Confidence Line highlighting Spikes, Dips & Milestones
+  // Custom Dot for Primary Confidence Line
   const renderCustomDot = (props: any) => {
     const { cx, cy, payload } = props;
-    if (!cx || !cy) return null;
+    if (cx === undefined || cy === undefined || isNaN(cx) || isNaN(cy) || !payload) return null;
     const point: DailyTrendPoint = payload;
     const isSelected = selectedPoint?.day === point.day;
 
     if (point.annotation?.type === 'spike') {
       return (
         <g key={`dot-${point.day}`} className="cursor-pointer">
-          {/* Pulsing ring for spikes */}
           <circle cx={cx} cy={cy} r={isSelected ? 9 : 7} fill="#E8622C" fillOpacity={0.25} className="animate-pulse" />
           <circle cx={cx} cy={cy} r={isSelected ? 5 : 4} fill="#E8622C" stroke="#FFFFFF" strokeWidth={2} />
           {isSelected && (
@@ -88,7 +175,6 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
     if (point.annotation?.type === 'dip') {
       return (
         <g key={`dot-${point.day}`} className="cursor-pointer">
-          {/* Warning indicator ring for dips */}
           <circle cx={cx} cy={cy} r={isSelected ? 9 : 7} fill="#D45320" fillOpacity={0.25} />
           <circle cx={cx} cy={cy} r={isSelected ? 5 : 4} fill="#D45320" stroke="#FFFFFF" strokeWidth={2} />
         </g>
@@ -98,7 +184,6 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
     if (point.annotation?.type === 'milestone') {
       return (
         <g key={`dot-${point.day}`} className="cursor-pointer">
-          {/* Gold milestone badge dot */}
           <circle cx={cx} cy={cy} r={isSelected ? 8 : 6} fill="#F2A900" fillOpacity={0.3} />
           <circle cx={cx} cy={cy} r={isSelected ? 4.5 : 3.5} fill="#D97706" stroke="#FFFFFF" strokeWidth={2} />
         </g>
@@ -118,9 +203,9 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
     );
   };
 
-  // Enhanced Dynamic Glassmorphic Tooltip with Deep Event Annotations
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+  // Enhanced Dynamic Glassmorphic Tooltip
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length && payload[0]?.payload) {
       const data: DailyTrendPoint = payload[0].payload;
       const annotation = data.annotation;
       const hasDelta = data.confidenceDelta !== 0;
@@ -329,20 +414,20 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
         </div>
       </div>
 
-      {/* Summary Improvement Stat Badges */}
+      {/* Summary Improvement Stat Badges — ALL COMPUTED FROM REAL DATA */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="p-3.5 rounded-2xl bg-white/60 backdrop-blur-md border border-white/70 shadow-2xs flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C8276] block">
-            Net Confidence Gain
+            Avg Confidence
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-xl sm:text-2xl font-didone font-bold text-[#E8622C]">
-              +{deltaConfidence}%
+              {avgConfidence}%
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#E8622C] stroke-[2.5]" />
+            {totalProducts > 0 && <ArrowUpRight className="w-4 h-4 text-[#E8622C] stroke-[2.5]" />}
           </div>
           <span className="text-[11px] text-[#5C554D] mt-0.5">
-            {startPoint?.confidence}% → {endPoint?.confidence}%
+            {totalProducts} product{totalProducts !== 1 ? 's' : ''} ingested
           </span>
         </div>
 
@@ -352,12 +437,12 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-xl sm:text-2xl font-black text-[#1F8A53]">
-              {endPoint?.healthIndex}
+              {healthScore}
             </span>
             <span className="text-xs font-bold text-[#8C8276]">/ 100</span>
           </div>
           <span className="text-[11px] text-[#1F8A53] font-semibold mt-0.5 flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> Optimal Grade
+            <CheckCircle2 className="w-3 h-3" /> {healthScore >= 85 ? 'Optimal Grade' : healthScore >= 65 ? 'Good' : totalProducts === 0 ? 'No Data' : 'Needs Improvement'}
           </span>
         </div>
 
@@ -367,26 +452,26 @@ export const CatalogHealthTrendChart: React.FC<CatalogHealthTrendChartProps> = (
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-xl sm:text-2xl font-black text-[#191715]">
-              {endPoint?.autoCommitRate}%
+              {autoCommitRate}%
             </span>
           </div>
           <span className="text-[11px] text-[#5C554D] mt-0.5">
-            Zero-touch validation
+            {autoCommitted}/{totalProducts} auto-committed
           </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-white/60 backdrop-blur-md border border-white/70 shadow-2xs flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C8276] block">
-            30-Day Discrepancies Cleared
+            Fields Reviewed
           </span>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="text-xl sm:text-2xl font-black text-[#191715]">
-              1,842
+              {reviewedFields.toLocaleString()}
             </span>
             <Sparkles className="w-3.5 h-3.5 text-[#E8622C]" />
           </div>
           <span className="text-[11px] text-[#5C554D] mt-0.5">
-            100% provenance verified
+            {totalProducts > 0 ? 'With provenance tracking' : 'No data yet'}
           </span>
         </div>
       </div>

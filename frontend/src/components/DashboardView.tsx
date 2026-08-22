@@ -56,6 +56,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     products.reduce((acc, curr) => acc + curr.confidence, 0) / (totalProducts || 1)
   );
 
+  const autoCommitRate = totalProducts > 0 
+    ? Math.round((autoCommittedProducts.length / totalProducts) * 100) 
+    : 0;
+
+  const confidenceGrade = avgConfidence >= 90 ? 'A++' : avgConfidence >= 80 ? 'A' : avgConfidence >= 70 ? 'B' : 'C';
+
   const activeCategory = categories[activeCategoryIndex] || categories[0];
 
   return (
@@ -86,7 +92,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider text-[#1A1A1A]">Confidence</p>
-              <p className="text-lg font-didone font-bold text-[#1A1A1A]"><span className="font-didone-italic text-[#E8622C]">A++</span> Level</p>
+              <p className="text-lg font-didone font-bold text-[#1A1A1A]"><span className="font-didone-italic text-[#E8622C]">{confidenceGrade}</span> Level</p>
             </div>
           </div>
 
@@ -95,7 +101,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
               <div className="absolute inset-0 rounded-full border-[5px] border-white/10"></div>
               <div className="absolute inset-0 rounded-full border-[5px] border-[#E8622C] border-t-transparent border-l-transparent rotate-[120deg]"></div>
-              <span className="text-xs font-black text-white">82%</span>
+              <span className="text-xs font-black text-white">{autoCommitRate}%</span>
             </div>
             <div>
               <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider text-white">Auto-Sync</p>

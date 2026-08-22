@@ -235,3 +235,17 @@ class TestExtractionAgent:
             assert field.name in valid_names, (
                 f"Field '{field.name}' is not in the industrial_pump schema"
             )
+
+
+    @pytest.mark.asyncio
+    async def test_failure_message_is_not_extracted_as_product_data(self, agent):
+        result = await agent.extract(
+            raw_text="No Power Tool Found in Source Text",
+            category="industrial_pump",
+            source_id=uuid4(),
+        )
+
+        assert result.status == "extraction_failed"
+        assert result.reason == "Source text contains no identifiable product information"
+        assert result.product_name == ""
+        assert result.fields == []

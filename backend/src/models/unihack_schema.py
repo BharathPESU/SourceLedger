@@ -125,12 +125,11 @@ def map_product_fields_to_unihack_row(fields: List[Any], title: str = "", sku: s
         return []
 
     # ── Brand placeholders ────────────────────────────────────────────
-    row['E1_Brand']      = _val('e1_brand') or '-- Unbranded --'
-    row['Unilog_Brand']  = _val('unilog_brand') or '-- No Unilog Brand --'
-    row['DIB_Brand']     = _val('dib_brand') or '-- No DIB Brand --'
-    # Part_Manuf: use the actual CSV value first, then try manufacturer/brand,
-    # only fall back to 'SourceLedger Catalog' when truly empty.
-    row['Part_Manuf']    = _val('part_manuf', 'manufacturer', 'manufacturer_name', 'brand') or 'SourceLedger Catalog'
+    row['E1_Brand']      = _val('e1_brand')
+    row['Unilog_Brand']  = _val('unilog_brand')
+    row['DIB_Brand']     = _val('dib_brand')
+    # Part_Manuf is emitted only when present in the source fields.
+    row['Part_Manuf']    = _val('part_manuf', 'manufacturer', 'manufacturer_name', 'brand')
     row['Discontinued']  = _val('discontinued') or 'No'
 
     # ── Core identifiers ─────────────────────────────────────────────
@@ -159,14 +158,17 @@ def map_product_fields_to_unihack_row(fields: List[Any], title: str = "", sku: s
     row['Classpath'] = _val('classpath', 'category_path') or f"{dept}>{cls}>{fine}"
 
     # ── Descriptions ─────────────────────────────────────────────────
-    short = _val('short_desc') or prod_name
-    long1 = _val('long_desc1', 'marketing_description') or prod_name
-    row['SHORT_DESC']           = short
-    row['LONG_DESC1']           = long1
-    row['RETAIL_DESC']          = _val('long_desc2', 'retail_desc') or short
-    row['MARKETING_DESCRIPTION'] = _val('marketing_description') or long1
-    row['MOBILE_DESC']          = _val('mobile_desc') or short
-    row['INVOICE_DESC']         = _val('invoice_desc') or short[:60]
+    # Only use extracted values. If a description field wasn't extracted,
+    # leave it blank (N/A) — never cascade prod_name into every field.
+    # Fabricated descriptions are worse than empty ones.
+    short = _val('short_desc')
+    long1 = _val('long_desc1', 'marketing_description')
+    row['SHORT_DESC']            = short
+    row['LONG_DESC1']            = long1
+    row['RETAIL_DESC']           = _val('long_desc2', 'retail_desc')
+    row['MARKETING_DESCRIPTION'] = _val('marketing_description')
+    row['MOBILE_DESC']           = _val('mobile_desc')
+    row['INVOICE_DESC']          = _val('invoice_desc') or (short[:60] if short else "")
 
     # ── ITEM_FEATURES_1…20 ───────────────────────────────────────────
     features = _list('item_features')
@@ -247,8 +249,50 @@ def map_product_fields_to_unihack_row(fields: List[Any], title: str = "", sku: s
             if ref_slot > 5:
                 break
 
+    # ── Phase 2: item_features_N → ITEM_FEATURES_N columns ──────────────────
+    # Multi-phase extractor emits individual item_features_1…20 fields.
+    # Map them directly to their output columns before the generic attr loop.
+    import re as _re
+    for f in fields:
+        m = _re.match(r"^item_features_(\d+)$", f.name)
+        if m:
+            idx = int(m.group(1))
+            if 1 <= idx <= 20 and not row.get(f"ITEM_FEATURES_{idx}"):
+                val = f.value
+                if isinstance(val, list):
+                    val = "; ".join(str(x) for x in val if x)
+                if val:
+                    row[f"ITEM_FEATURES_{idx}"] = str(val).strip()
+
+    # ── Phase 3: attribute_label_N / attribute_value_N / attribute_uom_N ────
+    # Multi-phase extractor Phase 3 emits structured attribute triplet fields.
+    # These are written directly to their correct ATTRIBUTE_LABEL/VALUE/UOM slots.
+    structured_attr_slots: set[int] = set()
+    for f in fields:
+        m = _re.match(r"^attribute_label_(\d+)$", f.name)
+        if m:
+            n = int(m.group(1))
+            if 1 <= n <= 50 and not row.get(f"ATTRIBUTE_LABEL {n}"):
+                row[f"ATTRIBUTE_LABEL {n}"] = str(f.value).strip() if f.value else ""
+                structured_attr_slots.add(n)
+        m = _re.match(r"^attribute_value_(\d+)$", f.name)
+        if m:
+            n = int(m.group(1))
+            if 1 <= n <= 50:
+                val = f.value
+                if isinstance(val, list):
+                    val = "; ".join(str(x) for x in val if x)
+                if val:
+                    row[f"ATTRIBUTE_VALUE {n}"] = str(val).strip()
+        m = _re.match(r"^attribute_uom_(\d+)$", f.name)
+        if m:
+            n = int(m.group(1))
+            if 1 <= n <= 50 and f.value:
+                row[f"ATTRIBUTE_UOM {n}"] = str(f.value).strip()
+
     # ── ATTRIBUTE_LABEL/VALUE/UOM slots (up to 50) ───────────────────────
-    # Everything NOT already consumed above goes into attribute triplets.
+    # All remaining fields NOT already consumed above flow into attribute triplets.
+    # Structured phase-3 fields above are skipped via the _SKIP set / slot check.
     _SKIP = {
         'product_name', 'part_desc', 'manufacturer', 'manufacturer_name', 'brand',
         'brand_name', 'trade_name', 'mfg_part_num', 'part_number', 'model_number',
@@ -272,8 +316,19 @@ def map_product_fields_to_unihack_row(fields: List[Any], title: str = "", sku: s
         # pipeline internals never shown to users
         'item_keywords', 'long_desc2',
     }
+    # Also skip structured item_features_N and attribute_*_N that were already mapped
+    for _i in range(1, 21):
+        _SKIP.add(f'item_features_{_i}')
+    for _i in range(1, 51):
+        _SKIP.add(f'attribute_label_{_i}')
+        _SKIP.add(f'attribute_value_{_i}')
+        _SKIP.add(f'attribute_uom_{_i}')
 
+    # Find first free attribute slot (skip slots already written by Phase 3)
     attr_idx = 1
+    while attr_idx <= 50 and row.get(f"ATTRIBUTE_LABEL {attr_idx}"):
+        attr_idx += 1
+
     seen = set()
     for f in fields:
         if attr_idx > 50:

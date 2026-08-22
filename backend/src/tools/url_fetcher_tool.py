@@ -70,6 +70,5 @@ def fetch_manufacturer_page(url: str) -> Dict[str, Any]:
 
     except Exception as e:
         logger.warning("URLFetcherTool exception for %s: %s", url, e)
-        result["text_content"] = f"Manufacturer page content for {url}"
 
     return result

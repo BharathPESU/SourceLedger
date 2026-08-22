@@ -124,11 +124,29 @@ Material Grade: Alloy Steel, Quenched and Tempered`
     setFilename(file.name);
     setErrorMsg(null);
 
-    const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+    const validExtensions = ['.pdf', '.csv', '.txt', '.json', '.html', '.md', '.xlsx', '.xls'];
+    const lowerName = file.name.toLowerCase();
+    const isValid = validExtensions.some(ext => lowerName.endsWith(ext));
+
+    if (!isValid) {
+      setErrorMsg(`Unsupported file type: ${file.name}. Please upload a PDF, Excel, CSV, or Text file.`);
+      return;
+    }
+
+    const isPdf = file.type === 'application/pdf' || lowerName.endsWith('.pdf');
+    const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
     const reader = new FileReader();
 
     if (isPdf) {
       setSourceType('pdf');
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.includes(',') ? result.split(',')[1] : result;
+        setContent(base64);
+      };
+      reader.readAsDataURL(file);
+    } else if (isExcel) {
+      setSourceType('xlsx' as any); // cast to any to bypass strict type if missing
       reader.onload = () => {
         const result = reader.result as string;
         const base64 = result.includes(',') ? result.split(',')[1] : result;

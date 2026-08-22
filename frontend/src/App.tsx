@@ -19,6 +19,8 @@ import {
   buildCategoryOverviews 
 } from './lib/api';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 export default function App() {
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [sources, setSources] = useState<IngestionSource[]>([]);
@@ -42,11 +44,11 @@ export default function App() {
         ]);
 
         if (isMounted) {
-          setProducts(liveProducts);
-          setSources(liveSources);
+          setProducts(liveProducts || []);
+          setSources(liveSources || []);
           setIsLiveConnected(true);
 
-          if (liveProducts.length > 0) {
+          if (liveProducts && liveProducts.length > 0) {
             setSelectedProduct(prev => prev && liveProducts.some(p => p.id === prev.id) ? prev : liveProducts[0]);
             setCategories(buildCategoryOverviews(liveProducts));
           } else {
@@ -78,10 +80,9 @@ export default function App() {
 
   // Handle single product approval
   const handleApproveProduct = async (productId: string) => {
-    // Perform real-time backend field approval API calls for all fields needing review
     const prodToApprove = products.find(p => p.id === productId);
     if (prodToApprove) {
-      for (const field of prodToApprove.fields) {
+      for (const field of prodToApprove.fields || []) {
         if (!field.isApproved) {
           acceptField(productId, field.id).catch(console.warn);
         }
@@ -98,25 +99,24 @@ export default function App() {
           previousValue: `${p.fieldsReviewedCount}/${p.fieldsCount} Reviewed`,
           newValue: 'All Attributes Approved & Committed',
           changedBy: 'Lead Catalog Engineer',
-          changeType: 'verified_approval',
+          changeType: 'human_correction',
           confidenceBefore: p.confidence,
-          confidenceAfter: 99,
-          reason: 'Manual batch verification and approval of all extracted datasheet entities.',
-          sourceRef: p.sourceDocument
+          confidenceAfter: 98,
+          reason: 'Manual validation of extraction fields',
         };
 
         const updatedProd: ProductRecord = {
           ...p,
           status: 'human_corrected',
-          confidence: Math.max(95, p.confidence),
+          confidence: 98,
           confidenceLevel: 'high',
           fieldsReviewedCount: p.fieldsCount,
           conflictsSummary: undefined,
-          fields: p.fields.map(f => ({ ...f, isApproved: true, confidence: Math.max(95, f.confidence) })),
+          fields: (p.fields || []).map(f => ({ ...f, isApproved: true, confidence: 99 })),
           auditLog: [approvalEntry, ...(p.auditLog || [])]
         };
 
-        if (selectedProduct.id === productId) {
+        if (selectedProduct && selectedProduct.id === productId) {
           setSelectedProduct(updatedProd);
         }
 
@@ -197,7 +197,7 @@ export default function App() {
           auditLog: [newAuditEntry, ...existingAuditLog]
         };
 
-        if (selectedProduct.id === productId) {
+        if (selectedProduct && selectedProduct.id === productId) {
           setSelectedProduct(updatedProd);
         }
 
@@ -210,15 +210,18 @@ export default function App() {
   // Handle approving all fields for currently inspected product
   const handleApproveAllFields = (productId: string) => {
     handleApproveProduct(productId);
-    setSelectedProduct(prev => ({
-      ...prev,
-      status: 'human_corrected',
-      confidence: 98,
-      confidenceLevel: 'high',
-      fieldsReviewedCount: prev.fieldsCount,
-      conflictsSummary: undefined,
-      fields: prev.fields.map(f => ({ ...f, isApproved: true, confidence: 99 }))
-    }));
+    setSelectedProduct(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        status: 'human_corrected',
+        confidence: 98,
+        confidenceLevel: 'high',
+        fieldsReviewedCount: prev.fieldsCount,
+        conflictsSummary: undefined,
+        fields: (prev.fields || []).map(f => ({ ...f, isApproved: true, confidence: 99 }))
+      };
+    });
   };
 
   // Handle newly ingested source
@@ -229,7 +232,7 @@ export default function App() {
     setActiveTab('field_inspector');
   };
 
-  const reviewQueueCount = products.filter(p => p.status === 'needs_review' || p.status === 'flagged_conflict').length;
+  const reviewQueueCount = (products || []).filter(p => p.status === 'needs_review' || p.status === 'flagged_conflict').length;
 
   return (
     <div className="relative h-screen w-full bg-[#F5E9D8] text-[#191715] flex flex-col font-sans selection:bg-[#E8622C] selection:text-white overflow-hidden">
@@ -261,57 +264,59 @@ export default function App() {
           className="flex-1 h-full overflow-y-auto overflow-x-hidden min-h-0 w-full focus:outline-hidden"
         >
           <div className="px-4 sm:px-6 md:px-8 lg:px-10 py-6 w-full max-w-[1920px] mx-auto">
-            {activeTab === 'dashboard' && (
-              <DashboardView
-                products={products}
-                sources={sources}
-                categories={categories}
-                onSelectProduct={(p) => setSelectedProduct(p)}
-                onApproveProduct={handleApproveProduct}
-                onOpenIngestModal={() => setIsIngestModalOpen(true)}
-                onNavigateToTab={(tab) => setActiveTab(tab)}
-              />
-            )}
+            <ErrorBoundary>
+              {activeTab === 'dashboard' && (
+                <DashboardView
+                  products={products}
+                  sources={sources}
+                  categories={categories}
+                  onSelectProduct={(p) => setSelectedProduct(p)}
+                  onApproveProduct={handleApproveProduct}
+                  onOpenIngestModal={() => setIsIngestModalOpen(true)}
+                  onNavigateToTab={(tab) => setActiveTab(tab)}
+                />
+              )}
 
-            {activeTab === 'field_inspector' && (
-              <FieldInspectorView
-                product={selectedProduct}
-                products={products}
-                onSelectProduct={(p) => setSelectedProduct(p)}
-                onUpdateField={handleUpdateField}
-                onApproveAllFields={handleApproveAllFields}
-                onBackToDashboard={() => setActiveTab('dashboard')}
-              />
-            )}
+              {activeTab === 'field_inspector' && (
+                <FieldInspectorView
+                  product={selectedProduct!}
+                  products={products}
+                  onSelectProduct={(p) => setSelectedProduct(p)}
+                  onUpdateField={handleUpdateField}
+                  onApproveAllFields={handleApproveAllFields}
+                  onBackToDashboard={() => setActiveTab('dashboard')}
+                />
+              )}
 
-            {activeTab === 'review_queue' && (
-              <ReviewQueueView
-                products={products}
-                onSelectProduct={(p) => setSelectedProduct(p)}
-                onApproveProduct={handleApproveProduct}
-                onApproveAll={handleApproveAll}
-                onNavigateToTab={(tab) => setActiveTab(tab)}
-              />
-            )}
+              {activeTab === 'review_queue' && (
+                <ReviewQueueView
+                  products={products}
+                  onSelectProduct={(p) => setSelectedProduct(p)}
+                  onApproveProduct={handleApproveProduct}
+                  onApproveAll={handleApproveAll}
+                  onNavigateToTab={(tab) => setActiveTab(tab)}
+                />
+              )}
 
-            {activeTab === 'catalog' && (
-              <ProductsCatalogView
-                products={products}
-                onSelectProduct={(p) => setSelectedProduct(p)}
-                onNavigateToTab={(tab) => setActiveTab(tab)}
-              />
-            )}
+              {activeTab === 'catalog' && (
+                <ProductsCatalogView
+                  products={products}
+                  onSelectProduct={(p) => setSelectedProduct(p)}
+                  onNavigateToTab={(tab) => setActiveTab(tab)}
+                />
+              )}
 
-            {activeTab === 'sources' && (
-              <IngestionSourcesView
-                sources={sources}
-                onOpenIngestModal={() => setIsIngestModalOpen(true)}
-              />
-            )}
+              {activeTab === 'sources' && (
+                <IngestionSourcesView
+                  sources={sources}
+                  onOpenIngestModal={() => setIsIngestModalOpen(true)}
+                />
+              )}
 
-            {activeTab === 'settings' && (
-              <SettingsView />
-            )}
+              {activeTab === 'settings' && (
+                <SettingsView />
+              )}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

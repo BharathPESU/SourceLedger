@@ -78,92 +78,28 @@ export const ConfidenceHeatmap: React.FC<ConfidenceHeatmapProps> = ({
     return <Layers className="w-4 h-4" />;
   };
 
-  // Compile detailed dynamic heatmap metrics per category
+  // Compile dynamic heatmap metrics — derived entirely from REAL products
   const heatmapData = useMemo<CategoryHeatmapData[]>(() => {
-    // Determine unique category groups from both products and categories overview
-    const baseCategories = [
-      {
-        id: 'cat-audio',
-        name: 'Audio & Acoustics',
-        categoryKey: 'Audio & Acoustic',
-        topDiscrepancy: 'Frequency response range & active codec rating ambiguity',
-        defaultSkus: 2430,
-        defaultConf: 72.4
-      },
-      {
-        id: 'cat-elec',
-        name: 'Electronics & ICs',
-        categoryKey: 'Electronics',
-        topDiscrepancy: 'Thermal dissipation vs junction temp pinout ratings',
-        defaultSkus: 12450,
-        defaultConf: 94.2
-      },
-      {
-        id: 'cat-ind',
-        name: 'Industrial Automation',
-        categoryKey: 'Industrial',
-        topDiscrepancy: 'NPT vs BSPT thread pitch rating divergences in datasheets',
-        defaultSkus: 6890,
-        defaultConf: 79.5
-      },
-      {
-        id: 'cat-robot',
-        name: 'Robotics & Motion',
-        categoryKey: 'Robotics & Automation',
-        topDiscrepancy: 'Peak torque stall limits under variable voltage',
-        defaultSkus: 1640,
-        defaultConf: 88.6
-      },
-      {
-        id: 'cat-light',
-        name: 'Commercial Lighting',
-        categoryKey: 'Commercial Lighting',
-        topDiscrepancy: 'Lumens per watt efficacy under high-temperature enclosures',
-        defaultSkus: 1440,
-        defaultConf: 96.8
-      },
-      {
-        id: 'cat-med',
-        name: 'Medical Systems',
-        categoryKey: 'Medical Systems',
-        topDiscrepancy: 'ISO 13485 biocompatibility certificate date mismatches',
-        defaultSkus: 890,
-        defaultConf: 84.1
-      }
-    ];
+    if (products.length === 0) return [];
 
-    return baseCategories.map(base => {
-      // Find actual matching products in state
-      const matchingProducts = products.filter(p => 
-        p.category.toLowerCase().includes(base.categoryKey.toLowerCase()) ||
-        base.categoryKey.toLowerCase().includes(p.category.toLowerCase())
-      );
+    // Group products by their actual category
+    const catGroups = new Map<string, ProductRecord[]>();
+    for (const p of products) {
+      const cat = p.category || 'Uncategorized';
+      if (!catGroups.has(cat)) catGroups.set(cat, []);
+      catGroups.get(cat)!.push(p);
+    }
 
-      const count = matchingProducts.length;
-      let avgConf = base.defaultConf;
-      let reviewCount = 0;
-      let autoCount = 0;
-      let sampleProduct: ProductRecord | undefined = undefined;
+    return Array.from(catGroups.entries()).map(([catName, catProducts]) => {
+      const count = catProducts.length;
+      const sumConf = catProducts.reduce((acc, p) => acc + p.confidence, 0);
+      const avgConf = +(sumConf / count).toFixed(1);
+      const reviewCount = catProducts.filter(p => p.status === 'needs_review' || p.status === 'flagged_conflict').length;
+      const autoCount = catProducts.filter(p => p.status === 'auto_committed' || p.status === 'human_corrected').length;
+      const sampleProduct = catProducts.find(p => p.status === 'needs_review' || p.status === 'flagged_conflict') || catProducts[0];
 
-      if (count > 0) {
-        const sumConf = matchingProducts.reduce((acc, p) => acc + p.confidence, 0);
-        avgConf = +(sumConf / count).toFixed(1);
-        reviewCount = matchingProducts.filter(p => p.status === 'needs_review' || p.status === 'flagged_conflict').length;
-        autoCount = matchingProducts.filter(p => p.status === 'auto_committed' || p.status === 'human_corrected').length;
-        sampleProduct = matchingProducts.find(p => p.status === 'needs_review' || p.status === 'flagged_conflict') || matchingProducts[0];
-      } else {
-        // Use overview matching if products array doesn't have populated sample
-        const overview = categories.find(c => c.name.toLowerCase().includes(base.name.toLowerCase()));
-        if (overview) {
-          avgConf = overview.avgConfidence;
-          reviewCount = overview.needsReviewCount;
-          autoCount = overview.validatedRecords;
-        }
-      }
-
-      // Calculate urgency level and score
-      // Lower confidence & higher review ratio = higher urgency score
-      const reviewRatio = count > 0 ? (reviewCount / count) : (reviewCount / base.defaultSkus);
+      // Calculate urgency
+      const reviewRatio = reviewCount / count;
       const confidencePenalty = Math.max(0, 100 - avgConf);
       const urgencyScore = Math.min(100, Math.round(confidencePenalty * 0.7 + reviewRatio * 100 * 0.3));
 
@@ -174,25 +110,28 @@ export const ConfidenceHeatmap: React.FC<ConfidenceHeatmapProps> = ({
         urgencyLevel = 'attention';
       } else if (avgConf < 92) {
         urgencyLevel = 'healthy';
-      } else {
-        urgencyLevel = 'optimal';
       }
 
+      // Find top discrepancy from flagged fields
+      const conflictProduct = catProducts.find(p => p.conflictsSummary);
+      const topDiscrepancy = conflictProduct?.conflictsSummary || 
+        (reviewCount > 0 ? `${reviewCount} product(s) pending human verification` : 'All fields verified');
+
       return {
-        id: base.id,
-        name: base.name,
-        categoryKey: base.categoryKey,
-        icon: getCategoryIcon(base.name),
-        totalSkus: count > 0 ? count : base.defaultSkus,
+        id: `cat-${catName.toLowerCase().replace(/\s+/g, '-')}`,
+        name: catName,
+        categoryKey: catName,
+        icon: getCategoryIcon(catName),
+        totalSkus: count,
         avgConfidence: avgConf,
         needsReviewCount: reviewCount,
         autoCommittedCount: autoCount,
         urgencyLevel,
         urgencyScore,
-        topDiscrepancy: base.topDiscrepancy,
+        topDiscrepancy,
         recentSampleSku: sampleProduct?.sku,
         recentSampleName: sampleProduct?.name,
-        recentSampleProduct: sampleProduct
+        recentSampleProduct: sampleProduct,
       };
     }).sort((a, b) => {
       if (sortBy === 'urgency') return b.urgencyScore - a.urgencyScore;

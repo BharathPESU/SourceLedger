@@ -41,7 +41,7 @@ export interface ProductRecord {
   sku: string;
   name: string;
   brand: string;
-  category: 'Electronics' | 'Industrial' | 'Audio & Acoustic' | 'Robotics & Automation' | 'Commercial Lighting' | 'Medical Systems';
+  category: string;
   confidence: number; // 0 - 100
   confidenceLevel: ConfidenceLevel;
   status: RecordStatus;

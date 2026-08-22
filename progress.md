@@ -175,7 +175,7 @@ sequenceDiagram
 
 ## 7. Comprehensive Test Suite Matrix & Live Execution Analysis
 
-### Test Suite Execution Summary (37 Tests Total)
+### Test Suite Execution Summary (42 Tests Total)
 
 Run Command: `backend/.venv/bin/pytest backend/tests/`
 
@@ -201,8 +201,12 @@ Run Command: `backend/.venv/bin/pytest backend/tests/`
 | `test_extraction_agent.py` | `test_every_field_has_confidence_in_range` | **PASSED** | Confidence range check (0–100) |
 | `test_extraction_agent.py` | `test_every_field_has_reasoning` | **PASSED** | Reasoning string verification |
 | `test_extraction_agent.py` | `test_product_name_extracted` | **PASSED** | Product title resolution |
-| `test_extraction_agent.py` | `test_unknown_category_raises_error` | **EXPECTED FAIL** | LLM fallback mode handles unknown category without error |
+| `test_extraction_agent.py` | `test_unknown_category_raises_error` | **PASSED** | Raises ValueError on unregistered categories |
 | `test_extraction_agent.py` | `test_fields_only_from_schema` | **PASSED** | Strict schema boundary check |
+| `test_gemini_gateway_client.py` | `test_gateway_client_disabled_by_default` | **PASSED** | Verifies base_url check when unconfigured |
+| `test_gemini_gateway_client.py` | `test_gateway_client_headers_with_token` | **PASSED** | Authorization, x-api-key, and x-goog-api-key headers |
+| `test_gemini_gateway_client.py` | `test_gateway_client_generate_simple_success` | **PASSED** | High-level `/api/generate` prompt payload parsing |
+| `test_gemini_gateway_client.py` | `test_gateway_client_health_and_status` | **PASSED** | Root health `/` and key status `/api/keys/status` endpoints |
 | `test_ingestion_agent.py` | `test_ingestion_agent_adk_agent_initialization` | **PASSED** | Ingestion agent setup |
 | `test_ingestion_agent.py` | `test_ingestion_agent_raw_text` | **PASSED** | Plain text normalization |
 | `test_validation_agent.py` | `test_high_confidence_field_auto_committed` | **PASSED** | High confidence auto-commit |
@@ -216,7 +220,7 @@ Run Command: `backend/.venv/bin/pytest backend/tests/`
 | `test_validation_agent.py` | `test_threshold_boundary_exact` | **PASSED** | Boundary score = 80 test |
 | `test_validation_agent.py` | `test_threshold_boundary_just_below` | **PASSED** | Boundary score = 79 test |
 | `test_validation_agent.py` | `test_all_fields_validated` | **PASSED** | Complete field validation |
-| `test_validation_agent.py` | `test_unknown_category_marks_all_for_review` | **EXPECTED FAIL** | Fallback gracefully defaults to generic schema |
+| `test_validation_agent.py` | `test_unknown_category_marks_all_for_review` | **PASSED** | Routes unregistered category attributes to NEEDS_REVIEW |
 | `test_validation_agent.py` | `test_mixed_confidence_correct_counts` | **PASSED** | Mixed confidence status counts |
 
 ---

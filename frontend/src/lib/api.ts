@@ -202,14 +202,9 @@ function mapBackendProductToFrontend(
     (f) => f.status === 'auto_committed' || f.status === 'human_corrected'
   ).length;
 
-  // Map backend category key to frontend category name
-  const categoryMap: Record<string, ProductRecord['category']> = {
-    industrial_pump: 'Industrial',
-    electrical_connector: 'Electronics',
-    safety_fastener: 'Industrial',
-  };
-  const frontendCategory =
-    (categoryMap[product.category] as ProductRecord['category']) || 'Industrial';
+  // Use the actual category display name, with a snake_case→Title Case fallback
+  const frontendCategory = categoryDisplayName || 
+    product.category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
   // Build initial audit entry
   const auditLog: FieldAuditEntry[] = [
@@ -379,7 +374,7 @@ export async function fetchSources(): Promise<IngestionSource[]> {
  * Returns the newly created ProductRecord on success, or throws on failure.
  */
 export async function ingestSource(params: {
-  sourceType: 'web' | 'pdf';
+  sourceType: 'web' | 'pdf' | 'xlsx';
   content: string;
   category?: string;
   trustTier?: number;

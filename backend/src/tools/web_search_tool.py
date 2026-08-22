@@ -204,27 +204,7 @@ def search_product_datasheets(part_number: str, brand: str) -> Dict[str, Any]:
     if img:
         results["product_image"] = img
 
-    # ── Fallback: construct plausible URLs if search returned nothing ──
-    if not results["mfr_url"]:
-        safe_brand = brand.lower().replace(" ", "")
-        safe_part = urllib.parse.quote(part_number.replace(" ", "-"))
-        results["mfr_url"] = f"https://www.{safe_brand}.com/products/{safe_part}"
-
-    if not results["specification_sheet"]:
-        safe_brand_q = urllib.parse.quote(brand.replace(" ", "_"))
-        safe_part_q = urllib.parse.quote(part_number.replace(" ", "_"))
-        results["specification_sheet"] = (
-            f"https://www.{brand.lower().replace(' ', '')}.com/media/"
-            f"{safe_brand_q}_{safe_part_q}_DataSheet.pdf"
-        )
-
-    if not results["product_image"]:
-        safe_brand_q = urllib.parse.quote(brand.replace(" ", "_"))
-        safe_part_q = urllib.parse.quote(part_number.replace(" ", "_"))
-        results["product_image"] = (
-            f"https://www.{brand.lower().replace(' ', '')}.com/images/"
-            f"{safe_brand_q}_{safe_part_q}.jpg"
-        )
+    # Never fabricate likely-looking links. An empty result means the field stays absent.
 
     logger.info(
         "✓ WebSearchTool: mfr_url=%s | spec=%s | img=%s",
