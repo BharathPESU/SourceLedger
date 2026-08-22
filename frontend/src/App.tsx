@@ -45,10 +45,9 @@ export default function App() {
         ]);
 
         if (isMounted) {
-<<<<<<< HEAD
+          setIsLiveConnected(true);
           setProducts(liveProducts || []);
           setSources(liveSources || []);
-          setIsLiveConnected(true);
 
           if (liveProducts && liveProducts.length > 0) {
             setSelectedProduct(prev => prev && liveProducts.some(p => p.id === prev.id) ? prev : liveProducts[0]);
@@ -57,22 +56,8 @@ export default function App() {
             setSelectedProduct(null);
             setCategories([]);
           }
-=======
-          setIsLiveConnected(true);
-          setProducts(prev => {
-            if (liveProducts.length === 0) return prev;
-            const liveMap = new Map(liveProducts.map(p => [p.id, p]));
-            const localOnly = prev.filter(p => !liveMap.has(p.id));
-            return [...localOnly, ...liveProducts];
-          });
-          setSources(prev => {
-            if (liveSources.length === 0) return prev;
-            const liveMap = new Map(liveSources.map(s => [s.id, s]));
-            const localOnly = prev.filter(s => !liveMap.has(s.id));
-            return [...localOnly, ...liveSources];
-          });
->>>>>>> pr-2
         }
+
       } catch (err) {
         console.info('Backend sync error:', err);
       }
