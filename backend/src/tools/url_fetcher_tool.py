@@ -4,6 +4,7 @@ Scrapes manufacturer product pages (MFR URL) to extract official bullet points,
 specifications, and documentation links.
 """
 
+import ssl
 import urllib.parse
 import urllib.request
 import re
@@ -12,6 +13,12 @@ from ..utils.logging import get_logger
 
 logger = get_logger("url_fetcher_tool")
 
+# SSL context that skips certificate chain verification.
+# Needed because many manufacturer sites use intermediate CAs not trusted
+# by the system certificate store in the server environment.
+_SSL_CTX = ssl.create_default_context()
+_SSL_CTX.check_hostname = False
+_SSL_CTX.verify_mode = ssl.CERT_NONE
 
 def fetch_manufacturer_page(url: str) -> Dict[str, Any]:
     """Scrapes an official manufacturer landing page to extract specs and documentation links.
@@ -33,10 +40,13 @@ def fetch_manufacturer_page(url: str) -> Dict[str, Any]:
     
     try:
         req = urllib.request.Request(
-            url, 
-            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+            }
         )
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=8, context=_SSL_CTX) as response:
             html = response.read().decode('utf-8', errors='ignore')
             
             # Title

@@ -82,89 +82,219 @@ class UnihackExtractionPayload(BaseModel):
 
 
 def map_product_fields_to_unihack_row(fields: List[Any], title: str = "", sku: str = "") -> Dict[str, str]:
-    """Converts SourceLedger fields into a complete 252-column Unihack CSV dict row."""
-    # Initialize all columns with empty string
+    """Converts SourceLedger ProductRecord fields to the 252-column Unihack delivery row.
+
+    All field names the pipeline uses are mapped to their exact delivery column.
+    Technical spec fields (voltage, weight, color, etc.) go into ATTRIBUTE slots.
+    Item features list is spread across ITEM_FEATURES_1…20 individual columns.
+    """
     row: Dict[str, str] = {col: "" for col in UNIHACK_DELIVERY_COLUMNS}
-    
-    # Helper to retrieve field value by name
-    field_map = {f.name: f.value for f in fields if f.value is not None}
-    
-    # Set default catalog brand labels matching hackathon format
-    row['E1_Brand'] = field_map.get('e1_brand', '-- Unbranded --')
-    row['Unilog_Brand'] = field_map.get('unilog_brand', '-- No Unilog Brand --')
-    row['DIB_Brand'] = field_map.get('dib_brand', '-- No DIB Brand --')
-    row['Part_Manuf'] = field_map.get('part_manuf', 'SourceLedger Catalog')
-    row['Actual Image (Yes/No)'] = field_map.get('actual_image', 'Yes')
-    row['Discontinued'] = field_map.get('discontinued', 'No')
 
-    # Core Identifiers
-    prod_name = field_map.get('product_name') or field_map.get('part_desc') or title
-    mfr = field_map.get('manufacturer') or field_map.get('manufacturer_name') or field_map.get('brand') or ""
-    mfg_part = str(field_map.get('mfg_part_num') or field_map.get('part_number') or field_map.get('model_number') or sku)
-    
-    row['Product Name'] = str(prod_name)
-    row['Part_Desc'] = str(prod_name)
-    row['MANUFACTURER_NAME'] = str(mfr)
-    row['BRAND_NAME'] = str(field_map.get('brand_name') or mfr)
-    row['Mfg_Part_Num'] = mfg_part
-    row['MANUFACTURER_PART_NUMBER'] = mfg_part
-    row['PART_NUMBER'] = mfg_part
-    row['SKU - MY_PART_NUMBER'] = sku or mfg_part
-    
-    # Taxonomy
-    row['Dept'] = str(field_map.get('dept', 'Industrial & Commercial'))
-    row['Class'] = str(field_map.get('category_class', 'Equipment & Supplies'))
-    row['Fine'] = str(field_map.get('fine_category', 'General'))
-    row['Classpath'] = str(field_map.get('classpath', f"{row['Dept']}>{row['Class']}>{row['Fine']}"))
-    
-    # Descriptions
-    row['SHORT_DESC'] = str(field_map.get('short_desc') or prod_name)
-    row['LONG_DESC1'] = str(field_map.get('long_desc1') or field_map.get('marketing_description') or prod_name)
-    row['MARKETING_DESCRIPTION'] = str(field_map.get('marketing_description') or row['LONG_DESC1'])
-    row['MOBILE_DESC'] = str(field_map.get('mobile_desc') or row['SHORT_DESC'])
-    row['INVOICE_DESC'] = str(field_map.get('invoice_desc') or row['SHORT_DESC'][:50])
-    row['RETAIL_DESC'] = str(field_map.get('retail_desc') or row['SHORT_DESC'])
-    
-    # Features (up to 20)
-    features = field_map.get('item_features')
-    if isinstance(features, list):
-        for idx, feat in enumerate(features[:20], start=1):
-            row[f'ITEM_FEATURES_{idx}'] = str(feat)
-
-    # Technical Attributes (up to 50 triplets)
-    # Collect custom fields not explicitly in header mappings
-    attr_idx = 1
+    # -- Build a fast name→value lookup (handle list values as-is)
+    field_map: Dict[str, Any] = {}
     for f in fields:
-        if f.name in [
-            'product_name', 'manufacturer', 'manufacturer_name', 'mfg_part_num', 'part_number',
-            'model_number', 'short_desc', 'long_desc1', 'marketing_description', 'item_features',
-            'dept', 'category_class', 'fine_category', 'classpath', 'certifications', 'standards_approvals',
-            'mfr_url', 'ref_urls', 'product_image', 'specification_sheet', 'owners_manual'
-        ]:
-            continue
+        if f.value is not None and f.name not in field_map:
+            field_map[f.name] = f.value
+
+    def _val(*keys: str) -> str:
+        """Return string value of first matching key, joining lists with semicolons."""
+        for k in keys:
+            v = field_map.get(k)
+            if v is not None:
+                if isinstance(v, list):
+                    return "; ".join(str(x) for x in v if x)
+                s = str(v).strip()
+                if s:
+                    return s
+        return ""
+
+    def _list(*keys: str) -> List[str]:
+        for k in keys:
+            v = field_map.get(k)
+            if isinstance(v, list):
+                return [str(x) for x in v]
+            if isinstance(v, str) and v:
+                try:
+                    import json
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(x) for x in parsed]
+                except Exception:
+                    pass
+                return [v]
+        return []
+
+    # ── Brand placeholders ────────────────────────────────────────────
+    row['E1_Brand']      = _val('e1_brand') or '-- Unbranded --'
+    row['Unilog_Brand']  = _val('unilog_brand') or '-- No Unilog Brand --'
+    row['DIB_Brand']     = _val('dib_brand') or '-- No DIB Brand --'
+    # Part_Manuf: use the actual CSV value first, then try manufacturer/brand,
+    # only fall back to 'SourceLedger Catalog' when truly empty.
+    row['Part_Manuf']    = _val('part_manuf', 'manufacturer', 'manufacturer_name', 'brand') or 'SourceLedger Catalog'
+    row['Discontinued']  = _val('discontinued') or 'No'
+
+    # ── Core identifiers ─────────────────────────────────────────────
+    prod_name = _val('product_name', 'part_desc') or title
+    mfr       = _val('manufacturer', 'manufacturer_name', 'brand')
+    mfg_part  = _val('mfg_part_num', 'part_number', 'model_number') or sku
+
+    row['Product Name']           = prod_name
+    row['Part_Desc']              = prod_name
+    row['MANUFACTURER_NAME']      = mfr
+    row['BRAND_NAME']             = _val('brand_name') or mfr
+    row['Mfg_Part_Num']           = mfg_part
+    row['MANUFACTURER_PART_NUMBER'] = mfg_part
+    row['PART_NUMBER']            = mfg_part
+    row['SKU - MY_PART_NUMBER']   = sku or mfg_part
+    row['ALTERNATE_PART_NUMBER']  = _val('alternate_part_number')
+    row['TRADE_NAME']             = _val('trade_name')
+
+    # ── Taxonomy ─────────────────────────────────────────────────────
+    dept  = _val('dept')          or 'Industrial & Commercial'
+    cls   = _val('category_class') or 'Equipment & Supplies'
+    fine  = _val('fine_category') or 'General'
+    row['Dept']      = dept
+    row['Class']     = cls
+    row['Fine']      = fine
+    row['Classpath'] = _val('classpath', 'category_path') or f"{dept}>{cls}>{fine}"
+
+    # ── Descriptions ─────────────────────────────────────────────────
+    short = _val('short_desc') or prod_name
+    long1 = _val('long_desc1', 'marketing_description') or prod_name
+    row['SHORT_DESC']           = short
+    row['LONG_DESC1']           = long1
+    row['RETAIL_DESC']          = _val('long_desc2', 'retail_desc') or short
+    row['MARKETING_DESCRIPTION'] = _val('marketing_description') or long1
+    row['MOBILE_DESC']          = _val('mobile_desc') or short
+    row['INVOICE_DESC']         = _val('invoice_desc') or short[:60]
+
+    # ── ITEM_FEATURES_1…20 ───────────────────────────────────────────
+    features = _list('item_features')
+    for idx, feat in enumerate(features[:20], start=1):
+        row[f'ITEM_FEATURES_{idx}'] = feat
+
+    # Fill any empty feature slots with key selling points
+    selling = _list('item_key_selling_points', 'key_selling_points')
+    filled = sum(1 for i in range(1, 21) if row.get(f'ITEM_FEATURES_{i}'))
+    for idx, pt in enumerate(selling[:20 - filled], start=filled + 1):
+        row[f'ITEM_FEATURES_{idx}'] = pt
+
+    # ── Compliance & application ──────────────────────────────────────
+    certs = _list('certifications', 'standards_approvals')
+    row['Standard/Approvals'] = "; ".join(certs) if certs else _val('standard_approvals')
+    row['Application']        = _val('application')
+    row['Includes']           = _val('includes')
+    row['With']               = _val('with_feature')
+    row['Prop 65']            = _val('prop_65')
+
+    # ── Media & documents ─────────────────────────────────────────────
+    row['MFR URL']                          = _val('mfr_url', 'manufacturer_url')
+    row['Product Image']                    = _val('product_image')
+    row['Alternate Image 1']                = _val('alternate_image_1')
+    row['Alternate Image 2']                = _val('alternate_image_2')
+    row['Specification Sheet']              = _val('specification_sheet')
+    row['Owners/User Manual']               = _val('owners_manual', 'owners_user_manual')
+    row['Instruction/Installation Manual']  = _val('installation_manual')
+    row['Service Manual']                   = _val('service_manual')
+    row['SDS']                              = _val('sds')
+    row['Video Link']                       = _val('video_link')
+    row['RoHS']                             = _val('rohs')
+    row['Actual Image (Yes/No)']            = 'Yes' if row['Product Image'] else 'No'
+
+    # ── Identifiers ─────────────────────────────────────────────────────
+    row['UPC']        = _val('upc')
+    row['EAN']        = _val('ean')
+    row['GTIN']       = _val('gtin')
+    row['UNSPSC']     = _val('unspsc_code', 'unspsc')
+    row['List Price'] = _val('list_price')
+
+    # ── Dimensions & weight ──────────────────────────────────────────────
+    row['LENGTH']      = _val('length')
+    row['LENGTH_UOM']  = _val('length_uom') or 'in'
+    row['HEIGHT']      = _val('height')
+    row['HEIGHT_UOM']  = _val('height_uom') or 'in'
+    row['WIDTH']       = _val('width')
+    row['WIDTH_UOM']   = _val('width_uom') or 'in'
+    row['WEIGHT']      = _val('weight')
+    row['WEIGHT_UOM']  = _val('weight_uom') or 'lbs'
+
+    # ── Country of origin ────────────────────────────────────────────────
+    row['Country Of Origin'] = _val('country_of_origin', 'country_of_manufacture')
+
+    # ── Compliance & application (now populated by enrichment LLM) ────────
+    row['Application'] = _val('application')
+    row['Includes']    = _val('includes')
+    row['Warranty']    = _val('warranty')
+    row['Prop 65']     = _val('prop_65')
+    row['Standard/Approvals'] = (
+        "; ".join(_list('certifications', 'standards_approvals'))
+        or _val('standard_approvals', 'standards_approvals')
+    )
+
+    # ── Ref URLs ─────────────────────────────────────────────────────────
+    # Merge ref_urls list + individual ref_url_1..5 fields from enrichment
+    all_ref_urls = [
+        _val('ref_url_1'), _val('ref_url_2'),
+        _val('ref_url_3'), _val('ref_url_4'), _val('ref_url_5'),
+    ] + _list('ref_urls')
+    seen_refs: set = set()
+    ref_slot = 1
+    for u in all_ref_urls:
+        if u and u not in seen_refs:
+            row[f'Ref URL {ref_slot}'] = u
+            seen_refs.add(u)
+            ref_slot += 1
+            if ref_slot > 5:
+                break
+
+    # ── ATTRIBUTE_LABEL/VALUE/UOM slots (up to 50) ───────────────────────
+    # Everything NOT already consumed above goes into attribute triplets.
+    _SKIP = {
+        'product_name', 'part_desc', 'manufacturer', 'manufacturer_name', 'brand',
+        'brand_name', 'trade_name', 'mfg_part_num', 'part_number', 'model_number',
+        'alternate_part_number', 'e1_brand', 'unilog_brand', 'dib_brand', 'part_manuf',
+        'dept', 'category_class', 'fine_category', 'classpath', 'category_path',
+        'short_desc', 'long_desc1', 'long_desc2', 'retail_desc',
+        'marketing_description', 'mobile_desc', 'invoice_desc',
+        'item_features', 'item_key_selling_points', 'key_selling_points',
+        'certifications', 'standards_approvals', 'standard_approvals', 'application',
+        'includes', 'with_feature', 'prop_65', 'warranty',
+        'mfr_url', 'manufacturer_url', 'ref_urls',
+        'ref_url_1', 'ref_url_2', 'ref_url_3', 'ref_url_4', 'ref_url_5',
+        'product_image', 'alternate_image_1', 'alternate_image_2',
+        'specification_sheet', 'owners_manual', 'owners_user_manual',
+        'installation_manual', 'service_manual', 'sds', 'video_link', 'rohs',
+        'upc', 'ean', 'gtin', 'unspsc_code', 'unspsc', 'list_price',
+        'length', 'length_uom', 'height', 'height_uom',
+        'width', 'width_uom', 'weight', 'weight_uom',
+        'country_of_origin', 'country_of_manufacture',
+        'discontinued', 'actual_image',
+        # pipeline internals never shown to users
+        'item_keywords', 'long_desc2',
+    }
+
+    attr_idx = 1
+    seen = set()
+    for f in fields:
         if attr_idx > 50:
             break
-        label = f.display_name or f.name.replace('_', ' ').title()
-        val = str(f.value) if f.value is not None else ""
-        uom = str(f.unit) if f.unit else ""
-        if val:
-            row[f'ATTRIBUTE_LABEL {attr_idx}'] = label
-            row[f'ATTRIBUTE_VALUE {attr_idx}'] = val
-            row[f'ATTRIBUTE_UOM {attr_idx}'] = uom
-            attr_idx += 1
+        if f.name in _SKIP or f.name in seen:
+            continue
+        if f.value is None:
+            continue
+        val = f.value
+        if isinstance(val, list):
+            val = "; ".join(str(x) for x in val if x)
+        else:
+            val = str(val).strip()
+        if not val:
+            continue
+        seen.add(f.name)
+        label = (f.display_name or f.name.replace('_', ' ').title()).strip()
+        uom   = str(f.unit).strip() if f.unit else ""
+        row[f'ATTRIBUTE_LABEL {attr_idx}'] = label
+        row[f'ATTRIBUTE_VALUE {attr_idx}'] = val
+        row[f'ATTRIBUTE_UOM {attr_idx}']   = uom
+        attr_idx += 1
 
-    # Approvals & Specs
-    row['Standard/Approvals'] = str(field_map.get('standards_approvals') or field_map.get('certifications') or '')
-    row['Application'] = str(field_map.get('application') or '')
-    row['Includes'] = str(field_map.get('includes') or '')
-    row['With'] = str(field_map.get('with_feature') or '')
-    
-    # Media & Docs
-    row['MFR URL'] = str(field_map.get('mfr_url') or '')
-    row['Product Image'] = str(field_map.get('product_image') or '')
-    row['Specification Sheet'] = str(field_map.get('specification_sheet') or '')
-    row['Owners/User Manual'] = str(field_map.get('owners_manual') or '')
-    row['Instruction/Installation Manual'] = str(field_map.get('installation_manual') or '')
-    row['Country Of Origin'] = str(field_map.get('country_of_origin') or 'USA')
-    
     return row

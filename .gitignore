@@ -49,3 +49,10 @@ uploads/
 htmlcov/
 .coverage
 coverage.xml
+
+# Databases
+*.db
+*.sqlite
+backend/*.db
+backend/*.sqlite
+

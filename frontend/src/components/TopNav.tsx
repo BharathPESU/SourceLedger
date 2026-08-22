@@ -7,7 +7,6 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Layers, 
-  FileText, 
   Command,
   X
 } from 'lucide-react';
@@ -214,17 +213,6 @@ export const TopNav: React.FC<TopNavProps> = ({
               JD
             </div>
           </div>
-
-          {/* Secondary Action: Export Unihack Delivery CSV */}
-          <a
-            href="/api/export/csv"
-            download="Unihack_Delivery_Format.csv"
-            className="bg-white/70 hover:bg-white text-[#191715] px-3.5 py-2 rounded-full text-xs font-bold shadow-2xs hover:shadow-md border border-white/80 transition-all cursor-pointer flex items-center gap-1.5"
-            title="Export catalog in exact Unihack Delivery CSV format"
-          >
-            <FileText className="w-3.5 h-3.5 text-[#E8622C]" />
-            <span className="hidden lg:inline">Export Delivery CSV</span>
-          </a>
 
           {/* Primary Action Button */}
           <button

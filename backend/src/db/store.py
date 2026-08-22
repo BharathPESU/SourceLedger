@@ -1,13 +1,14 @@
-"""In-memory product catalog store.
+"""Persistent product catalog store (SQLite Database + In-Memory Cache).
 
-Provides a clean repository interface for product records, sources,
-and review actions. Uses in-memory dicts for fast development and
-demo reliability (no external DB dependency during judging).
+Provides a clean repository interface for product records, sources, and review actions.
+Data is persisted to an SQLite database file (sourceledger.db) so all ingested catalog items,
+extracted fields, and review actions survive server restarts.
 
-The interface is async-ready so it can be swapped to a PostgreSQL-
-backed implementation without changing callers.
+Also syncs records to Supabase Postgres if configured in environment.
 """
 
+import os
+import sqlite3
 from typing import Optional
 from uuid import UUID
 
@@ -20,27 +21,135 @@ from ..models.product_record import (
 )
 from ..models.schemas import CATEGORY_REGISTRY
 from ..utils.logging import get_logger
+from .supabase_client import sync_product_to_supabase
 
 logger = get_logger("store")
 
+# SQLite database file path — located inside the backend directory
+DB_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "sourceledger.db")
+)
+
 
 class ProductStore:
-    """Thread-safe, async-compatible in-memory store.
+    """Thread-safe, SQLite-backed persistent product store with in-memory cache.
 
-    All mutations are logged. Data persists for the lifetime of the
-    server process — sufficient for a hackathon demo.
+    All mutations write to SQLite and in-memory cache. Data persists permanently
+    across server restarts in sourceledger.db.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, db_path: str = DB_PATH) -> None:
+        self.db_path = db_path
         self._products: dict[UUID, ProductRecord] = {}
         self._sources: dict[UUID, Source] = {}
         self._review_actions: list[ReviewAction] = []
+        self._init_sqlite()
+        self._load_from_db()
+
+    def _get_connection(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def _init_sqlite(self) -> None:
+        """Create tables if they do not exist."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS sources (
+                        id TEXT PRIMARY KEY,
+                        content_hash TEXT,
+                        data TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS products (
+                        id TEXT PRIMARY KEY,
+                        category TEXT,
+                        name TEXT,
+                        confidence INTEGER,
+                        data TEXT NOT NULL,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS review_actions (
+                        id TEXT PRIMARY KEY,
+                        product_id TEXT,
+                        data TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
+                conn.commit()
+            logger.info("✓ SQLite database initialized at %s", self.db_path)
+        except Exception as e:
+            logger.error("Failed to initialize SQLite database: %s", e)
+
+    def _load_from_db(self) -> None:
+        """Load stored records from SQLite DB into in-memory cache on startup."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+
+                # Load sources
+                cursor.execute("SELECT data FROM sources")
+                for row in cursor.fetchall():
+                    try:
+                        src = Source.model_validate_json(row["data"])
+                        self._sources[src.id] = src
+                    except Exception as err:
+                        logger.warning("Error parsing source row: %s", err)
+
+                # Load products
+                cursor.execute("SELECT data FROM products")
+                for row in cursor.fetchall():
+                    try:
+                        prod = ProductRecord.model_validate_json(row["data"])
+                        self._products[prod.id] = prod
+                    except Exception as err:
+                        logger.warning("Error parsing product row: %s", err)
+
+                # Load review actions
+                cursor.execute("SELECT data FROM review_actions")
+                for row in cursor.fetchall():
+                    try:
+                        act = ReviewAction.model_validate_json(row["data"])
+                        self._review_actions.append(act)
+                    except Exception as err:
+                        logger.warning("Error parsing review action row: %s", err)
+
+            logger.info(
+                "✓ Loaded %d products, %d sources, and %d review actions from SQLite database.",
+                len(self._products),
+                len(self._sources),
+                len(self._review_actions),
+            )
+        except Exception as e:
+            logger.error("Error loading data from SQLite database: %s", e)
 
     # ── Sources ──────────────────────────────────────────────────────
 
     async def save_source(self, source: Source) -> Source:
         self._sources[source.id] = source
-        logger.info("Saved source %s (%s)", source.id, source.origin)
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT OR REPLACE INTO sources (id, content_hash, data) VALUES (?, ?, ?)",
+                    (str(source.id), source.content_hash, source.model_dump_json()),
+                )
+                conn.commit()
+            logger.info("Saved source %s to SQLite DB", source.id)
+        except Exception as e:
+            logger.error("Failed to save source to SQLite DB: %s", e)
         return source
 
     async def get_source(self, source_id: UUID) -> Optional[Source]:
@@ -60,14 +169,42 @@ class ProductStore:
 
     async def save_product(self, product: ProductRecord) -> ProductRecord:
         self._products[product.id] = product
-        logger.info(
-            "Saved product %s '%s' (category=%s, confidence=%d, fields=%d)",
-            product.id,
-            product.name,
-            product.category,
-            product.confidence_overall,
-            len(product.fields),
-        )
+        try:
+            json_data = product.model_dump_json()
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT OR REPLACE INTO products (id, category, name, confidence, data) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        str(product.id),
+                        product.category,
+                        product.name,
+                        product.confidence_overall,
+                        json_data,
+                    ),
+                )
+                conn.commit()
+            logger.info(
+                "Saved product %s '%s' to SQLite DB (category=%s, confidence=%d, fields=%d)",
+                product.id,
+                product.name,
+                product.category,
+                product.confidence_overall,
+                len(product.fields),
+            )
+            # Sync to Supabase if configured
+            await sync_product_to_supabase(
+                {
+                    "id": str(product.id),
+                    "name": product.name,
+                    "category": product.category,
+                    "confidence_overall": product.confidence_overall,
+                    "field_count": len(product.fields),
+                    "data": json_data,
+                }
+            )
+        except Exception as e:
+            logger.error("Failed to save product to SQLite DB: %s", e)
         return product
 
     async def get_product(self, product_id: UUID) -> Optional[ProductRecord]:
@@ -78,8 +215,7 @@ class ProductStore:
 
     async def update_product(self, product: ProductRecord) -> ProductRecord:
         """Replace a product record entirely (used after review actions)."""
-        self._products[product.id] = product
-        return product
+        return await self.save_product(product)
 
     async def update_field(
         self,
@@ -88,11 +224,12 @@ class ProductStore:
         new_value: object = None,
         new_status: Optional[FieldStatus] = None,
     ) -> Optional[ProductField]:
-        """Update a single field within a product record."""
+        """Update a single field within a product record and persist."""
         product = self._products.get(product_id)
         if not product:
             return None
 
+        updated_field = None
         for i, field in enumerate(product.fields):
             if field.id == field_id:
                 if new_value is not None:
@@ -101,8 +238,12 @@ class ProductStore:
                     field.status = new_status
                 product.fields[i] = field
                 product.confidence_overall = product.compute_overall_confidence()
-                return field
-        return None
+                updated_field = field
+                break
+
+        if updated_field:
+            await self.save_product(product)
+        return updated_field
 
     # ── Review Queue ─────────────────────────────────────────────────
 
@@ -127,12 +268,21 @@ class ProductStore:
 
     async def save_review_action(self, action: ReviewAction) -> ReviewAction:
         self._review_actions.append(action)
-        logger.info(
-            "Saved review action: %s on field %s (product %s)",
-            action.action.value,
-            action.field_id,
-            action.product_id,
-        )
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT OR REPLACE INTO review_actions (id, product_id, data) VALUES (?, ?, ?)",
+                    (str(action.id), str(action.product_id), action.model_dump_json()),
+                )
+                conn.commit()
+            logger.info(
+                "Saved review action: %s on field %s to SQLite DB",
+                action.action.value,
+                action.field_id,
+            )
+        except Exception as e:
+            logger.error("Failed to save review action to SQLite DB: %s", e)
         return action
 
     async def get_review_actions(self) -> list[ReviewAction]:
@@ -202,3 +352,4 @@ class ProductStore:
 # Single store instance shared across the application lifetime.
 
 store = ProductStore()
+

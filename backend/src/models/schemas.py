@@ -479,22 +479,303 @@ SAFETY_FASTENER_SCHEMA = CategorySchema(
 )
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Power Tool Schema
+# ─────────────────────────────────────────────────────────────────────
+
+POWER_TOOL_SCHEMA = CategorySchema(
+    category_key="power_tool",
+    display_name="Power Tool",
+    description="Cordless and corded power tools — drills, drivers, saws, nailers, grinders, etc.",
+    fields=[
+        CategoryFieldDef(
+            name="manufacturer",
+            display_name="Manufacturer / Brand",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Tool manufacturer brand name",
+            examples=["Milwaukee", "DEWALT", "Makita", "Bosch", "Ryobi", "Metabo", "Hilti"],
+        ),
+        CategoryFieldDef(
+            name="model_number",
+            display_name="Model Number",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Manufacturer model or part number as printed on the tool/box",
+            examples=["DCD803B", "2909-20", "XNB04Z", "D25333K"],
+        ),
+        CategoryFieldDef(
+            name="tool_type",
+            display_name="Tool Type",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Type of power tool",
+            examples=["Hammer Drill", "Impact Driver", "Brad Nailer", "Reciprocating Saw", "Circular Saw", "Angle Grinder"],
+        ),
+        CategoryFieldDef(
+            name="voltage",
+            display_name="Voltage (V)",
+            field_type=FieldType.NUMBER,
+            unit="V",
+            required=True,
+            description="Battery/power voltage",
+            examples=["18", "20", "12", "36", "120"],
+        ),
+        CategoryFieldDef(
+            name="battery_system",
+            display_name="Battery System / Platform",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Manufacturer battery platform name",
+            examples=["M18", "M12", "20V MAX", "18V LXT", "18V PROFACTOR", "ProCORE18V"],
+        ),
+        CategoryFieldDef(
+            name="is_bare_tool",
+            display_name="Bare Tool (No Battery)",
+            field_type=FieldType.BOOLEAN,
+            required=True,
+            description="True if sold without battery/charger (bare tool only)",
+            examples=["true", "false"],
+        ),
+        CategoryFieldDef(
+            name="drive_size",
+            display_name="Drive / Chuck Size",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Chuck or drive size",
+            examples=["1/2\"", "1/4\"", "3/8\"", "SDS-plus", "SDS-max"],
+        ),
+        CategoryFieldDef(
+            name="no_load_rpm",
+            display_name="No-Load Speed (RPM)",
+            field_type=FieldType.NUMBER,
+            unit="RPM",
+            required=False,
+            description="Maximum no-load speed in RPM",
+            examples=["0-1800", "0-2000", "0-450", "0-550"],
+        ),
+        CategoryFieldDef(
+            name="torque",
+            display_name="Max Torque",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Maximum torque output with unit",
+            examples=["60 Nm", "750 in-lbs", "1200 in-lbs", "200 ft-lbs"],
+        ),
+        CategoryFieldDef(
+            name="weight",
+            display_name="Weight (kg)",
+            field_type=FieldType.NUMBER,
+            unit="kg",
+            required=False,
+            description="Tool weight in kilograms (bare tool without battery)",
+            examples=["1.4", "2.1", "0.9", "1.7"],
+        ),
+        CategoryFieldDef(
+            name="nail_gauge",
+            display_name="Nail Gauge",
+            field_type=FieldType.STRING,
+            required=False,
+            description="For nailers: accepted nail gauge",
+            examples=["18 GA", "16 GA", "15 GA", "30°"],
+        ),
+        CategoryFieldDef(
+            name="nail_length_range",
+            display_name="Nail Length Range",
+            field_type=FieldType.STRING,
+            required=False,
+            description="For nailers: accepted nail lengths",
+            examples=["3/4\" to 2\"", "1\" to 2-1/2\"", "1-1/4\" to 3-1/2\""],
+        ),
+        CategoryFieldDef(
+            name="certifications",
+            display_name="Certifications",
+            field_type=FieldType.LIST,
+            required=False,
+            description="Safety and compliance certifications",
+            examples=["UL", "CSA", "CE", "RoHS"],
+        ),
+        CategoryFieldDef(
+            name="compatible_accessories",
+            display_name="Compatible Accessories",
+            field_type=FieldType.LIST,
+            required=False,
+            description="Compatible batteries, chargers, or accessories",
+            examples=["M18 REDLITHIUM", "XC5.0 Battery", "20V MAX Batteries"],
+        ),
+        CategoryFieldDef(
+            name="color",
+            display_name="Color",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Tool body color",
+            examples=["Red/Black", "Yellow/Black", "Teal/Black", "Blue"],
+        ),
+        CategoryFieldDef(
+            name="country_of_manufacture",
+            display_name="Country of Manufacture",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Country where the tool is manufactured",
+            examples=["USA", "China", "Japan", "Germany", "Mexico"],
+        ),
+        CategoryFieldDef(
+            name="upc",
+            display_name="UPC / EAN Barcode",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Universal Product Code or EAN barcode",
+            examples=["045242488353", "638448158403"],
+        ),
+    ],
+)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Home Appliance Schema
+# ─────────────────────────────────────────────────────────────────────
+
+HOME_APPLIANCE_SCHEMA = CategorySchema(
+    category_key="home_appliance",
+    display_name="Home Appliance",
+    description="Major home appliances — dishwashers, washers, dryers, refrigerators, ranges, etc.",
+    fields=[
+        CategoryFieldDef(
+            name="manufacturer",
+            display_name="Manufacturer / Brand",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Appliance manufacturer brand",
+            examples=["Frigidaire", "Whirlpool", "GE Appliances", "Bosch", "Samsung", "Miele", "LG"],
+        ),
+        CategoryFieldDef(
+            name="model_number",
+            display_name="Model Number",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Manufacturer model number",
+            examples=["PDSH4816AF", "WDTS7024RZ", "WDT780SAEM"],
+        ),
+        CategoryFieldDef(
+            name="appliance_type",
+            display_name="Appliance Type",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Type of home appliance",
+            examples=["Dishwasher", "Washing Machine", "Dryer", "Refrigerator", "Range", "Microwave"],
+        ),
+        CategoryFieldDef(
+            name="color_finish",
+            display_name="Color / Finish",
+            field_type=FieldType.STRING,
+            required=True,
+            description="Appliance color or finish",
+            examples=["Stainless Steel", "Black Stainless", "White", "Black", "Fingerprint Resistant"],
+        ),
+        CategoryFieldDef(
+            name="energy_star",
+            display_name="Energy Star Certified",
+            field_type=FieldType.BOOLEAN,
+            required=True,
+            description="Whether the appliance is Energy Star certified",
+            examples=["true", "false"],
+        ),
+        CategoryFieldDef(
+            name="capacity",
+            display_name="Capacity",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Capacity in relevant units (place settings, cubic feet, etc.)",
+            examples=["14 Place Settings", "4.5 cu ft", "18 cu ft"],
+        ),
+        CategoryFieldDef(
+            name="number_of_cycles",
+            display_name="Number of Wash/Dry Cycles",
+            field_type=FieldType.NUMBER,
+            required=False,
+            description="Number of wash or dry cycles/programs",
+            examples=["5", "8", "12"],
+        ),
+        CategoryFieldDef(
+            name="decibel_level",
+            display_name="Noise Level (dBA)",
+            field_type=FieldType.NUMBER,
+            unit="dBA",
+            required=False,
+            description="Operating noise level in decibels",
+            examples=["47", "50", "55"],
+        ),
+        CategoryFieldDef(
+            name="installation_type",
+            display_name="Installation Type",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Built-in, freestanding, slide-in, etc.",
+            examples=["Built-In", "Freestanding", "Slide-In", "Drop-In"],
+        ),
+        CategoryFieldDef(
+            name="dimensions",
+            display_name="Dimensions (WxDxH)",
+            field_type=FieldType.STRING,
+            required=False,
+            description="Width x Depth x Height in inches",
+            examples=["24\" x 24\" x 34\"", "30\" x 28\" x 36\""],
+        ),
+        CategoryFieldDef(
+            name="certifications",
+            display_name="Certifications",
+            field_type=FieldType.LIST,
+            required=False,
+            description="Safety and energy certifications",
+            examples=["Energy Star", "UL Listed", "NSF Certified"],
+        ),
+    ],
+)
+
+
 # ═════════════════════════════════════════════════════════════════════
 # Category Registry
 # ═════════════════════════════════════════════════════════════════════
 
+
+# ── Generic / Universal Schema ─────────────────────────────────────────────
+GENERIC_SCHEMA = CategorySchema(
+    category_key="generic",
+    display_name="General Product",
+    fields=[
+        CategoryFieldDef(name="manufacturer",         display_name="Manufacturer",          field_type=FieldType.STRING,  required=True,  unit=None,  description="Brand or manufacturer name"),
+        CategoryFieldDef(name="model_number",          display_name="Model / Part Number",   field_type=FieldType.STRING,  required=True,  unit=None,  description="Manufacturer part or model number"),
+        CategoryFieldDef(name="short_desc",            display_name="Short Description",      field_type=FieldType.STRING,  required=True,  unit=None,  description="One-line e-commerce product description"),
+        CategoryFieldDef(name="long_desc1",            display_name="Long Description",       field_type=FieldType.STRING,  required=False, unit=None,  description="Full product description for PDP"),
+        CategoryFieldDef(name="product_image",         display_name="Product Image URL",      field_type=FieldType.STRING,  required=False, unit=None,  description="Primary product image URL"),
+        CategoryFieldDef(name="mfr_url",               display_name="Manufacturer URL",       field_type=FieldType.STRING,  required=False, unit=None,  description="Official manufacturer product page URL"),
+        CategoryFieldDef(name="upc",                   display_name="UPC",                    field_type=FieldType.STRING,  required=False, unit=None,  description="Universal Product Code barcode"),
+        CategoryFieldDef(name="country_of_origin",     display_name="Country Of Origin",      field_type=FieldType.STRING,  required=False, unit=None,  description="Country where the product was manufactured"),
+        CategoryFieldDef(name="item_features",         display_name="Item Features",          field_type=FieldType.LIST,    required=False, unit=None,  description="List of key product features / bullet points"),
+        CategoryFieldDef(name="certifications",        display_name="Standards / Approvals",  field_type=FieldType.LIST,    required=False, unit=None,  description="Standards and safety certifications (UL, CE, etc.)"),
+        CategoryFieldDef(name="unspsc_code",           display_name="UNSPSC Code",            field_type=FieldType.STRING,  required=False, unit=None,  description="UNSPSC commodity code"),
+        CategoryFieldDef(name="specification_sheet",   display_name="Specification Sheet",    field_type=FieldType.STRING,  required=False, unit=None,  description="Link to PDF specification sheet"),
+        CategoryFieldDef(name="marketing_description", display_name="Marketing Description",  field_type=FieldType.STRING,  required=False, unit=None,  description="Marketing / promotional product description"),
+    ],
+)
+
+
 CATEGORY_REGISTRY: dict[str, CategorySchema] = {
-    INDUSTRIAL_PUMP_SCHEMA.category_key: INDUSTRIAL_PUMP_SCHEMA,
-    ELECTRICAL_CONNECTOR_SCHEMA.category_key: ELECTRICAL_CONNECTOR_SCHEMA,
-    SAFETY_FASTENER_SCHEMA.category_key: SAFETY_FASTENER_SCHEMA,
+    INDUSTRIAL_PUMP_SCHEMA.category_key:       INDUSTRIAL_PUMP_SCHEMA,
+    ELECTRICAL_CONNECTOR_SCHEMA.category_key:  ELECTRICAL_CONNECTOR_SCHEMA,
+    SAFETY_FASTENER_SCHEMA.category_key:       SAFETY_FASTENER_SCHEMA,
+    POWER_TOOL_SCHEMA.category_key:            POWER_TOOL_SCHEMA,
+    HOME_APPLIANCE_SCHEMA.category_key:        HOME_APPLIANCE_SCHEMA,
+    GENERIC_SCHEMA.category_key:               GENERIC_SCHEMA,
 }
 
 
 def get_category_schema(category_key: str) -> CategorySchema | None:
-    """Look up a category schema by its key. Returns None if not found."""
-    return CATEGORY_REGISTRY.get(category_key)
+    """Look up a category schema by key. Falls back to 'generic' for unknown categories."""
+    return CATEGORY_REGISTRY.get(category_key) or CATEGORY_REGISTRY.get("generic")
 
 
 def list_categories() -> list[CategorySchema]:
     """Return all registered category schemas."""
     return list(CATEGORY_REGISTRY.values())
+

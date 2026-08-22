@@ -57,8 +57,12 @@ async def get_product(product_id: UUID) -> ProductDetailResponse:
 
     schema = get_category_schema(product.category)
     if not schema:
+        # Fall back to first available schema for unknown/generic categories
+        from ..models.schemas import CATEGORY_REGISTRY
+        schema = next(iter(CATEGORY_REGISTRY.values()), None)
+    if not schema:
         raise HTTPException(
-            status_code=500, detail=f"Unknown category: {product.category}"
+            status_code=500, detail=f"No category schemas registered"
         )
 
     return ProductDetailResponse(

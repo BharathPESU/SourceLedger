@@ -38,18 +38,41 @@ async def export_all_products_csv():
     writer = csv.DictWriter(output, fieldnames=UNIHACK_DELIVERY_COLUMNS)
     writer.writeheader()
 
+    # Failure indicators — products with these in their name are extraction
+    # failures and must NOT appear in the export CSV.
+    _FAILURE_INDICATORS = [
+        "not found", "no product found", "no match found", "no data found",
+        "unknown product", "extracted product", "ingested product", "csv product",
+    ]
+    exported_count = 0
+    skipped_count = 0
+
     for prod in products:
+        # Guard: skip products whose name indicates extraction failure
+        name_lower = prod.name.lower().strip()
+        if any(ind in name_lower for ind in _FAILURE_INDICATORS) or not name_lower:
+            logger.warning(
+                "Export: SKIPPING product '%s' (id=%s) — extraction failure indicator detected",
+                prod.name[:60], str(prod.id)[:8],
+            )
+            skipped_count += 1
+            continue
+
         sku_val = getattr(prod, 'sku', str(prod.id)[:8])
         row = map_product_fields_to_unihack_row(prod.fields, title=prod.name, sku=sku_val)
         writer.writerow(row)
+        exported_count += 1
 
     output.seek(0)
-    logger.info("Generated Unihack Delivery CSV export for %d products", len(products))
+    logger.info(
+        "Generated Unihack Delivery CSV export: %d products exported, %d skipped (extraction failures)",
+        exported_count, skipped_count,
+    )
 
     return StreamingResponse(
         io.BytesIO(output.getvalue().encode('utf-8-sig')),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=Unihack_Delivery_Format_{len(products)}_items.csv"}
+        headers={"Content-Disposition": f"attachment; filename=Unihack_Delivery_Format_{exported_count}_items.csv"}
     )
 
 

@@ -41,6 +41,8 @@ class SourceType(str, Enum):
     PDF = "pdf"
     WEB = "web"
     IMAGE = "image"
+    CSV = "csv"
+    MANUAL = "manual"
 
 
 class TrustTier(int, Enum):

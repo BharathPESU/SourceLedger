@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   UploadCloud, 
@@ -9,7 +9,8 @@ import {
   FileText,
   Globe,
   Check,
-  FileType
+  FileType,
+  Plus
 } from 'lucide-react';
 import { ProductRecord, IngestionSource } from '../types';
 import { ingestSource as apiIngestSource } from '../lib/api';
@@ -37,7 +38,38 @@ export const IngestModal: React.FC<IngestModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const resetModalState = () => {
+    setExtractedPreview(null);
+    setIsProcessing(false);
+    setProcessStep(0);
+    setContent('');
+    setFilename('');
+    setErrorMsg(null);
+    setCategoryKey('');
+    setActiveTab('upload');
+    setSourceType('web');
+    setTrustTier(1);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Reset all modal state every time the modal opens, so the user
+  // always sees the fresh ingestion form instead of the stale success screen.
+  useEffect(() => {
+    if (isOpen) {
+      resetModalState();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const handleClose = () => {
+    resetModalState();
+    onClose();
+  };
+
   if (!isOpen) return null;
+
 
   const samplePresets = [
     {
@@ -179,7 +211,7 @@ Material Grade: Alloy Steel, Quenched and Tempered`
       <div className="bg-white/85 backdrop-blur-2xl rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-white/90 ring-1 ring-white/60 relative my-8 animate-in fade-in zoom-in-95 duration-150">
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-6 right-6 p-2 rounded-full bg-white/70 hover:bg-white backdrop-blur-md text-[#8C8276] hover:text-[#191715] border border-white/80 shadow-2xs transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
@@ -406,12 +438,30 @@ Material Grade: Alloy Steel, Quenched and Tempered`
                 <strong>{extractedPreview?.name}</strong> has been extracted and ledgered into your catalog with {extractedPreview?.confidence}% confidence.
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] hover:scale-[1.02] text-white font-bold text-xs shadow-md shadow-[#E8622C]/25 border border-white/20 transition-all cursor-pointer"
-            >
-              Open in Field Inspector
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                onClick={handleClose}
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] hover:scale-[1.02] text-white font-bold text-xs shadow-md shadow-[#E8622C]/25 border border-white/20 transition-all cursor-pointer"
+              >
+                Open in Field Inspector
+              </button>
+              <button
+                type="button"
+                onClick={resetModalState}
+                className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAF4EB] text-[#191715] font-bold text-xs shadow-xs border border-[#DFCDBC] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4 text-[#E8622C]" />
+                <span>Ingest Another Source</span>
+              </button>
+              <a
+                href="http://localhost:8000/api/export/csv"
+                download="Unihack_Delivery_Format.csv"
+                className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAF4EB] text-[#191715] font-bold text-xs shadow-xs border border-[#DFCDBC] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <FileText className="w-4 h-4 text-[#E8622C]" />
+                <span>Export Delivery CSV</span>
+              </a>
+            </div>
           </div>
         )}
       </div>

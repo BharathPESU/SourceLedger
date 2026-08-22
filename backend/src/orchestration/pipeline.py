@@ -8,6 +8,7 @@ the sequential flow covers the must-build demo path. LangGraph
 state machine can be layered on top without changing agent interfaces.
 """
 
+import os
 from uuid import uuid4
 
 from ..agents.enrichment_agent import EnrichmentAgent
@@ -18,7 +19,6 @@ from ..agents.validation_agent import ValidationAgent
 from ..db.store import store
 from ..models.product_record import ProductRecord, SourceType, TrustTier
 from ..services.dedup import check_duplicate
-from ..utils.hashing import hash_content
 from ..utils.logging import get_logger, log_agent_step
 
 logger = get_logger("Pipeline")
@@ -29,6 +29,39 @@ extraction_agent = ExtractionAgent()
 enrichment_agent = EnrichmentAgent()
 validation_agent = ValidationAgent()
 explainability_layer = ExplainabilityLayer()
+
+
+def _rotate_key() -> str | None:
+    """Rotate to the next API key and set it in the environment.
+
+    Imports the global key_rotator lazily to avoid circular imports at
+    module load time. Every agent's _get_client() reads os.environ on each
+    call so this change propagates immediately.
+
+    Returns the selected key (or None if no keys are configured).
+    """
+    try:
+        from ..agents.main import key_rotator  # noqa: PLC0415
+
+        api_key = key_rotator.get_next_key()
+        if api_key:
+            os.environ["GOOGLE_API_KEY"] = api_key
+            logger.info(
+                "Pipeline key rotation: using key ...%s (%d/%d active)",
+                api_key[-6:],
+                key_rotator.active_keys_count,
+                key_rotator.total_keys,
+            )
+        else:
+            logger.warning(
+                "Pipeline: all API keys exhausted — agents will run in demo mode"
+            )
+        return api_key
+    except Exception as exc:
+        logger.warning(
+            "Pipeline: key rotation skipped (%s) — using current env key", exc
+        )
+        return None
 
 
 async def run_pipeline(
@@ -43,78 +76,155 @@ async def run_pipeline(
     Steps:
     1. Ingest: normalize input → raw text + Source entity
     2. Check idempotency: skip if same content already processed
-    3. Extract: raw text → structured fields via LLM
+    3. Extract: raw text → structured fields via Gemini LLM
     4. Enrich: fill missing fields from secondary sources/defaults
     5. Validate: score confidence, route to auto-commit or review
     6. Annotate: ensure all fields have complete provenance
     7. Persist: save product record and source to store
 
+    Each stage rotates to the next Google API key before calling Gemini,
+    distributing load across the full key pool to avoid quota exhaustion.
+
     Returns the completed ProductRecord.
     """
     with log_agent_step(logger, "Pipeline", "full extraction run") as ctx:
 
-        # ── 1. Ingestion ─────────────────────────────────────────────
+        # ── Stage 1: Ingestion ────────────────────────────────────────
+        _rotate_key()
+        logger.info("=== Stage 1/5 — IngestionAgent: normalising source content ===")
         ingestion_result = await ingestion_agent.ingest(
             source_type=source_type,
             content=content,
             filename=filename,
             trust_tier=trust_tier,
         )
+        logger.info(
+            "Stage 1 complete: %d chars extracted from '%s'",
+            len(ingestion_result.raw_text),
+            ingestion_result.source.origin,
+        )
 
-        # ── 2. Idempotency check ─────────────────────────────────────
+        # ── Stage 2: Idempotency check ───────────────────────────────
         existing = await store.find_source_by_hash(
             ingestion_result.source.content_hash
         )
         if existing:
             logger.info(
-                "Source already ingested (hash=%s), checking for existing product",
+                "Duplicate source detected (hash=%s) — checking for existing product",
                 existing.content_hash[:12],
             )
-            # Find the product that used this source
             products = await store.list_products()
             for p in products:
                 if existing.id in p.source_ids:
-                    ctx["output_summary"] = f"duplicate source — returning existing product '{p.name}'"
+                    ctx["output_summary"] = (
+                        f"duplicate source — returning existing product '{p.name}'"
+                    )
                     return p
 
-        # Save source
+        # Save source record
         await store.save_source(ingestion_result.source)
 
-        # ── 3. Auto-detect category if not provided ───────────────────
+        # ── Auto-detect category if not provided ──────────────────────
         if not category:
             category = _detect_category(ingestion_result.raw_text)
+        logger.info("Category: %s", category)
 
-        # ── 4. Extraction ────────────────────────────────────────────
+        # ── Stage 3: Extraction ───────────────────────────────────────
+        _rotate_key()
+        logger.info(
+            "=== Stage 2/5 — ExtractionAgent: extracting fields for '%s' ===", category
+        )
         extraction_result = await extraction_agent.extract(
             raw_text=ingestion_result.raw_text,
             category=category,
             source_id=ingestion_result.source.id,
         )
+        logger.info(
+            "Stage 2 complete: %d fields extracted for '%s'",
+            len(extraction_result.fields),
+            extraction_result.product_name,
+        )
 
-        # ── 5. Enrichment ────────────────────────────────────────────
+        # ── Circuit breaker: detect extraction failures ───────────────
+        # If the extraction step produced a failure/not-found product name,
+        # STOP the pipeline immediately. Do NOT pass to enrichment, which
+        # would fabricate a full spec sheet on top of the failure string.
+        _name_lower = extraction_result.product_name.lower().strip()
+        _FAILURE_INDICATORS = [
+            "not found",
+            "no product found",
+            "no match found",
+            "no data found",
+            "unknown product",
+            "extracted product",
+            "ingested product",
+            "csv product",  # fallback name from deterministic extraction with 0 useful fields
+        ]
+        _is_failure = (
+            not _name_lower
+            or any(indicator in _name_lower for indicator in _FAILURE_INDICATORS)
+            or len(extraction_result.fields) == 0
+        )
+        if _is_failure:
+            logger.error(
+                "⛔ CIRCUIT BREAKER: extraction failed — product_name='%s', "
+                "fields=%d. Stopping pipeline before enrichment to prevent "
+                "hallucinated data.",
+                extraction_result.product_name,
+                len(extraction_result.fields),
+            )
+            raise ValueError(
+                f"Extraction failed: '{extraction_result.product_name}' — "
+                f"no valid product data could be extracted from the source. "
+                f"Pipeline stopped to prevent fabricated output."
+            )
+
+        # ── Stage 4: Enrichment ───────────────────────────────────────
+        _rotate_key()
+        logger.info(
+            "=== Stage 3/5 — EnrichmentAgent: enriching %d fields ===",
+            len(extraction_result.fields),
+        )
         enrichment_result = await enrichment_agent.enrich(
             fields=extraction_result.fields,
             category=category,
             source_id=ingestion_result.source.id,
         )
+        logger.info(
+            "Stage 3 complete: %d fields after enrichment",
+            len(enrichment_result.fields),
+        )
 
-        # ── 6. Validation ────────────────────────────────────────────
+        # ── Stage 5: Validation ───────────────────────────────────────
+        _rotate_key()
+        logger.info("=== Stage 4/5 — ValidationAgent: scoring confidence ===")
         validation_result = await validation_agent.validate(
             fields=enrichment_result.fields,
             category=category,
         )
+        logger.info(
+            "Stage 4 complete: overall confidence=%d%%, needs_review=%d",
+            validation_result.confidence_overall,
+            validation_result.needs_review_count,
+        )
 
-        # ── 7. Explainability ────────────────────────────────────────
+        # ── Stage 6: Explainability ───────────────────────────────────
+        _rotate_key()
+        logger.info("=== Stage 5/5 — ExplainabilityLayer: attaching provenance ===")
         annotated_fields = await explainability_layer.annotate(
             validation_result.fields
         )
+        logger.info(
+            "Stage 5 complete: %d fields annotated with provenance",
+            len(annotated_fields),
+        )
 
-        # ── 8. Dedup check (stub — Phase 5) ──────────────────────────
+        # ── Dedup check (stub — Phase 5) ──────────────────────────────
         dedup_id = await check_duplicate(
             extraction_result.product_name, category
         )
 
-        # ── 9. Build and persist ProductRecord ────────────────────────
+        # ── Build and persist ProductRecord ───────────────────────────
         product = ProductRecord(
             id=uuid4(),
             name=extraction_result.product_name,
@@ -131,6 +241,14 @@ async def run_pipeline(
             f"'{product.name}' — {len(product.fields)} fields, "
             f"confidence={product.confidence_overall}, "
             f"review={validation_result.needs_review_count}"
+        )
+
+        logger.info(
+            "=== Pipeline COMPLETE: '%s' | %d fields | confidence=%d%% | needs_review=%d ===",
+            product.name,
+            len(product.fields),
+            product.confidence_overall,
+            validation_result.needs_review_count,
         )
 
         return product
@@ -157,6 +275,42 @@ def _detect_category(raw_text: str) -> str:
         "safety_fastener": [
             "bolt", "nut", "screw", "fastener", "thread",
             "torque", "tensile", "washer", "grade 8.8", "grade 10.9",
+            "din 931", "iso 898", "hex",
+        ],
+        "power_tool": [
+            "drill", "driver", "saw", "nailer", "grinder", "sander",
+            "milwaukee", "dewalt", "makita", "bosch", "ryobi", "metabo",
+            "hilti", "m18", "m12", "20v max", "18v lxt", "flexvolt",
+            "hedge trimmer", "hammer drill", "impact driver", "brad nailer",
+            "framing nailer", "reciprocating", "circular saw",
+            "bare tool", "kit", "cordless",
+        ],
+        "home_appliance": [
+            "dishwasher", "washer", "dryer", "refrigerator", "freezer",
+            "range", "oven", "microwave", "cooktop", "frigidaire",
+            "whirlpool", "ge appliances", "samsung appliance", "miele",
+            "capacity", "energy star", "spin cycle", "rinse",
+        ],
+        "electric_motor": [
+            "motor", "rpm", "torque", "horsepower", " hp ",
+            "nema", "iec frame", "inverter duty", "ac motor", "dc motor",
+        ],
+        "valve_actuator": [
+            "valve", "actuator", "ball valve", "gate valve", "butterfly",
+            "solenoid", "cv value", "kv value", "pn rating",
+        ],
+        "sensor_instrument": [
+            "sensor", "transmitter", "transducer", "detector",
+            "thermocouple", "rtd", "pressure sensor", "level sensor",
+            "4-20ma", "0-10v",
+        ],
+        "power_supply": [
+            "power supply", "psu", "ups", "rectifier",
+            "ac/dc", "dc/dc", "output voltage", "output current",
+        ],
+        "cable_wire": [
+            "cable", "conductor", "shielded", "armoured", "coaxial",
+            "cat5", "cat6", "ethernet cable",
         ],
     }
 
@@ -167,10 +321,8 @@ def _detect_category(raw_text: str) -> str:
 
     best = max(scores, key=scores.get)
     if scores[best] == 0:
-        logger.warning("No category keywords found — defaulting to industrial_pump")
-        return "industrial_pump"
+        logger.info("No category keywords matched — using 'generic' universal extraction path")
+        return "generic"
 
-    logger.info(
-        "Auto-detected category: %s (score=%d)", best, scores[best]
-    )
+    logger.info("Auto-detected category: %s (score=%d)", best, scores[best])
     return best

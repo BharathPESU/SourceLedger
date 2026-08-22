@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ArrowLeft, 
   CheckCircle2, 
@@ -233,6 +233,7 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
                 <History className="w-4 h-4 text-[#E8622C]" />
                 <span>View Field History ({auditCount})</span>
               </button>
+
             </div>
           </div>
         </div>
@@ -485,6 +486,32 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
               </div>
             );
           })}
+
+          {/* Export Delivery CSV — shown at the bottom of the fields list after completion */}
+          {(product.confidence >= 85 || product.fields.every(f => f.isApproved)) && (
+            <div className="mt-6 p-6 bg-white/70 backdrop-blur-2xl rounded-3xl border border-[#1F8A53]/30 ring-1 ring-[#1F8A53]/10 shadow-[0_8px_32px_rgba(26,23,21,0.04)] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#EAF5EE]/90 backdrop-blur-md text-[#1F8A53] flex items-center justify-center border border-[#1F8A53]/20 shadow-xs">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-display font-bold text-sm text-[#191715]">Ready for Export</h4>
+                  <p className="text-xs text-[#5C554D] mt-0.5">
+                    All {product.fields.length} fields meet the confidence threshold. Export this product record in Unihack 252-column Delivery CSV format.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="http://localhost:8000/api/export/csv"
+                download="Unihack_Delivery_Format.csv"
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#1F8A53] to-[#177A48] hover:scale-[1.02] active:scale-[0.98] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-[#1F8A53]/25 border border-white/20 transition-all cursor-pointer whitespace-nowrap"
+                title="Export catalog in exact Unihack 252-column Delivery CSV format"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Export Delivery CSV</span>
+              </a>
+            </div>
+          )}
         </div>
       ) : (
         /* Source Document PDF / Datasheet Simulator View */
