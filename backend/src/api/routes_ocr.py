@@ -188,6 +188,11 @@ async def extract_document_image(
             )
             await store.save_product(backend_prod, user_id=active_user)
             logger.info(f"Persisted OCR product '{backend_prod.name}' ({backend_prod.id}) to store for user {active_user}.")
+
+            res_dict = result.model_dump()
+            res_dict["product_id"] = str(backend_prod.id)
+            res_dict["source_id"] = str(source_id)
+            return JSONResponse(content=res_dict)
         except Exception as store_err:
             logger.warning(f"Failed to persist OCR product to backend store: {store_err}")
 

@@ -263,6 +263,8 @@ function mapBackendProductToFrontend(
 }
 
 export interface OcrExtractionData {
+  product_id?: string;
+  source_id?: string;
   structured_data?: any;
   validation_report?: {
     is_valid?: boolean;
@@ -370,7 +372,8 @@ export function mapOcrResultToProductRecord(
   }
 
   const timestamp = 'Just now';
-  const prodId = `prod-ocr-${Date.now()}`;
+  const prodId = ocrData.product_id || `prod-ocr-${Date.now()}`;
+  const sourceId = ocrData.source_id || `src-ocr-${Date.now()}`;
   const sku = `OCR-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
   const auditLog: FieldAuditEntry[] = [
@@ -412,7 +415,7 @@ export function mapOcrResultToProductRecord(
   };
 
   const source: IngestionSource = {
-    id: `src-ocr-${Date.now()}`,
+    id: sourceId,
     name: filename,
     fileName: filename,
     fileType: 'PDF Datasheet',
