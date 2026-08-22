@@ -235,22 +235,21 @@ class ProductStore:
         return None
 
     async def list_sources(self, user_id: Optional[str] = None) -> list[Source]:
+        active_user = user_id or "default_user"
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                if user_id:
-                    cursor.execute(
-                        "SELECT data FROM sources WHERE user_id = ? OR user_id = 'default_user' ORDER BY rowid DESC",
-                        (user_id,),
-                    )
-                else:
-                    cursor.execute("SELECT data FROM sources ORDER BY rowid DESC")
+                cursor.execute(
+                    "SELECT data FROM sources WHERE user_id = ? ORDER BY rowid DESC",
+                    (active_user,),
+                )
                 res = []
                 for row in cursor.fetchall():
                     res.append(Source.model_validate_json(row["data"]))
-                return res if res else list(self._sources.values())
-        except Exception:
-            return list(self._sources.values())
+                return res
+        except Exception as e:
+            logger.error("Error listing sources for user %s: %s", active_user, e)
+            return []
 
     # ── Products ─────────────────────────────────────────────────────
 
@@ -300,22 +299,21 @@ class ProductStore:
         return self._products.get(product_id)
 
     async def list_products(self, user_id: Optional[str] = None) -> list[ProductRecord]:
+        active_user = user_id or "default_user"
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                if user_id:
-                    cursor.execute(
-                        "SELECT data FROM products WHERE user_id = ? OR user_id = 'default_user' ORDER BY rowid DESC",
-                        (user_id,),
-                    )
-                else:
-                    cursor.execute("SELECT data FROM products ORDER BY rowid DESC")
+                cursor.execute(
+                    "SELECT data FROM products WHERE user_id = ? ORDER BY rowid DESC",
+                    (active_user,),
+                )
                 res = []
                 for row in cursor.fetchall():
                     res.append(ProductRecord.model_validate_json(row["data"]))
-                return res if res else list(self._products.values())
-        except Exception:
-            return list(self._products.values())
+                return res
+        except Exception as e:
+            logger.error("Error listing products for user %s: %s", active_user, e)
+            return []
 
     async def update_product(self, product: ProductRecord) -> ProductRecord:
         """Replace a product record entirely (used after review actions)."""
