@@ -363,7 +363,7 @@ export const SettingsView: React.FC = () => {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#191715]">Gemini 3.6 Flash</span>
+                      <span className="font-bold text-sm text-[#191715]">Ledger AI Multimodal (Standard)</span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold border border-emerald-500/20">
                         Stable Standard
                       </span>
@@ -389,7 +389,7 @@ export const SettingsView: React.FC = () => {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#191715]">Gemini 3.6 Pro</span>
+                      <span className="font-bold text-sm text-[#191715]">Ledger AI Multimodal (Deep Reasoning)</span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 font-bold border border-purple-500/20">
                         Deep Reasoning
                       </span>
@@ -484,7 +484,7 @@ export const SettingsView: React.FC = () => {
               <div className="p-3.5 rounded-2xl bg-[#FAF4EB] border border-[#E8622C]/20 text-[11px] text-[#5C554D] leading-relaxed flex items-start gap-2.5">
                 <Info className="w-4 h-4 text-[#E8622C] shrink-0 mt-0.5" />
                 <span>
-                  SourceLedger cycles through your configured API keys in round-robin sequence. If any key hits a Google 429 quota, it enters a temporary 60-second cooldown without interrupting application processing.
+                  SourceLedger cycles through your configured API keys in round-robin sequence. If any key hits a 429 quota, it enters a temporary 60-second cooldown without interrupting application processing.
                 </span>
               </div>
             </div>
