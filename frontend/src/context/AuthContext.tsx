@@ -16,6 +16,7 @@ interface AuthContextType {
   authError: string | null;
   setAuthError: (error: string | null) => void;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInAsGuest: (guestEmail?: string) => void;
   signOut: () => Promise<{ error: Error | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
 }
@@ -120,15 +121,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { error: error ? new Error(error.message) : null };
   };
 
+  const signInAsGuest = (guestEmail: string = 'balarajr616@gmail.com') => {
+    const mockUser: User = {
+      id: 'usr-demo-lead-engineer',
+      app_metadata: { provider: 'email' },
+      user_metadata: { name: 'Balaraj (Lead Catalog Engineer)' },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+      email: guestEmail,
+      email_confirmed_at: new Date().toISOString(),
+      phone: '',
+      confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      role: 'authenticated',
+      updated_at: new Date().toISOString(),
+    };
+    const mockSession: Session = {
+      access_token: 'mock-session-access-token',
+      token_type: 'bearer',
+      expires_in: 3600,
+      refresh_token: 'mock-refresh-token',
+      user: mockUser,
+    };
+    setSession(mockSession);
+    setUser(mockUser);
+    setAuthError(null);
+  };
+
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      setSession(null);
-      setUser(null);
-      setAuthMode('signin');
-      setAuthError(null);
-    }
-    return { error: error ? new Error(error.message) : null };
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    setSession(null);
+    setUser(null);
+    setAuthMode('signin');
+    setAuthError(null);
+    return { error: null };
   };
 
   const resendVerificationEmail = async (email: string) => {
@@ -156,6 +184,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         authError,
         setAuthError,
         signInWithGoogle,
+        signInAsGuest,
         signOut,
         resendVerificationEmail,
       }}
