@@ -83,4 +83,4 @@ export interface CategoryOverview {
   accentColor: 'orange' | 'charcoal' | 'cream';
 }
 
-export type ActiveTab = 'dashboard' | 'review_queue' | 'field_inspector' | 'catalog' | 'sources' | 'settings';
+export type ActiveTab = 'dashboard' | 'review_queue' | 'field_inspector' | 'catalog' | 'sources' | 'settings' | 'ocr';

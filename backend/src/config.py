@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     google_api_key7: str = ""
     google_api_key8: str = ""
     openai_api_key: str = ""
+    api_url: str = "https://free-api-erel.onrender.com/api/generate"
+    api_key: str = ""
 
     def get_google_api_keys(self) -> list[str]:
         """Collect all configured Google Gemini API keys."""

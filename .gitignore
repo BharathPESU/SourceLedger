@@ -56,3 +56,7 @@ coverage.xml
 backend/*.db
 backend/*.sqlite
 
+# Archives
+*.zip
+
+

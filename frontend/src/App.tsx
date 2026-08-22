@@ -8,6 +8,7 @@ import { ReviewQueueView } from './components/ReviewQueueView';
 import { ProductsCatalogView } from './components/ProductsCatalogView';
 import { IngestionSourcesView } from './components/IngestionSourcesView';
 import { SettingsView } from './components/SettingsView';
+import { OcrAgentView } from './components/OcrAgentView';
 import { IngestModal } from './components/IngestModal';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
@@ -42,17 +43,19 @@ export default function App() {
         ]);
 
         if (isMounted) {
-          setProducts(liveProducts);
-          setSources(liveSources);
           setIsLiveConnected(true);
-
-          if (liveProducts.length > 0) {
-            setSelectedProduct(prev => prev && liveProducts.some(p => p.id === prev.id) ? prev : liveProducts[0]);
-            setCategories(buildCategoryOverviews(liveProducts));
-          } else {
-            setSelectedProduct(null);
-            setCategories([]);
-          }
+          setProducts(prev => {
+            if (liveProducts.length === 0) return prev;
+            const liveMap = new Map(liveProducts.map(p => [p.id, p]));
+            const localOnly = prev.filter(p => !liveMap.has(p.id));
+            return [...localOnly, ...liveProducts];
+          });
+          setSources(prev => {
+            if (liveSources.length === 0) return prev;
+            const liveMap = new Map(liveSources.map(s => [s.id, s]));
+            const localOnly = prev.filter(s => !liveMap.has(s.id));
+            return [...localOnly, ...liveSources];
+          });
         }
       } catch (err) {
         console.info('Backend sync error:', err);
@@ -68,6 +71,17 @@ export default function App() {
       clearInterval(interval);
     };
   }, []);
+
+  // Update categories and default selected product whenever products list changes
+  useEffect(() => {
+    if (products.length > 0) {
+      setCategories(buildCategoryOverviews(products));
+      setSelectedProduct(prev => prev && products.some(p => p.id === prev.id) ? prev : products[0]);
+    } else {
+      setCategories([]);
+      setSelectedProduct(null);
+    }
+  }, [products]);
 
   // Scroll to top when changing views
   useEffect(() => {
@@ -311,6 +325,10 @@ export default function App() {
 
             {activeTab === 'settings' && (
               <SettingsView />
+            )}
+
+            {activeTab === 'ocr' && (
+              <OcrAgentView />
             )}
           </div>
         </main>

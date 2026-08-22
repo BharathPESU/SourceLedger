@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocr-agent"
+version = "0.1.0"
+description = "Gemini API Gateway Multimodal OCR & Structured Text Extraction Agent"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests",
+    "pydantic>=2.0",
+    "pillow",
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "python-multipart"
+]
+
+[tool.setuptools.packages.find]
+include = ["ocr_agent*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

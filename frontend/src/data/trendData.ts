@@ -50,7 +50,7 @@ export const generate30DayTrendData = (): DailyTrendPoint[] => {
       date: 'Jul 26', day: 4, confidence: 66.5, confidenceDelta: +1.7, autoCommitRate: 53.2, resolvedConflicts: 31, healthIndex: 65.4, totalSkus: 1010,
       annotation: {
         type: 'spike',
-        title: 'Gemini Multimodal OCR Upgrade',
+        title: 'Ledger Multimodal OCR Upgrade',
         cause: 'Activated high-precision table extraction for dense mechanical pinout diagrams and electrical rating matrices.',
         impact: '+1.7% confidence boost; automatically validated 45 previously flagged ambiguous pinouts.',
         badge: 'Major Spike (+1.7%)',
@@ -126,7 +126,7 @@ export const generate30DayTrendData = (): DailyTrendPoint[] => {
       annotation: {
         type: 'spike',
         title: 'ISO 9001 Compliance Reasoning Applied',
-        cause: 'Updated Gemini extraction logic with hierarchy rules prioritizing official manufacturer certificates of conformance.',
+        cause: 'Updated Ledger extraction logic with hierarchy rules prioritizing official manufacturer certificates of conformance.',
         impact: 'Overrode 54 contested distributor specs, restoring and boosting confidence by +1.7%.',
         badge: 'Rule Boost (+1.7%)',
         sourceType: 'Rule Optimization'
@@ -192,7 +192,7 @@ export const generate30DayTrendData = (): DailyTrendPoint[] => {
       date: 'Aug 13', day: 22, confidence: 83.5, confidenceDelta: +1.7, autoCommitRate: 79.2, resolvedConflicts: 76, healthIndex: 85.9, totalSkus: 2100,
       annotation: {
         type: 'spike',
-        title: 'Gemini Multimodal Attribution Boost',
+        title: 'Ledger Multimodal Attribution Boost',
         cause: 'AI model automatically mapped thread pitch citations to page-level engineering diagrams.',
         impact: 'Resolved 76 thread discrepancies autonomously, driving a +1.7% confidence recovery.',
         badge: 'Recovery Spike (+1.7%)',

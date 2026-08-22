@@ -8,12 +8,12 @@ import {
   AlertCircle,
   FileText,
   Globe,
-  Check,
   FileType,
-  Plus
+  Plus,
+  ScanText
 } from 'lucide-react';
 import { ProductRecord, IngestionSource } from '../types';
-import { ingestSource as apiIngestSource } from '../lib/api';
+import { ingestSource as apiIngestSource, mapOcrResultToProductRecord } from '../lib/api';
 
 interface IngestModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export const IngestModal: React.FC<IngestModalProps> = ({
   onClose,
   onIngestSuccess
 }) => {
-  const [activeTab, setActiveTab] = useState<'upload' | 'text'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'text' | 'ocr'>('upload');
   const [content, setContent] = useState('');
   const [filename, setFilename] = useState('');
   const [sourceType, setSourceType] = useState<'web' | 'pdf'>('web');
@@ -37,6 +37,13 @@ export const IngestModal: React.FC<IngestModalProps> = ({
   const [extractedPreview, setExtractedPreview] = useState<ProductRecord | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // OCR specific state
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [ocrPreviewUrl, setOcrPreviewUrl] = useState<string | null>(null);
+  const [ocrDocType, setOcrDocType] = useState<string>('receipt_invoice');
+  const [enableRefinement, setEnableRefinement] = useState<boolean>(true);
+  const ocrFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const resetModalState = () => {
     setExtractedPreview(null);
@@ -49,18 +56,18 @@ export const IngestModal: React.FC<IngestModalProps> = ({
     setActiveTab('upload');
     setSourceType('web');
     setTrustTier(1);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setOcrFile(null);
+    setOcrPreviewUrl(null);
+    setOcrDocType('receipt_invoice');
+    setEnableRefinement(true);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (ocrFileInputRef.current) ocrFileInputRef.current.value = '';
   };
 
-  // Reset all modal state every time the modal opens, so the user
-  // always sees the fresh ingestion form instead of the stale success screen.
   useEffect(() => {
     if (isOpen) {
       resetModalState();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleClose = () => {
@@ -69,7 +76,6 @@ export const IngestModal: React.FC<IngestModalProps> = ({
   };
 
   if (!isOpen) return null;
-
 
   const samplePresets = [
     {
@@ -144,6 +150,20 @@ Material Grade: Alloy Steel, Quenched and Tempered`
     }
   };
 
+  const handleOcrFileChange = (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Please select a valid document image file (PNG, JPEG, WEBP, BMP, GIF, TIFF).');
+      return;
+    }
+    setErrorMsg(null);
+    setOcrFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (e) => setOcrPreviewUrl(e.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleSelectPreset = (preset: typeof samplePresets[0]) => {
     setActiveTab('text');
     setContent(preset.content);
@@ -192,7 +212,7 @@ Material Grade: Alloy Steel, Quenched and Tempered`
         category: realProduct.category,
         timestamp: 'Just now',
         processingTimeSec: 1.8,
-        aiModelUsed: 'Gemini 3.6 Flash Multi-Agent Pipeline',
+        aiModelUsed: 'Ledger 3.6 Flash Multi-Agent Pipeline',
       };
 
       setExtractedPreview(realProduct);
@@ -206,13 +226,66 @@ Material Grade: Alloy Steel, Quenched and Tempered`
     }
   };
 
+  const handleOcrSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ocrFile) {
+      setErrorMsg('Please select or drop a document image file to ingest.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setErrorMsg(null);
+    setProcessStep(1);
+
+    const stepInterval1 = setTimeout(() => setProcessStep(2), 600);
+    const stepInterval2 = setTimeout(() => setProcessStep(3), 1200);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', ocrFile);
+      formData.append('document_type', ocrDocType);
+      formData.append('enable_refinement', enableRefinement.toString());
+
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Vision OCR Extraction failed');
+      }
+
+      const data = await res.json();
+      clearTimeout(stepInterval1);
+      clearTimeout(stepInterval2);
+      setProcessStep(4);
+
+      const { product: realProduct, source: realSource } = mapOcrResultToProductRecord(
+        data,
+        ocrFile.name,
+        ocrDocType,
+        trustTier
+      );
+
+      setExtractedPreview(realProduct);
+      setIsProcessing(false);
+      onIngestSuccess(realProduct, realSource);
+    } catch (err: any) {
+      clearTimeout(stepInterval1);
+      clearTimeout(stepInterval2);
+      setIsProcessing(false);
+      setErrorMsg(err.message || 'Vision OCR Ingestion failed');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-[#191715]/40 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white/85 backdrop-blur-2xl rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-white/90 ring-1 ring-white/60 relative my-8 animate-in fade-in zoom-in-95 duration-150">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 p-2 rounded-full bg-white/70 hover:bg-white backdrop-blur-md text-[#8C8276] hover:text-[#191715] border border-white/80 shadow-2xs transition-colors cursor-pointer"
+          className="absolute top-6 right-6 p-2 rounded-full bg-white/70 hover:bg-white backdrop-blur-md text-[#8C8276] hover:text-[#191715] border border-white/80 shadow-2xs transition-colors cursor-pointer z-10"
         >
           <X className="w-4 h-4" />
         </button>
@@ -221,13 +294,13 @@ Material Grade: Alloy Steel, Quenched and Tempered`
         <div className="mb-5">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 backdrop-blur-md text-[#E8622C] text-xs font-bold uppercase tracking-wider mb-2 border border-white/80 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Gemini Multi-Agent Ingestion Engine</span>
+            <span>Ledger Multi-Agent Ingestion Engine</span>
           </div>
           <h2 className="font-didone font-bold text-2xl text-[#191715] tracking-tight">
             Ingest Product <span className="font-didone-italic text-[#E8622C] font-normal">Datasheet</span>
           </h2>
           <p className="text-xs text-[#5C554D] mt-1 leading-relaxed">
-            Upload PDF files, CSV catalogs, or paste specification text. Gemini will extract schema-locked fields with source citations in real time.
+            Upload PDF files, CSV catalogs, paste specification text, or run vision OCR. Ledger will extract schema-locked fields with source citations in real time.
           </p>
         </div>
 
@@ -239,141 +312,267 @@ Material Grade: Alloy Steel, Quenched and Tempered`
         )}
 
         {!isProcessing && !extractedPreview ? (
-          <form onSubmit={handleSubmitIngestion} className="space-y-5">
-            {/* Ingestion Mode Pill Switcher */}
-            <div className="flex bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-white/80 shadow-2xs text-xs">
+          <div className="space-y-5">
+            {/* Ingestion Mode Pill Switcher - 3 Equal Tabs */}
+            <div className="flex bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-white/80 shadow-2xs text-xs gap-1">
               <button
                 type="button"
                 onClick={() => { setActiveTab('upload'); setSourceType('pdf'); }}
-                className={`flex-1 py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'upload' ? 'bg-[#191715] text-white shadow-xs' : 'text-[#5C554D] hover:text-[#191715]'
                 }`}
               >
                 <UploadCloud size={14} />
-                Upload PDF / File
+                <span className="truncate">Upload PDF / File</span>
               </button>
               <button
                 type="button"
                 onClick={() => { setActiveTab('text'); setSourceType('web'); }}
-                className={`flex-1 py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'text' ? 'bg-[#191715] text-white shadow-xs' : 'text-[#5C554D] hover:text-[#191715]'
                 }`}
               >
                 <Globe size={14} />
-                Paste Text / Spec URL
+                <span className="truncate">Paste Text / Spec URL</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTab('ocr'); }}
+                className={`flex-1 py-2 px-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  activeTab === 'ocr' ? 'bg-[#E8622C] text-white shadow-xs' : 'text-[#5C554D] hover:text-[#191715]'
+                }`}
+              >
+                <ScanText size={14} />
+                <span className="truncate">Ledger Multimodal OCR</span>
               </button>
             </div>
 
-            {/* Ingestion Input Container */}
-            {activeTab === 'upload' ? (
-              <div>
+            {/* Ingestion Inputs */}
+            {activeTab === 'ocr' ? (
+              <form onSubmit={handleOcrSubmit} className="space-y-4">
                 <input
-                  ref={fileInputRef}
+                  ref={ocrFileInputRef}
                   type="file"
-                  accept=".pdf,.txt,.csv,.json"
-                  onChange={handleFileUpload}
+                  accept="image/*"
+                  onChange={(e) => e.target.files && handleOcrFileChange(e.target.files[0])}
                   className="hidden"
                 />
+
+                {/* Image Dropzone matching PDF Upload Box */}
                 <div
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => ocrFileInputRef.current?.click()}
                   className="border-2 border-dashed border-white/90 hover:border-[#E8622C] bg-white/50 backdrop-blur-md hover:bg-white/80 rounded-3xl p-6 text-center shadow-inner transition-all cursor-pointer group"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md shadow-xs mx-auto flex items-center justify-center text-[#E8622C] group-hover:scale-110 border border-white/80 transition-transform">
-                    <FileType className="w-6 h-6" />
-                  </div>
-                  <p className="font-display font-bold text-sm text-[#191715] mt-3">
-                    {filename ? `Selected: ${filename}` : 'Click or drop PDF, TXT, CSV file here'}
-                  </p>
-                  <p className="text-xs text-[#8C8276] mt-0.5">
-                    {content ? `${Math.round(content.length / 1024)} KB loaded ready for extraction` : 'Supports technical datasheets up to 50MB'}
-                  </p>
+                  {ocrPreviewUrl ? (
+                    <div className="space-y-2">
+                      <img
+                        src={ocrPreviewUrl}
+                        alt="OCR Document Preview"
+                        className="max-h-36 mx-auto rounded-xl object-contain shadow-xs border border-white/80"
+                      />
+                      <p className="font-display font-bold text-xs text-[#191715] truncate">
+                        Selected: {ocrFile?.name}
+                      </p>
+                      <span className="text-[11px] text-[#E8622C] underline">Click or drop to change image</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md shadow-xs mx-auto flex items-center justify-center text-[#E8622C] group-hover:scale-110 border border-white/80 transition-transform">
+                        <FileType className="w-6 h-6" />
+                      </div>
+                      <p className="font-display font-bold text-sm text-[#191715] mt-3">
+                        Click or drop document photo/image here
+                      </p>
+                      <p className="text-xs text-[#8C8276] mt-0.5">
+                        Supports PNG, JPEG, WEBP, BMP, GIF, TIFF
+                      </p>
+                    </>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1.5">
-                  Specification Text or Product URL
-                </label>
-                <textarea
-                  rows={4}
-                  value={content}
-                  onChange={(e) => { setContent(e.target.value); setSourceType('web'); }}
-                  placeholder="Paste technical specification text, datasheet tables, or product page URL..."
-                  className="w-full text-xs font-mono bg-white/60 backdrop-blur-md p-3.5 rounded-2xl border border-white/80 focus:outline-hidden focus:border-[#E8622C] focus:bg-white shadow-2xs text-[#191715] placeholder:text-[#8C8276] leading-relaxed resize-none"
-                  required
-                />
-              </div>
-            )}
 
-            {/* Category Schema Selector & Trust Tier */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
-                  Category Schema
-                </label>
-                <select
-                  value={categoryKey}
-                  onChange={(e) => setCategoryKey(e.target.value)}
-                  className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
-                >
-                  <option value="">Auto-Detect Category Schema</option>
-                  <option value="industrial_pump">Industrial Pump Schema</option>
-                  <option value="electrical_connector">Electrical Connector Schema</option>
-                  <option value="safety_fastener">Safety Fastener Schema</option>
-                </select>
-              </div>
+                {/* Document Extraction Schema & Trust Tier */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
+                      Extraction Schema
+                    </label>
+                    <select
+                      value={ocrDocType}
+                      onChange={(e) => setOcrDocType(e.target.value)}
+                      className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
+                    >
+                      <option value="receipt_invoice">🧾 Receipt / Invoice Schema</option>
+                      <option value="general">📄 General Key-Values & Document</option>
+                      <option value="id_card">🪪 ID Card / License / Passport</option>
+                      <option value="table">📊 Table Data (Headers & Rows)</option>
+                      <option value="form">📝 Form Fields & Checkboxes</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
-                  Source Trust Tier
-                </label>
-                <select
-                  value={trustTier}
-                  onChange={(e) => setTrustTier(Number(e.target.value))}
-                  className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
-                >
-                  <option value={1}>Tier 1: OEM / Manufacturer Spec</option>
-                  <option value={2}>Tier 2: Authorized Distributor</option>
-                  <option value={3}>Tier 3: Third-Party Catalog</option>
-                </select>
-              </div>
-            </div>
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
+                      Source Trust Tier
+                    </label>
+                    <select
+                      value={trustTier}
+                      onChange={(e) => setTrustTier(Number(e.target.value))}
+                      className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
+                    >
+                      <option value={1}>Tier 1: OEM / Manufacturer Spec</option>
+                      <option value={2}>Tier 2: Authorized Distributor</option>
+                      <option value={3}>Tier 3: Third-Party Catalog</option>
+                    </select>
+                  </div>
+                </div>
 
-            {/* Sample Presets */}
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-2">
-                Or fill with a sample datasheet:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {samplePresets.map((preset, idx) => (
+                {/* Self-Correction Loop Toggle */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-white/50 border border-white/80">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-[#191715] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#E8622C]" />
+                      Agent Tool Self-Correction Loop
+                    </span>
+                    <p className="text-[11px] text-[#8C8276]">
+                      Re-audits vision extraction against document math schemas
+                    </p>
+                  </div>
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => handleSelectPreset(preset)}
-                    className="text-left p-2.5 rounded-xl bg-white/60 hover:bg-white backdrop-blur-md border border-white/80 shadow-2xs transition-colors cursor-pointer text-xs"
+                    onClick={() => setEnableRefinement(!enableRefinement)}
+                    className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                      enableRefinement ? 'bg-[#E8622C]' : 'bg-[#191715]/20'
+                    }`}
                   >
-                    <span className="font-bold text-[#191715] truncate block">
-                      {preset.category}
-                    </span>
-                    <span className="text-[10px] text-[#8C8276] truncate block mt-0.5">
-                      {preset.fileName}
-                    </span>
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-xs transform transition-transform ${
+                        enableRefinement ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
                   </button>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Submit Action Button */}
-            <button
-              type="submit"
-              disabled={!content.trim() || isProcessing}
-              className="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] hover:scale-[1.01] active:scale-[0.99] text-white text-xs font-bold shadow-md shadow-[#E8622C]/25 border border-white/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
-            >
-              <span>Ingest & Extract Provenance</span>
-              <ArrowRight size={16} />
-            </button>
-          </form>
-        ) : isProcessing ? (
+                {/* Action Button matching other tabs */}
+                <button
+                  type="submit"
+                  disabled={!ocrFile || isProcessing}
+                  className="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] hover:scale-[1.01] active:scale-[0.99] text-white text-xs font-bold shadow-md shadow-[#E8622C]/25 border border-white/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <span>Ingest & Extract Provenance</span>
+                  <ArrowRight size={16} />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmitIngestion} className="space-y-5">
+                {activeTab === 'upload' ? (
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.txt,.csv,.json"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-white/90 hover:border-[#E8622C] bg-white/50 backdrop-blur-md hover:bg-white/80 rounded-3xl p-6 text-center shadow-inner transition-all cursor-pointer group"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-white/90 backdrop-blur-md shadow-xs mx-auto flex items-center justify-center text-[#E8622C] group-hover:scale-110 border border-white/80 transition-transform">
+                        <FileType className="w-6 h-6" />
+                      </div>
+                      <p className="font-display font-bold text-sm text-[#191715] mt-3">
+                        {filename ? `Selected: ${filename}` : 'Click or drop PDF, TXT, CSV file here'}
+                      </p>
+                      <p className="text-xs text-[#8C8276] mt-0.5">
+                        {content ? `${Math.round(content.length / 1024)} KB loaded ready for extraction` : 'Supports technical datasheets up to 50MB'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1.5">
+                      Specification Text or Product URL
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={content}
+                      onChange={(e) => { setContent(e.target.value); setSourceType('web'); }}
+                      placeholder="Paste technical specification text, datasheet tables, or product page URL..."
+                      className="w-full text-xs font-mono bg-white/60 backdrop-blur-md p-3.5 rounded-2xl border border-white/80 focus:outline-hidden focus:border-[#E8622C] focus:bg-white shadow-2xs text-[#191715] placeholder:text-[#8C8276] leading-relaxed resize-none"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Category Schema Selector & Trust Tier */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
+                      Category Schema
+                    </label>
+                    <select
+                      value={categoryKey}
+                      onChange={(e) => setCategoryKey(e.target.value)}
+                      className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
+                    >
+                      <option value="">Auto-Detect Category Schema</option>
+                      <option value="industrial_pump">Industrial Pump Schema</option>
+                      <option value="electrical_connector">Electrical Connector Schema</option>
+                      <option value="safety_fastener">Safety Fastener Schema</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-1">
+                      Source Trust Tier
+                    </label>
+                    <select
+                      value={trustTier}
+                      onChange={(e) => setTrustTier(Number(e.target.value))}
+                      className="w-full bg-white/60 backdrop-blur-md text-xs font-semibold text-[#191715] p-2.5 rounded-xl border border-white/80 shadow-2xs focus:outline-hidden cursor-pointer"
+                    >
+                      <option value={1}>Tier 1: OEM / Manufacturer Spec</option>
+                      <option value={2}>Tier 2: Authorized Distributor</option>
+                      <option value={3}>Tier 3: Third-Party Catalog</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Sample Presets */}
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C8276] block mb-2">
+                    Or fill with a sample datasheet:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {samplePresets.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectPreset(preset)}
+                        className="text-left p-2.5 rounded-xl bg-white/60 hover:bg-white backdrop-blur-md border border-white/80 shadow-2xs transition-colors cursor-pointer text-xs"
+                      >
+                        <span className="font-bold text-[#191715] truncate block">
+                          {preset.category}
+                        </span>
+                        <span className="text-[10px] text-[#8C8276] truncate block mt-0.5">
+                          {preset.fileName}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit Action Button */}
+                <button
+                  type="submit"
+                  disabled={!content.trim() || isProcessing}
+                  className="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-[#E8622C] to-[#D45320] hover:scale-[1.01] active:scale-[0.99] text-white text-xs font-bold shadow-md shadow-[#E8622C]/25 border border-white/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <span>Ingest & Extract Provenance</span>
+                  <ArrowRight size={16} />
+                </button>
+              </form>
+            )}
+          </div>   ) : isProcessing ? (
           /* Live AI Pipeline Steps Indicator */
           <div className="py-8 space-y-6">
             <div className="text-center">
@@ -381,10 +580,10 @@ Material Grade: Alloy Steel, Quenched and Tempered`
                 <Sparkles className="w-6 h-6" />
               </div>
               <h3 className="font-display font-bold text-lg text-[#191715] mt-3">
-                Processing Datasheet through Gemini Pipeline...
+                Processing Datasheet through Ledger Pipeline...
               </h3>
               <p className="text-xs text-[#8C8276] mt-0.5">
-                Gemini 3.6 Flash Multi-Agent Extraction Active
+                Ledger 3.6 Flash Multi-Agent Extraction Active
               </p>
             </div>
 
@@ -408,7 +607,7 @@ Material Grade: Alloy Steel, Quenched and Tempered`
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
                 <span className={processStep >= 2 ? 'font-bold text-[#191715]' : 'text-[#8C8276]'}>
-                  Schema-Locked Attribute Extraction (Gemini 3.6 Flash)
+                  Schema-Locked Attribute Extraction (Ledger 3.6 Flash)
                 </span>
               </div>
 

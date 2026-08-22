@@ -37,7 +37,7 @@ export const IngestionSourcesView: React.FC<IngestionSourcesViewProps> = ({
             Active Data Sources & <span className="font-didone-italic text-[#E8622C] font-normal">Feeds</span>
           </h1>
           <p className="text-sm text-[#5C554D] mt-1 max-w-xl">
-            Manage incoming manufacturer datasheets, supplier CSV feeds, API webhooks, and PDF catalogs parsed by Gemini multimodal extraction pipelines.
+            Manage incoming manufacturer datasheets, supplier CSV feeds, API webhooks, and PDF catalogs parsed by Ledger multimodal extraction pipelines.
           </p>
         </div>
 

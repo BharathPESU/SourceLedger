@@ -540,7 +540,7 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
                 Multimodal OCR & Vector Spatial Alignment
               </h4>
               <p className="text-xs text-[#5C554D] mt-1 leading-relaxed">
-                Gemini parsed 14 tables and 6 specification columns across 8 pages of <strong>{product.sourceDocument}</strong>. All extracted entities are referenced above.
+                Ledger parsed 14 tables and 6 specification columns across 8 pages of <strong>{product.sourceDocument}</strong>. All extracted entities are referenced above.
               </p>
             </div>
             <button

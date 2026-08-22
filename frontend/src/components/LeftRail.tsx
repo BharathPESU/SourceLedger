@@ -5,6 +5,7 @@ import {
   Boxes, 
   CheckSquare, 
   ScanLine, 
+  ScanText,
   Sliders, 
   FileSpreadsheet,
   HelpCircle

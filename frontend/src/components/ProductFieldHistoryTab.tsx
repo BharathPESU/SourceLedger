@@ -91,7 +91,7 @@ export const ProductFieldHistoryTab: React.FC<ProductFieldHistoryTabProps> = ({
         fieldName: 'Full Record Entity Extraction',
         previousValue: 'Raw PDF Unparsed Bounding Boxes',
         newValue: `${product.fields.length} Canonical Attribute Entities Extracted`,
-        changedBy: 'Gemini Multimodal OCR Ingest',
+        changedBy: 'Ledger Multimodal OCR Ingest',
         changeType: 'ai_initial_extraction',
         confidenceBefore: 0,
         confidenceAfter: product.confidence,

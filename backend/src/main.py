@@ -9,6 +9,7 @@ from .api.routes_fields import router as fields_router
 from .api.routes_ingest import router as ingest_router
 from .api.routes_products import router as products_router
 from .api.routes_review import router as review_router
+from .api.routes_ocr import router as ocr_router
 
 app = FastAPI(
     title="SourceLedger",
@@ -40,5 +41,6 @@ app.include_router(fields_router)
 app.include_router(review_router)
 app.include_router(dashboard_router)
 app.include_router(export_router)
+app.include_router(ocr_router)
 
 

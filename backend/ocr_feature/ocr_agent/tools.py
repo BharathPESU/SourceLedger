@@ -1,0 +1,365 @@
+import io
+import json
+import logging
+import re
+from typing import Dict, Any, Tuple, List, Optional
+from PIL import Image
+
+from .schemas import (
+    DocumentType,
+    ValidationReport,
+    ValidationIssue,
+    IssueSeverity,
+    ReceiptInvoiceExtraction,
+    IDCardExtraction,
+    TableExtraction,
+    GeneralDocumentExtraction,
+)
+from .prompts import (
+    SYSTEM_PROMPT_MULTIMODAL_OCR,
+    PROMPT_RECEIPT_INVOICE,
+    PROMPT_ID_CARD,
+    PROMPT_TABLE,
+    PROMPT_GENERAL,
+    SYSTEM_PROMPT_REFINEMENT,
+)
+from .gateway_client import GeminiGatewayClient
+
+logger = logging.getLogger("ocr_agent.tools")
+
+MAX_DIMENSION = 3072
+
+class ImagePreprocessorTool:
+    """
+    Tool for loading, validating, converting, and resizing image formats.
+    """
+    @staticmethod
+    def preprocess_image(image_input: Any) -> Tuple[bytes, str, Dict[str, Any]]:
+        """
+        Accepts file path (str), bytes, or PIL Image.
+        Returns: (processed_bytes, mime_type, metadata_dict)
+        """
+        if isinstance(image_input, str):
+            with open(image_input, "rb") as f:
+                raw_bytes = f.read()
+            img = Image.open(io.BytesIO(raw_bytes))
+        elif isinstance(image_input, bytes):
+            raw_bytes = image_input
+            img = Image.open(io.BytesIO(raw_bytes))
+        elif isinstance(image_input, Image.Image):
+            img = image_input
+            buf = io.BytesIO()
+            img.save(buf, format=img.format or "PNG")
+            raw_bytes = buf.getvalue()
+        else:
+            raise ValueError("Unsupported image input type. Expected file path, bytes, or PIL Image.")
+
+        img_format = (img.format or "PNG").upper()
+        width, height = img.size
+
+        # Map format to standard MIME type
+        mime_map = {
+            "PNG": "image/png",
+            "JPEG": "image/jpeg",
+            "JPG": "image/jpeg",
+            "WEBP": "image/webp",
+            "GIF": "image/gif",
+            "BMP": "image/bmp",
+            "TIFF": "image/tiff",
+            "TIF": "image/tiff",
+        }
+        mime_type = mime_map.get(img_format, "image/png")
+
+        # Resize if dimensions exceed max
+        if width > MAX_DIMENSION or height > MAX_DIMENSION:
+            logger.info(f"Resizing image from ({width}, {height}) to max bound {MAX_DIMENSION}")
+            img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.Resampling.LANCZOS)
+            buf = io.BytesIO()
+            save_format = "PNG" if mime_type == "image/png" else "JPEG"
+            if save_format == "JPEG" and img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            img.save(buf, format=save_format)
+            raw_bytes = buf.getvalue()
+            width, height = img.size
+            mime_type = "image/png" if save_format == "PNG" else "image/jpeg"
+
+        # Convert non-web formats (BMP, TIFF) to PNG for maximum Gemini compatibility
+        if mime_type in ("image/bmp", "image/tiff"):
+            logger.info(f"Converting format {mime_type} to image/png")
+            buf = io.BytesIO()
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGBA")
+            else:
+                img = img.convert("RGB")
+            img.save(buf, format="PNG")
+            raw_bytes = buf.getvalue()
+            mime_type = "image/png"
+
+        metadata = {
+            "width": width,
+            "height": height,
+            "original_format": img_format,
+            "final_mime_type": mime_type,
+            "byte_size": len(raw_bytes),
+        }
+
+        return raw_bytes, mime_type, metadata
+
+class MultimodalExtractorTool:
+    """
+    Tool for invoking Gemini API Gateway for initial OCR & structured extraction.
+    """
+    @staticmethod
+    def _clean_json_response(raw_text: str) -> Dict[str, Any]:
+        """
+        Cleans markdown JSON code blocks (```json ... ```) and parses to dict.
+        """
+        text = raw_text.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].startswith("```"):
+                lines = lines[:-1]
+            text = "\n".join(lines).strip()
+            
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # Fallback regex search for first { ... }
+            match = re.search(r"\{.*\}", text, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except Exception:
+                    pass
+            logger.error(f"Failed to parse JSON from text: {text[:200]}")
+            return {"error": "Invalid JSON response from model", "raw_response": raw_text}
+
+    @classmethod
+    def extract(
+        cls,
+        client: GeminiGatewayClient,
+        image_bytes: bytes,
+        mime_type: str,
+        document_type: DocumentType = DocumentType.GENERAL
+    ) -> Dict[str, Any]:
+        """
+        Executes multimodal extraction using designated document prompt.
+        """
+        prompt_map = {
+            DocumentType.RECEIPT_INVOICE: PROMPT_RECEIPT_INVOICE,
+            DocumentType.ID_CARD: PROMPT_ID_CARD,
+            DocumentType.TABLE: PROMPT_TABLE,
+            DocumentType.FORM: PROMPT_GENERAL,
+            DocumentType.GENERAL: PROMPT_GENERAL,
+        }
+
+        prompt = prompt_map.get(document_type, PROMPT_GENERAL)
+
+        raw_response = client.generate_multimodal(
+            image_bytes=image_bytes,
+            mime_type=mime_type,
+            prompt=prompt,
+            system_instruction=SYSTEM_PROMPT_MULTIMODAL_OCR,
+            temperature=0.1,
+            response_mime_type="application/json"
+        )
+
+        extracted_data = cls._clean_json_response(raw_response)
+        return extracted_data
+
+class ValidationTool:
+    """
+    Tool for checking, auditing, and validating extracted structured output against rules.
+    """
+    @classmethod
+    def validate(
+        cls,
+        extracted_data: Dict[str, Any],
+        document_type: DocumentType = DocumentType.GENERAL
+    ) -> ValidationReport:
+        issues: List[ValidationIssue] = []
+        confidence_score = 1.0
+        math_passed = True
+        required_present = 0
+        total_required = 0
+
+        if document_type == DocumentType.RECEIPT_INVOICE:
+            # Receipt/Invoice Validation Rules
+            required_fields = ["merchant_name", "date", "total_amount"]
+            total_required = len(required_fields)
+            
+            for rf in required_fields:
+                val = extracted_data.get(rf)
+                if val is not None and str(val).strip() != "":
+                    required_present += 1
+                else:
+                    issues.append(
+                        ValidationIssue(
+                            severity=IssueSeverity.WARNING,
+                            field=rf,
+                            message=f"Missing recommended invoice field: '{rf}'"
+                        )
+                    )
+
+            # Check Line Items
+            line_items = extracted_data.get("line_items", [])
+            calculated_subtotal = 0.0
+            has_line_items = False
+
+            if isinstance(line_items, list) and len(line_items) > 0:
+                has_line_items = True
+                for idx, item in enumerate(line_items):
+                    qty = float(item.get("quantity") or 1.0)
+                    u_price = item.get("unit_price")
+                    t_price = item.get("total_price")
+
+                    if u_price is not None and t_price is not None:
+                        expected_item_total = round(qty * float(u_price), 2)
+                        actual_item_total = round(float(t_price), 2)
+                        if abs(expected_item_total - actual_item_total) > 0.05:
+                            math_passed = False
+                            issues.append(
+                                ValidationIssue(
+                                    severity=IssueSeverity.ERROR,
+                                    field=f"line_items[{idx}]",
+                                    message=f"Line item math mismatch: {qty} x {u_price} = {expected_item_total}, but found {actual_item_total}",
+                                    expected_value=expected_item_total,
+                                    actual_value=actual_item_total
+                                )
+                            )
+
+                    if t_price is not None:
+                        calculated_subtotal += float(t_price)
+
+            # Check Subtotal vs Line Items
+            subtotal = extracted_data.get("subtotal")
+            if subtotal is not None and has_line_items and calculated_subtotal > 0:
+                subtotal_val = round(float(subtotal), 2)
+                calc_subtotal_val = round(calculated_subtotal, 2)
+                if abs(subtotal_val - calc_subtotal_val) > 0.10:
+                    math_passed = False
+                    issues.append(
+                        ValidationIssue(
+                            severity=IssueSeverity.WARNING,
+                            field="subtotal",
+                            message=f"Subtotal ({subtotal_val}) does not match sum of line items ({calc_subtotal_val})",
+                            expected_value=calc_subtotal_val,
+                            actual_value=subtotal_val
+                        )
+                    )
+
+            # Check Total vs (Subtotal + Tax - Discount)
+            total_amt = extracted_data.get("total_amount")
+            tax_amt = float(extracted_data.get("tax") or 0.0)
+            discount_amt = float(extracted_data.get("discount") or 0.0)
+
+            if total_amt is not None:
+                base_val = float(subtotal) if subtotal is not None else (calculated_subtotal if calculated_subtotal > 0 else None)
+                if base_val is not None:
+                    expected_total = round(base_val + tax_amt - discount_amt, 2)
+                    actual_total = round(float(total_amt), 2)
+                    if abs(expected_total - actual_total) > 0.10:
+                        math_passed = False
+                        issues.append(
+                            ValidationIssue(
+                                severity=IssueSeverity.ERROR,
+                                field="total_amount",
+                                message=f"Total amount mismatch: Subtotal/Items ({base_val}) + Tax ({tax_amt}) - Discount ({discount_amt}) = {expected_total}, but document has {actual_total}",
+                                expected_value=expected_total,
+                                actual_value=actual_total
+                            )
+                        )
+
+        elif document_type == DocumentType.ID_CARD:
+            required_fields = ["full_name", "id_number"]
+            total_required = len(required_fields)
+            for rf in required_fields:
+                val = extracted_data.get(rf)
+                if val is not None and str(val).strip() != "":
+                    required_present += 1
+                else:
+                    issues.append(
+                        ValidationIssue(
+                            severity=IssueSeverity.ERROR,
+                            field=rf,
+                            message=f"Missing essential ID field: '{rf}'"
+                        )
+                    )
+
+        elif document_type == DocumentType.TABLE:
+            cols = extracted_data.get("columns", [])
+            rows = extracted_data.get("rows", [])
+            total_required = 2
+            if cols:
+                required_present += 1
+            else:
+                issues.append(ValidationIssue(severity=IssueSeverity.ERROR, field="columns", message="Table columns list is empty"))
+            if isinstance(rows, list):
+                required_present += 1
+
+        else:
+            # General document validation
+            raw_t = extracted_data.get("raw_text", "")
+            total_required = 1
+            if raw_t and len(str(raw_t).strip()) > 5:
+                required_present = 1
+            else:
+                issues.append(ValidationIssue(severity=IssueSeverity.WARNING, field="raw_text", message="Raw extracted text appears empty or short"))
+
+        completeness_score = (required_present / total_required) if total_required > 0 else 1.0
+
+        # Calculate confidence score
+        error_count = sum(1 for i in issues if i.severity == IssueSeverity.ERROR)
+        warning_count = sum(1 for i in issues if i.severity == IssueSeverity.WARNING)
+
+        confidence_score = max(0.0, min(1.0, completeness_score - (error_count * 0.25) - (warning_count * 0.1)))
+        is_valid = error_count == 0 and completeness_score >= 0.5
+        refinement_recommended = error_count > 0 or not math_passed
+
+        return ValidationReport(
+            is_valid=is_valid,
+            confidence_score=round(confidence_score, 2),
+            math_checks_passed=math_passed,
+            completeness_score=round(completeness_score, 2),
+            issues=issues,
+            refinement_recommended=refinement_recommended
+        )
+
+class RefinementTool:
+    """
+    Tool for iterative self-correction using validation tool feedback.
+    """
+    @classmethod
+    def refine(
+        cls,
+        client: GeminiGatewayClient,
+        image_bytes: bytes,
+        mime_type: str,
+        previous_data: Dict[str, Any],
+        report: ValidationReport
+    ) -> Dict[str, Any]:
+        """
+        Executes targeted re-extraction addressing detected issues.
+        """
+        issues_summary = "\n".join([f"- [{i.severity}] Field '{i.field}': {i.message}" for i in report.issues])
+        previous_json = json.dumps(previous_data, indent=2)
+
+        refine_prompt = SYSTEM_PROMPT_REFINEMENT.format(
+            issues_text=issues_summary,
+            previous_json=previous_json
+        )
+
+        logger.info("Executing Refinement Tool with Gemini Gateway...")
+        raw_response = client.generate_multimodal(
+            image_bytes=image_bytes,
+            mime_type=mime_type,
+            prompt=refine_prompt,
+            system_instruction=SYSTEM_PROMPT_MULTIMODAL_OCR,
+            temperature=0.05,
+            response_mime_type="application/json"
+        )
+
+        refined_data = MultimodalExtractorTool._clean_json_response(raw_response)
+        return refined_data
