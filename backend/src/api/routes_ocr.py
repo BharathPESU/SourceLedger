@@ -109,6 +109,7 @@ async def extract_document_image(
             from ..models.product_record import (
                 ProductRecord as BackendProductRecord,
                 ProductField as BackendProductField,
+                SourceExcerpt,
                 FieldStatus,
                 Source as BackendSource,
                 SourceType,
@@ -131,6 +132,7 @@ async def extract_document_image(
             struct_data = result.structured_data or {}
             val_report = result.validation_report or {}
             conf_score = int((val_report.confidence_score or 0.95) * 100)
+            raw_text = struct_data.get("raw_text", "") or ""
 
             fields_list = []
             for k, v in struct_data.items():
@@ -147,6 +149,12 @@ async def extract_document_image(
                         confidence=conf_score,
                         status=f_status,
                         reasoning=f"Extracted from {filename_clean} via Ledger Multimodal OCR Agent",
+                        source_excerpt=SourceExcerpt(
+                            source_id=source_id,
+                            text=f"{k}: {val_str}" if not raw_text else raw_text[:200],
+                            location="page-1",
+                            extraction_method="vlm_image",
+                        ),
                     )
                 )
 
