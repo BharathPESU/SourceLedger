@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routes_conflicts import router as conflicts_router
+from .api.routes_copilot import router as copilot_router
 from .api.routes_dashboard import router as dashboard_router
 from .api.routes_export import router as export_router
 from .api.routes_fields import router as fields_router
@@ -46,5 +47,6 @@ app.include_router(export_router)
 app.include_router(ocr_router)
 app.include_router(conflicts_router)
 app.include_router(graph_router)
+app.include_router(copilot_router)
 
 

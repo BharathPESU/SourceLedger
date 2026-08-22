@@ -734,3 +734,36 @@ export async function getProductRelationships(sku: string): Promise<ProductRelat
     return [];
   }
 }
+
+export interface CopilotResponse {
+  question: string;
+  answer: string;
+  cited_skus: string[];
+  executed_tools: Array<{
+    agent: string;
+    tool_name: string;
+    summary: string;
+    details?: any;
+  }>;
+  data_preview: Array<{
+    sku: string;
+    name: string;
+    category: string;
+    confidence_overall: number;
+    fields: Record<string, any>;
+  }>;
+  suggested_actions: string[];
+}
+
+export async function sendCopilotMessage(prompt: string): Promise<CopilotResponse> {
+  return apiFetch<CopilotResponse>('/copilot/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  });
+}
+
+export async function getCopilotSuggestions(): Promise<Array<{ label: string; prompt: string; icon: string }>> {
+  const res = await apiFetch<{ suggestions: Array<{ label: string; prompt: string; icon: string }> }>('/copilot/suggestions');
+  return res.suggestions || [];
+}
