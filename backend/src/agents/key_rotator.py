@@ -105,18 +105,72 @@ class APIKeyRotator:
     # ── Main rotation call ────────────────────────────────────────────────────
 
     def call_with_rotation(self, func, *args, **kwargs):
-        """Execute a Gemini generate_content call with key rotation.
-
-        Creates a fresh genai.Client for each key attempt so rate-limited keys
-        are truly skipped. Passes model/contents/config from kwargs.
+        """Execute a Gemini generate_content call with PRIMARY Render Proxy
+        and FALLBACK 8 Round-Robin Google API keys.
         """
+        import os
+        import requests
         from google import genai as _genai
-        from google.genai import types as _types
 
         model = kwargs.get("model") or (args[0] if args else "gemini-3.6-flash")
         contents = kwargs.get("contents") or (args[1] if len(args) > 1 else "")
         config = kwargs.get("config", None)
 
+        proxy_url = (os.getenv("API_URL") or "https://free-api-erel.onrender.com").rstrip("/")
+        if proxy_url.endswith("/api/generate"):
+            proxy_url = proxy_url[:-13]
+        proxy_token = os.getenv("API_KEY") or "sk_proxy_qu7f0nNyFooVFjM3iNb_lmwZr_NP-BuL"
+
+        # 1. Try Render Proxy Gateway FIRST (PRIMARY)
+        try:
+            target_url = f"{proxy_url}/v1beta/models/{model}:generateContent"
+            headers = {
+                "Authorization": f"Bearer {proxy_token}",
+                "x-api-key": proxy_token,
+                "Content-Type": "application/json",
+            }
+            
+            prompt_text = ""
+            if isinstance(contents, str):
+                prompt_text = contents
+            elif isinstance(contents, list):
+                prompt_text = " ".join(str(item) for item in contents)
+            else:
+                prompt_text = str(contents)
+
+            temperature = getattr(config, "temperature", 0.2) if config else 0.2
+            payload = {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": prompt_text}]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": temperature
+                }
+            }
+
+            logger.info("Attempting PRIMARY Render Proxy generate_content with model %s...", model)
+            res = requests.post(target_url, json=payload, headers=headers, timeout=45)
+            if res.status_code == 200:
+                res_data = res.json()
+                candidates = res_data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts and parts[0].get("text"):
+                        text_out = parts[0].get("text", "")
+                        logger.info("PRIMARY Render Proxy generate_content OK with model %s", model)
+                        
+                        # Return object compatible with .text attribute
+                        class ProxyResponse:
+                            def __init__(self, text):
+                                self.text = text
+                        return ProxyResponse(text_out)
+        except Exception as proxy_err:
+            logger.warning("PRIMARY Render Proxy failed: %s. Falling back to 8 Round-Robin Keys...", proxy_err)
+
+        # 2. FALLBACK to 8 Round-Robin Google API keys
         tried: set[str] = set()
 
         while True:
@@ -139,7 +193,7 @@ class APIKeyRotator:
                     call_kwargs["config"] = config
 
                 result = fresh_client.models.generate_content(**call_kwargs)
-                logger.info("call_with_rotation OK with key ...%s", key[-6:])
+                logger.info("FALLBACK call_with_rotation OK with key ...%s", key[-6:])
                 return result
 
             except Exception as e:

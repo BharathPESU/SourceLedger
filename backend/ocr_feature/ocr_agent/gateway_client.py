@@ -17,13 +17,14 @@ def _resolve_base_url(url: Optional[str]) -> str:
     return raw_url
 
 def _resolve_auth_token(token: Optional[str]) -> str:
-    return token or os.getenv("API_KEY") or ""
+    return token or os.getenv("API_KEY") or "sk_proxy_qu7f0nNyFooVFjM3iNb_lmwZr_NP-BuL"
+
 DEFAULT_MODELS = ["gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 
 class GeminiGatewayClient:
     """
-    Client for interacting with the Gemini API Round-Robin Gateway & Proxy.
-    Loads API_URL and API_KEY from environment variables (.env).
+    Client for interacting with the Gemini API Gateway & Proxy (PRIMARY)
+    with automatic fallback to the 8 Google API keys.
     """
     def __init__(
         self,
@@ -36,13 +37,12 @@ class GeminiGatewayClient:
         self.timeout = timeout
         self.headers = {
             "Authorization": f"Bearer {self.auth_token}",
+            "x-api-key": self.auth_token,
             "Content-Type": "application/json",
         }
 
     def get_keys_status(self) -> Dict[str, Any]:
-        """
-        Queries the health and availability of the gateway key pool.
-        """
+        """Queries the health and availability of the gateway key pool."""
         url = f"{self.base_url}/api/keys/status"
         try:
             response = requests.get(url, headers=self.headers, timeout=15)
@@ -59,8 +59,9 @@ class GeminiGatewayClient:
         temperature: float = 0.2
     ) -> str:
         """
-        Text generation using native pass-through endpoint /v1beta/models/{model}:generateContent.
+        Text generation: PRIMARY = Render Proxy Gateway, FALLBACK = 8 Direct API Keys.
         """
+        # 1. Try Render Gateway Proxy FIRST (PRIMARY)
         models_to_try = [model] + [m for m in DEFAULT_MODELS if m != model]
         payload = {
             "contents": [
@@ -74,10 +75,10 @@ class GeminiGatewayClient:
             }
         }
         
-        last_exception = None
         for target_model in models_to_try:
             url = f"{self.base_url}/v1beta/models/{target_model}:generateContent"
             try:
+                logger.info(f"Attempting PRIMARY Gateway Proxy generate_text with {target_model}...")
                 response = requests.post(
                     url, json=payload, headers=self.headers, timeout=self.timeout
                 )
@@ -88,13 +89,37 @@ class GeminiGatewayClient:
                 candidates = data.get("candidates", [])
                 if candidates:
                     parts = candidates[0].get("content", {}).get("parts", [])
-                    if parts:
+                    if parts and parts[0].get("text"):
+                        logger.info(f"PRIMARY Gateway Proxy generate_text succeeded with {target_model}")
                         return parts[0].get("text", "")
             except Exception as e:
-                logger.warning(f"generate_text error with {target_model}: {e}")
-                last_exception = e
+                logger.warning(f"PRIMARY Gateway Proxy text error with {target_model}: {e}")
 
-        raise RuntimeError(f"Gateway text generation failed: {last_exception}")
+        # 2. FALLBACK to 8 Direct Google API keys
+        logger.info("PRIMARY Gateway Proxy unavailable. Falling back to 8 Direct Google API Keys...")
+        direct_keys = []
+        for env_var in ["GOOGLE_API_KEY"] + [f"GOOGLE_API_KEY{i}" for i in range(1, 9)]:
+            k = os.getenv(env_var)
+            if k and k not in direct_keys:
+                direct_keys.append(k)
+
+        if direct_keys:
+            from google import genai
+            for key_idx, direct_key in enumerate(direct_keys):
+                try:
+                    client = genai.Client(api_key=direct_key)
+                    res = client.models.generate_content(
+                        model=model,
+                        contents=prompt,
+                    )
+                    if res.text:
+                        logger.info(f"FALLBACK Direct GenAI SDK succeeded with key index {key_idx}")
+                        return res.text
+                except Exception as direct_err:
+                    logger.warning(f"Fallback Key {key_idx} failed: {direct_err}")
+                    continue
+
+        raise RuntimeError("All generation attempts (PRIMARY Gateway Proxy + 8 FALLBACK API Keys) failed.")
 
     def generate_multimodal(
         self,
@@ -107,50 +132,8 @@ class GeminiGatewayClient:
         response_mime_type: Optional[str] = "application/json"
     ) -> str:
         """
-        Native pass-through generation supporting multimodal (image + text) payloads.
-        Attempts primary model and falls back to alternative models if rate limited.
+        Multimodal generation: PRIMARY = Render Proxy Gateway, FALLBACK = 8 Direct API Keys.
         """
-        # Rotate through all available GOOGLE_API_KEY* env vars to beat per-key rate limits
-        direct_keys = []
-        for env_var in ["GOOGLE_API_KEY"] + [f"GOOGLE_API_KEY{i}" for i in range(1, 9)]:
-            k = os.getenv(env_var)
-            if k and k not in direct_keys:
-                direct_keys.append(k)
-
-        if direct_keys:
-            from google import genai
-            from google.genai import types
-            for key_idx, direct_key in enumerate(direct_keys):
-                try:
-                    client = genai.Client(api_key=direct_key)
-                    contents = [
-                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        prompt
-                    ]
-                    config = types.GenerateContentConfig(
-                        temperature=temperature,
-                        response_mime_type=response_mime_type,
-                        system_instruction=system_instruction
-                    )
-                    res = client.models.generate_content(
-                        model=model,
-                        contents=contents,
-                        config=config
-                    )
-                    if res.text:
-                        logger.info(f"Direct GenAI SDK succeeded with key index {key_idx}")
-                        return res.text
-                except Exception as direct_err:
-                    err_str = str(direct_err)
-                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
-                        logger.warning(f"Key {key_idx} rate-limited (429). Trying next key...")
-                        continue
-                    else:
-                        logger.warning(f"Key {key_idx} failed: {direct_err}. Trying next key...")
-                        continue
-            logger.warning("All direct Google API keys exhausted. Falling back to HTTP gateway...")
-
-
         models_to_try = [model] + [m for m in DEFAULT_MODELS if m != model]
         base64_data = base64.b64encode(image_bytes).decode("utf-8")
 
@@ -170,7 +153,6 @@ class GeminiGatewayClient:
         ]
 
         payload: Dict[str, Any] = {"contents": contents}
-
         if system_instruction:
             payload["systemInstruction"] = {
                 "parts": [{"text": system_instruction}]
@@ -181,20 +163,17 @@ class GeminiGatewayClient:
             gen_config["responseMimeType"] = response_mime_type
         payload["generationConfig"] = gen_config
 
-        last_exception = None
-
+        # 1. Try PRIMARY Render Gateway Proxy FIRST
         for target_model in models_to_try:
             url = f"{self.base_url}/v1beta/models/{target_model}:generateContent"
-            logger.info(f"Attempting multimodal extraction with model: {target_model}")
+            logger.info(f"Attempting PRIMARY Gateway Proxy multimodal extraction with model: {target_model}")
 
             try:
                 response = requests.post(
                     url, json=payload, headers=self.headers, timeout=self.timeout
                 )
                 
-                # If model parameter endpoint returned 404 or unsupported model, try next
                 if response.status_code == 404:
-                    logger.warning(f"Model {target_model} returned 404. Retrying with next model...")
                     continue
                     
                 response.raise_for_status()
@@ -206,17 +185,49 @@ class GeminiGatewayClient:
                     if parts:
                         text_out = parts[0].get("text", "")
                         if text_out:
+                            logger.info(f"PRIMARY Gateway Proxy multimodal extraction succeeded with {target_model}")
                             return text_out
 
-                # If response format is slightly different or empty parts
-                if "text" in res_data:
+                if "text" in res_data and res_data["text"]:
+                    logger.info(f"PRIMARY Gateway Proxy multimodal extraction succeeded (flat text response)")
                     return res_data["text"]
 
-            except requests.HTTPError as http_err:
-                logger.warning(f"HTTP Error for model {target_model}: {http_err}. Response: {response.text}")
-                last_exception = http_err
             except Exception as e:
-                logger.warning(f"Error calling {target_model}: {e}")
-                last_exception = e
+                logger.warning(f"PRIMARY Gateway Proxy error for model {target_model}: {e}")
 
-        raise RuntimeError(f"All model endpoints failed. Last error: {last_exception}")
+        # 2. FALLBACK to 8 Direct Google API Keys
+        logger.info("PRIMARY Gateway Proxy failed. Falling back to 8 Direct Google API Keys...")
+        direct_keys = []
+        for env_var in ["GOOGLE_API_KEY"] + [f"GOOGLE_API_KEY{i}" for i in range(1, 9)]:
+            k = os.getenv(env_var)
+            if k and k not in direct_keys:
+                direct_keys.append(k)
+
+        if direct_keys:
+            from google import genai
+            from google.genai import types
+            for key_idx, direct_key in enumerate(direct_keys):
+                try:
+                    client = genai.Client(api_key=direct_key)
+                    contents_sdk = [
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        prompt
+                    ]
+                    config = types.GenerateContentConfig(
+                        temperature=temperature,
+                        response_mime_type=response_mime_type,
+                        system_instruction=system_instruction
+                    )
+                    res = client.models.generate_content(
+                        model=model,
+                        contents=contents_sdk,
+                        config=config
+                    )
+                    if res.text:
+                        logger.info(f"FALLBACK Direct GenAI SDK succeeded with key index {key_idx}")
+                        return res.text
+                except Exception as direct_err:
+                    logger.warning(f"Fallback Direct Key {key_idx} failed: {direct_err}")
+                    continue
+
+        raise RuntimeError("All multimodal attempts (PRIMARY Gateway Proxy + 8 FALLBACK API Keys) failed.")
