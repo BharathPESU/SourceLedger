@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
 import { 
   ScanText, 
   UploadCloud, 
@@ -197,9 +198,19 @@ export const OcrAgentView: React.FC = () => {
     formData.append('document_type', documentType);
     formData.append('enable_refinement', enableRefinement.toString());
 
+    const headers: Record<string, string> = {};
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id || session?.user?.email;
+      if (currentUserId) {
+        headers['x-user-id'] = currentUserId;
+      }
+    } catch {}
+
     try {
       const res = await fetch('/api/extract', {
         method: 'POST',
+        headers,
         body: formData,
       });
 

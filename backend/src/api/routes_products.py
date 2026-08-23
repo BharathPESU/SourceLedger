@@ -1,8 +1,8 @@
 """Product record API routes."""
 
+from typing import Optional
 from uuid import UUID
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 
 from ..db.store import store
 from ..models.api import ProductDetailResponse, ProductListResponse, ProductSummary
@@ -13,9 +13,9 @@ router = APIRouter(prefix="/api", tags=["products"])
 
 
 @router.get("/products", response_model=ProductListResponse)
-async def list_products() -> ProductListResponse:
-    """List all product records with summary info."""
-    products = await store.list_products()
+async def list_products(x_user_id: Optional[str] = Header(None, alias="x-user-id")) -> ProductListResponse:
+    """List all product records with summary info for the authenticated user."""
+    products = await store.list_products(user_id=x_user_id)
     summaries = []
     for p in products:
         schema = CATEGORY_REGISTRY.get(p.category)
@@ -42,9 +42,15 @@ async def list_products() -> ProductListResponse:
 
 
 @router.get("/products/{product_id}", response_model=ProductDetailResponse)
-async def get_product(product_id: UUID) -> ProductDetailResponse:
-    """Get full product record with all fields and provenance."""
-    product = await store.get_product(product_id)
+async def get_product(
+    product_id: UUID,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+) -> ProductDetailResponse:
+    """Get full product record with all fields and provenance.
+
+    Returns 404 if the product does not exist or does not belong to the requesting user.
+    """
+    product = await store.get_product(product_id, user_id=x_user_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -73,8 +79,8 @@ async def get_product(product_id: UUID) -> ProductDetailResponse:
 
 
 @router.delete("/products")
-async def clear_all_products() -> dict:
-    """Clear all products, sources, and audit logs from store."""
-    store.clear()
-    return {"status": "success", "message": "All product catalog data cleared"}
+async def clear_all_products(x_user_id: Optional[str] = Header(None, alias="x-user-id")) -> dict:
+    """Clear all products, sources, and audit logs from store for the current user."""
+    store.clear(user_id=x_user_id)
+    return {"status": "success", "message": "Product catalog data cleared for user"}
 

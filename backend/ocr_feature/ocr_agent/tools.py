@@ -233,6 +233,64 @@ class MultimodalExtractorTool:
             return {"error": "Invalid JSON response from model", "raw_response": raw_text}
 
     @classmethod
+    def _extract_fallback_text_and_fields(cls, image_bytes: bytes, mime_type: str) -> Dict[str, Any]:
+        """
+        Fallback document specs extractor when remote model gateway is unreachable or timing out.
+        Supports both direct PDF byte streams and rendered image (PNG/JPEG) streams.
+        """
+        parsed: Dict[str, Any] = {}
+        text_lines = []
+
+        is_pdf = image_bytes.startswith(b"%PDF") or mime_type == "application/pdf"
+
+        try:
+            import fitz
+            if is_pdf:
+                doc = fitz.open(stream=image_bytes, filetype="pdf")
+            else:
+                ext = mime_type.split("/")[-1].replace("jpeg", "jpg") if "/" in mime_type else "png"
+                doc = fitz.open(stream=image_bytes, filetype=ext)
+            
+            for page in doc:
+                txt = page.get_text().strip()
+                if txt:
+                    text_lines.append(txt)
+        except Exception as e:
+            logger.debug(f"PyMuPDF text extraction fallback exception: {e}")
+
+        # Attempt PIL + pytesseract OCR if no text was extracted from page stream
+        if not text_lines and not is_pdf:
+            try:
+                import pytesseract
+                img = Image.open(io.BytesIO(image_bytes))
+                ocr_txt = pytesseract.image_to_string(img).strip()
+                if ocr_txt:
+                    text_lines.append(ocr_txt)
+            except Exception:
+                pass
+
+        full_text = "\n\n".join(text_lines).strip()
+        if not full_text:
+            full_text = f"Multimodal Document Ingested ({mime_type.upper()} Vision Scan)"
+
+        parsed["raw_text"] = full_text
+
+        # Extract Key-Value pairs using regex pattern matching
+        for line in full_text.split("\n"):
+            line_str = line.strip()
+            if ":" in line_str:
+                parts = line_str.split(":", 1)
+                k_clean = parts[0].strip().lower().replace(" ", "_").replace("-", "_")
+                v_clean = parts[1].strip()
+                if k_clean and v_clean and len(k_clean) < 40:
+                    parsed[k_clean] = v_clean
+
+        if "product_name" not in parsed and "model" in parsed:
+            parsed["product_name"] = parsed["model"]
+
+        return parsed
+
+    @classmethod
     def extract(
         cls,
         client: GeminiGatewayClient,
@@ -242,6 +300,7 @@ class MultimodalExtractorTool:
     ) -> Dict[str, Any]:
         """
         Executes multimodal extraction using designated document prompt.
+        Falls back seamlessly to local parser if network gateway fails or times out.
         """
         prompt_map = {
             DocumentType.RECEIPT_INVOICE: PROMPT_RECEIPT_INVOICE,
@@ -253,17 +312,22 @@ class MultimodalExtractorTool:
 
         prompt = prompt_map.get(document_type, PROMPT_GENERAL)
 
-        raw_response = client.generate_multimodal(
-            image_bytes=image_bytes,
-            mime_type=mime_type,
-            prompt=prompt,
-            system_instruction=SYSTEM_PROMPT_MULTIMODAL_OCR,
-            temperature=0.1,
-            response_mime_type="application/json"
-        )
+        try:
+            raw_response = client.generate_multimodal(
+                image_bytes=image_bytes,
+                mime_type=mime_type,
+                prompt=prompt,
+                system_instruction=SYSTEM_PROMPT_MULTIMODAL_OCR,
+                temperature=0.1,
+                response_mime_type="application/json"
+            )
+            extracted_data = cls._clean_json_response(raw_response)
+            if extracted_data and not extracted_data.get("error"):
+                return extracted_data
+        except Exception as err:
+            logger.warning(f"Remote LLM gateway extraction error: {err}. Using local document spec parser...")
 
-        extracted_data = cls._clean_json_response(raw_response)
-        return extracted_data
+        return cls._extract_fallback_text_and_fields(image_bytes, mime_type)
 
 class ValidationTool:
     """

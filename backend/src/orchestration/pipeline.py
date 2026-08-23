@@ -70,6 +70,7 @@ async def run_pipeline(
     category: str | None = None,
     filename: str | None = None,
     trust_tier: TrustTier = TrustTier.MARKETPLACE,
+    user_id: str = "default_user",
 ) -> ProductRecord:
     """Run the full extraction pipeline on a single source.
 
@@ -106,14 +107,14 @@ async def run_pipeline(
 
         # ── Stage 2: Idempotency check ───────────────────────────────
         existing = await store.find_source_by_hash(
-            ingestion_result.source.content_hash
+            ingestion_result.source.content_hash, user_id=user_id
         )
         if existing:
             logger.info(
                 "Duplicate source detected (hash=%s) — checking for existing product",
                 existing.content_hash[:12],
             )
-            products = await store.list_products()
+            products = await store.list_products(user_id=user_id)
             for p in products:
                 if existing.id in p.source_ids:
                     ctx["output_summary"] = (
@@ -122,7 +123,7 @@ async def run_pipeline(
                     return p
 
         # Save source record
-        await store.save_source(ingestion_result.source)
+        await store.save_source(ingestion_result.source, user_id=user_id)
 
         # ── Auto-detect category if not provided ──────────────────────
         if not category:
@@ -234,7 +235,7 @@ async def run_pipeline(
         )
 
         for enrichment_source in enrichment_result.enrichment_sources:
-            await store.save_source(enrichment_source)
+            await store.save_source(enrichment_source, user_id=user_id)
 
         # ── Post-enrichment hallucination guard ───────────────────────────
         # If extraction produced very few fields (≤ 3 identity fields) and
@@ -326,7 +327,7 @@ async def run_pipeline(
                 product.mfg_part_num = str(_pn_field.value).strip()
                 break
 
-        await store.save_product(product)
+        await store.save_product(product, user_id=user_id)
 
         ctx["output_summary"] = (
             f"'{product.name}' — {len(product.fields)} fields, "

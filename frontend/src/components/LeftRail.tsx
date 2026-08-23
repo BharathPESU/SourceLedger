@@ -5,11 +5,13 @@ import {
   Boxes, 
   CheckSquare, 
   ScanLine, 
-  ScanText,
+  ShieldCheck,
   Sliders, 
   FileSpreadsheet,
   HelpCircle,
-  LogOut
+  LogOut,
+  Bot,
+  User
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +33,12 @@ export const LeftRail: React.FC<LeftRailProps> = ({
       label: 'Dashboard',
       icon: LayoutDashboard,
       shortcut: '1'
+    },
+    {
+      id: 'quality_dashboard' as ActiveTab,
+      label: 'Data Quality & Trust QA',
+      icon: ShieldCheck,
+      shortcut: 'Q'
     },
     {
       id: 'sources' as ActiveTab,
@@ -58,10 +66,22 @@ export const LeftRail: React.FC<LeftRailProps> = ({
       shortcut: '5'
     },
     {
+      id: 'copilot' as ActiveTab,
+      label: 'Catalog Copilot & Data Chat',
+      icon: Bot,
+      shortcut: '7'
+    },
+    {
       id: 'settings' as ActiveTab,
       label: 'Settings & Model Rules',
       icon: Sliders,
-      shortcut: '6'
+      shortcut: '8'
+    },
+    {
+      id: 'profile' as ActiveTab,
+      label: 'My Profile & Address',
+      icon: User,
+      shortcut: 'P'
     }
   ];
 

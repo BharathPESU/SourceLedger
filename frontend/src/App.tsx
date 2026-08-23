@@ -7,8 +7,11 @@ import { FieldInspectorView } from './components/FieldInspectorView';
 import { ReviewQueueView } from './components/ReviewQueueView';
 import { ProductsCatalogView } from './components/ProductsCatalogView';
 import { IngestionSourcesView } from './components/IngestionSourcesView';
+import { DataQualityDashboardView } from './components/DataQualityDashboardView';
+import { CatalogCopilotView } from './components/CatalogCopilotView';
 import { SettingsView } from './components/SettingsView';
 import { OcrAgentView } from './components/OcrAgentView';
+import { ProfileView } from './components/ProfileView';
 import { IngestModal } from './components/IngestModal';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
@@ -59,16 +62,33 @@ function MainAppContent() {
 
         if (isMounted) {
           setIsLiveConnected(true);
-          setProducts(liveProducts || []);
-          setSources(liveSources || []);
+          
+          setSources(prev => {
+            const live = liveSources || [];
+            const liveIds = new Set(live.map(s => s.id));
+            const missingFromLive = prev.filter(s => !liveIds.has(s.id));
+            return [...missingFromLive, ...live];
+          });
 
-          if (liveProducts && liveProducts.length > 0) {
-            setSelectedProduct(prev => prev && liveProducts.some(p => p.id === prev.id) ? prev : liveProducts[0]);
-            setCategories(buildCategoryOverviews(liveProducts));
-          } else {
-            setSelectedProduct(null);
-            setCategories([]);
-          }
+          setProducts(prev => {
+            const live = liveProducts || [];
+            const liveIds = new Set(live.map(p => p.id));
+            const missingFromLive = prev.filter(p => !liveIds.has(p.id));
+            const merged = [...missingFromLive, ...live];
+            
+            if (merged && merged.length > 0) {
+              setSelectedProduct(prevSel => {
+                if (!prevSel) return merged[0];
+                const match = merged.find(p => p.id === prevSel.id);
+                return match || prevSel;
+              });
+              setCategories(buildCategoryOverviews(merged));
+            } else {
+              setSelectedProduct(prevSel => prevSel ? prevSel : null);
+              setCategories([]);
+            }
+            return merged;
+          });
         }
 
       } catch (err) {
@@ -90,7 +110,11 @@ function MainAppContent() {
   useEffect(() => {
     if (products.length > 0) {
       setCategories(buildCategoryOverviews(products));
-      setSelectedProduct(prev => prev && products.some(p => p.id === prev.id) ? prev : products[0]);
+      setSelectedProduct(prev => {
+        if (!prev) return products[0];
+        const match = products.find(p => p.id === prev.id);
+        return match || prev;
+      });
     } else {
       setCategories([]);
       setSelectedProduct(null);
@@ -252,8 +276,8 @@ function MainAppContent() {
 
   // Handle newly ingested source
   const handleIngestSuccess = (newProduct: ProductRecord, newSource: IngestionSource) => {
-    setProducts(prev => [newProduct, ...prev]);
-    setSources(prev => [newSource, ...prev]);
+    setProducts(prev => [newProduct, ...prev.filter(p => p.id !== newProduct.id)]);
+    setSources(prev => [newSource, ...prev.filter(s => s.id !== newSource.id)]);
     setSelectedProduct(newProduct);
     setActiveTab('field_inspector');
   };
@@ -327,6 +351,12 @@ function MainAppContent() {
                 />
               )}
 
+              {activeTab === 'quality_dashboard' && (
+                <DataQualityDashboardView
+                  onNavigateToReview={() => setActiveTab('review_queue')}
+                />
+              )}
+
               {activeTab === 'field_inspector' && (
                 <FieldInspectorView
                   product={selectedProduct!}
@@ -363,12 +393,30 @@ function MainAppContent() {
                 />
               )}
 
+              {activeTab === 'copilot' && (
+                <CatalogCopilotView
+                  onSelectProduct={(sku) => {
+                    const match = products.find((p) => (p.sku || p.name).toLowerCase() === sku.toLowerCase());
+                    if (match) {
+                      setSelectedProduct(match);
+                      setActiveTab('field_inspector');
+                    } else {
+                      setActiveTab('catalog');
+                    }
+                  }}
+                />
+              )}
+
               {activeTab === 'settings' && (
                 <SettingsView />
               )}
 
               {activeTab === 'ocr' && (
                 <OcrAgentView />
+              )}
+
+              {activeTab === 'profile' && (
+                <ProfileView />
               )}
             </ErrorBoundary>
 

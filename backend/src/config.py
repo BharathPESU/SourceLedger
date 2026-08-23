@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     google_api_key7: str = ""
     google_api_key8: str = ""
     openai_api_key: str = ""
-    api_url: str = "https://free-api-erel.onrender.com/api/generate"
+    api_url: str = ""
     api_key: str = ""
 
     # Gemini Round-Robin Gateway Proxy Settings
@@ -48,9 +48,7 @@ class Settings(BaseSettings):
         return keys
 
     # ── Database ─────────────────────────────────────────────────────
-    database_url: str = (
-        "postgresql+asyncpg://sourceledger:sourceledger@localhost:5432/sourceledger"
-    )
+    database_url: str = ""
 
     # ── Vector DB (stretch — Phase 5) ────────────────────────────────
     qdrant_url: str = "http://localhost:6333"
@@ -67,7 +65,7 @@ class Settings(BaseSettings):
     source_storage_path: str = "./storage/sources"
 
     # ── Supabase Database ──────────────────────────────────────────────
-    supabase_org: str = "sourceLedge"
+    supabase_org: str = ""
     supabase_url: str = ""
     supabase_key: str = ""
     supabase_service_role_key: str = ""

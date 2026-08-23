@@ -5,13 +5,15 @@ import csv
 import io
 import json
 from uuid import UUID, uuid4
+from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 
 from ..models.api import IngestRequest, IngestResponse
 from ..models.product_record import SourceType, TrustTier
 from ..models.unihack_schema import UNIHACK_DELIVERY_COLUMNS, map_product_fields_to_unihack_row
+from ..services.csv_processor import CSVProcessor
 from ..orchestration.pipeline import run_pipeline
 from ..db.store import store
 from ..utils.logging import get_logger
@@ -69,9 +71,10 @@ async def _process_remaining_dataset_rows(
     category: str | None,
     filename: str | None,
     trust_tier: TrustTier,
+    user_id: str = "default_user",
 ) -> None:
     """Process remaining dataset rows (1..N) asynchronously in background."""
-    logger.info("Background dataset processing started for %d remaining rows", len(rows))
+    logger.info("Background dataset processing started for %d remaining rows (user=%s)", len(rows), user_id)
     for i, row_dict in enumerate(rows):
         if not row_dict or not any(row_dict.values()):
             continue
@@ -84,6 +87,7 @@ async def _process_remaining_dataset_rows(
                     category=category,
                     filename=filename,
                     trust_tier=trust_tier,
+                    user_id=user_id,
                 )
             logger.info("Background dataset row %d/%d completed", i + 1, len(rows))
         except Exception as row_err:
@@ -95,6 +99,7 @@ async def _process_remaining_dataset_rows(
 async def ingest_source(
     request: IngestRequest,
     background_tasks: BackgroundTasks,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ) -> IngestResponse:
     """Ingest a single source or multi-row dataset (CSV/Excel) into product records.
 
@@ -114,6 +119,8 @@ async def ingest_source(
                 detail=f"Invalid trust_tier: {request.trust_tier}. Use 1 (manufacturer), 2 (distributor), or 3 (marketplace).",
             )
 
+    active_user = x_user_id or "default_user"
+
     try:
         # Check if content is a multi-row Excel (.xlsx) or CSV dataset (e.g. 1000 items)
         dataset_rows = extract_dataset_rows(request.content, request.filename or "")
@@ -128,6 +135,7 @@ async def ingest_source(
                 category=request.category,
                 filename=request.filename,
                 trust_tier=trust_tier,
+                user_id=active_user,
             )
 
             # Queue remaining rows in background
@@ -138,6 +146,7 @@ async def ingest_source(
                     request.category,
                     request.filename,
                     trust_tier,
+                    active_user,
                 )
 
             remaining_count = len(dataset_rows) - 1
@@ -163,6 +172,7 @@ async def ingest_source(
             category=request.category,
             filename=request.filename,
             trust_tier=trust_tier,
+            user_id=active_user,
         )
 
         return IngestResponse(
@@ -220,6 +230,7 @@ def _extract_part_num_from_row(row_dict: dict) -> str:
 async def bulk_ingest_csv(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ):
     """Upload a CSV file and process each row through the full pipeline.
 
@@ -229,7 +240,11 @@ async def bulk_ingest_csv(
 
     Processing runs in the background. Poll /api/ingest/bulk-csv/{job_id}
     for progress, then GET /api/export/csv to download the enriched output.
+
+    All rows are stored under the authenticated user's account only.
     """
+    active_user = x_user_id or "default_user"
+
     raw_bytes = await file.read()
     try:
         text = raw_bytes.decode("utf-8-sig")  # strip BOM if present
@@ -247,15 +262,19 @@ async def bulk_ingest_csv(
         "done": 0,
         "failed": 0,
         "product_ids": [],
+        "input_part_numbers": {_extract_part_num_from_row(row) for row in rows if _extract_part_num_from_row(row)},
+        "row_statuses": [],
         # failed_rows: list of {"part_num": str, "reason": str}
         # These become blank passthrough rows in the export CSV.
         "failed_rows": [],
         "status": "running",
+        # SECURITY: store owner so download endpoint can scope fetches
+        "user_id": active_user,
     }
 
-    background_tasks.add_task(_process_bulk_rows, job_id, rows)
+    background_tasks.add_task(_process_bulk_rows, job_id, rows, active_user)
 
-    logger.info("bulk_ingest: started job %s — %d rows", job_id, len(rows))
+    logger.info("bulk_ingest: started job %s — %d rows (user=%s)", job_id, len(rows), active_user)
     return {
         "job_id": job_id,
         "total_rows": len(rows),
@@ -281,11 +300,16 @@ async def bulk_ingest_status(job_id: str):
         "failed": job["failed"],
         "progress_pct": pct,
         "product_ids": job["product_ids"][-10:],  # last 10 for preview
+        "row_statuses": job.get("row_statuses", []),
+        "sanity_issues": job.get("sanity_issues", []),
     }
 
 
 @router.post("/ingest/bulk-csv/{job_id}/download")
-async def bulk_ingest_download(job_id: str):
+async def bulk_ingest_download(
+    job_id: str,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+):
     """Download the enriched CSV for a completed bulk job.
 
     Successfully processed rows are emitted with all enriched fields.
@@ -293,33 +317,31 @@ async def bulk_ingest_download(job_id: str):
     are emitted as blank passthrough rows: the original part number is
     preserved in Mfg_Part_Num / PART_NUMBER; all enriched columns are
     empty or N/A so no fabricated data appears.
+
+    Only the user who started the job can download it.
     """
     job = _bulk_jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+
+    # SECURITY: only the job owner can download
+    active_user = x_user_id or "default_user"
+    job_owner = job.get("user_id", "default_user")
+    if job_owner != active_user:
+        raise HTTPException(status_code=403, detail="Access denied: this job belongs to a different user.")
+
     if job["status"] != "completed":
         raise HTTPException(status_code=202, detail=f"Job still running — {job['done']}/{job['total']} done.")
 
-    # ── Successful products ──────────────────────────────────────────
+    # ── Successful products — scoped to job owner ──────────────────
     product_ids: list[UUID] = [UUID(pid) for pid in job["product_ids"]]
+    # Pass user_id=None for internal pipeline lookup (UUID already validated as owned)
     products = [await store.get_product(pid) for pid in product_ids]
     products = [p for p in products if p]
 
-    # Deduplicate by mfg_part_num — keep the highest-confidence record
-    # when the same part number appears more than once (re-upload, duplicate
-    # rows in the input). Generic: uses the mfg_part_num field populated
-    # by the pipeline regardless of which input column it came from.
-    seen_part_nums: dict[str, object] = {}  # part_num -> best ProductRecord
-    no_part_num_products = []
-    for prod in products:
-        key = (prod.mfg_part_num or "").strip()
-        if not key:
-            no_part_num_products.append(prod)
-            continue
-        existing = seen_part_nums.get(key)
-        if existing is None or prod.confidence_overall > existing.confidence_overall:
-            seen_part_nums[key] = prod
-    deduped_products = list(seen_part_nums.values()) + no_part_num_products
+    # Preserve job order and duplicate input rows: one delivery row per input row.
+    # Deduplication across uploads belongs in review tooling, never in a job export.
+    delivery_products = products
 
     out = io.StringIO()
     writer = csv.DictWriter(
@@ -327,14 +349,14 @@ async def bulk_ingest_download(job_id: str):
         extrasaction="ignore", lineterminator="\r\n"
     )
     writer.writeheader()
+    emitted_part_numbers: set[str] = set()
+    delivery_rows: list[dict[str, str]] = []
 
-    for product in deduped_products:
-        sku = product.mfg_part_num or next(
-            (str(f.value) for f in product.fields
-             if f.name in ("model_number", "part_number", "mfg_part_num") and f.value),
-            "",
-        )
-        row = map_product_fields_to_unihack_row(product.fields, title=product.name, sku=sku)
+    for product in delivery_products:
+        row = map_product_fields_to_unihack_row(product.fields, title=product.name, sku="")
+        if row.get("Mfg_Part_Num"):
+            emitted_part_numbers.add(row["Mfg_Part_Num"].strip())
+        delivery_rows.append(row)
         writer.writerow(row)
 
     # ── Failed/blank passthrough rows ───────────────────────────────
@@ -345,14 +367,22 @@ async def bulk_ingest_download(job_id: str):
         blank_row = {col: "" for col in UNIHACK_DELIVERY_COLUMNS}
         pn = str(failed.get("part_num", "")).strip()
         if pn:
-            blank_row["PART_NUMBER"] = pn
             blank_row["Mfg_Part_Num"] = pn
             blank_row["MANUFACTURER_PART_NUMBER"] = pn
-            blank_row["SKU - MY_PART_NUMBER"] = pn
+            emitted_part_numbers.add(pn)
+        delivery_rows.append(blank_row)
         writer.writerow(blank_row)
 
+    sanity_issues = CSVProcessor._delivery_sanity_issues(
+        job.get("input_part_numbers", set()), delivery_rows, job.get("row_statuses", [])
+    )
+    job["sanity_issues"] = sanity_issues
+    blocking_issues = [issue for issue in sanity_issues if issue.startswith("out-of-scope") or issue.startswith("coverage mismatch")]
+    if blocking_issues:
+        raise HTTPException(status_code=500, detail="Delivery validation failed: " + "; ".join(blocking_issues))
+
     csv_bytes = "\ufeff".encode("utf-8") + out.getvalue().encode("utf-8")
-    total_rows = len(deduped_products) + len(job.get("failed_rows", []))
+    total_rows = len(delivery_products) + len(job.get("failed_rows", []))
     filename = f"Unihack_Delivery_Format_{total_rows}_items.csv"
     return StreamingResponse(
         io.BytesIO(csv_bytes),
@@ -363,7 +393,7 @@ async def bulk_ingest_download(job_id: str):
 
 # ─── Background worker ────────────────────────────────────────────────────────
 
-async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
+async def _process_bulk_rows(job_id: str, rows: list[dict], user_id: str = "default_user") -> None:
     """Process each CSV row through the full pipeline (runs in background).
 
     Each row dict is JSON-serialized and passed as the content string.
@@ -377,8 +407,11 @@ async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
     - The download endpoint emits a blank passthrough row so the output
       has one row per input row, with failed rows showing only the part
       number and all enriched columns empty.
+
+    All rows are persisted under user_id so they are only visible to that user.
     """
     job = _bulk_jobs[job_id]
+    active_user = user_id or "default_user"
 
     for i, row_dict in enumerate(rows):
         # Pass the raw CSV row as a JSON-encoded dict so the ExtractionAgent
@@ -391,9 +424,11 @@ async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
                     source_type=SourceType.CSV,
                     content=row_json,
                     category=None,
+                    user_id=active_user,
                 )
             job["done"] += 1
             job["product_ids"].append(str(product.id))
+            job["row_statuses"].append({"row_number": i + 1, "status": "enriched", "product_id": str(product.id)})
             logger.info(
                 "bulk_ingest[%s]: row %d/%d — '%s' (%d fields)",
                 job_id, i + 1, job["total"], product.name, len(product.fields),
@@ -405,6 +440,7 @@ async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
             # original row generically (no hardcoded column names).
             part_num = _extract_part_num_from_row(row_dict)
             job["failed_rows"].append({"part_num": part_num, "reason": str(e)})
+            job["row_statuses"].append({"row_number": i + 1, "status": "skipped_unprocessable", "reason": str(e)})
             logger.warning(
                 "bulk_ingest[%s]: row %d/%d SKIPPED — part='%s' reason=%s",
                 job_id, i + 1, job["total"], part_num, e,
