@@ -22,17 +22,28 @@ import { supabase } from './supabase';
 
 const BASE_URL = '/api';
 
+// Global state to synchronously inject user ID without waiting for getSession()
+let globalUserId: string | null = null;
+export function setApiUserId(userId: string | null) {
+  globalUserId = userId;
+}
+
 // ── Low-level fetch helper ─────────────────────────────────────────────
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const customHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const currentUserId = session?.user?.id || session?.user?.email;
-    if (currentUserId) {
-      customHeaders['x-user-id'] = currentUserId;
-    }
-  } catch {}
+  
+  if (globalUserId) {
+    customHeaders['x-user-id'] = globalUserId;
+  } else {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id || session?.user?.email;
+      if (currentUserId) {
+        customHeaders['x-user-id'] = currentUserId;
+      }
+    } catch {}
+  }
 
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { ...customHeaders, ...init?.headers },

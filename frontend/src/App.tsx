@@ -20,7 +20,8 @@ import {
   fetchSources, 
   acceptField, 
   editField, 
-  buildCategoryOverviews 
+  buildCategoryOverviews,
+  setApiUserId
 } from './lib/api';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -49,6 +50,15 @@ function MainAppContent() {
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const mainScrollRef = useRef<HTMLElement | null>(null);
 
+  // Sync user ID to api fetch helper globally
+  useEffect(() => {
+    if (user && user.id) {
+      setApiUserId(user.id);
+    } else {
+      setApiUserId(null);
+    }
+  }, [user]);
+
   // Load real-time catalog data from backend API
   useEffect(() => {
     let isMounted = true;
@@ -65,29 +75,26 @@ function MainAppContent() {
           
           setSources(prev => {
             const live = liveSources || [];
-            const liveIds = new Set(live.map(s => s.id));
-            const missingFromLive = prev.filter(s => !liveIds.has(s.id));
-            return [...missingFromLive, ...live];
+            if (live.length === 0 && prev.length > 0) return prev;
+            return live;
           });
 
           setProducts(prev => {
             const live = liveProducts || [];
-            const liveIds = new Set(live.map(p => p.id));
-            const missingFromLive = prev.filter(p => !liveIds.has(p.id));
-            const merged = [...missingFromLive, ...live];
+            if (live.length === 0 && prev.length > 0) return prev;
             
-            if (merged && merged.length > 0) {
+            if (live.length > 0) {
               setSelectedProduct(prevSel => {
-                if (!prevSel) return merged[0];
-                const match = merged.find(p => p.id === prevSel.id);
+                if (!prevSel) return live[0];
+                const match = live.find(p => p.id === prevSel.id);
                 return match || prevSel;
               });
-              setCategories(buildCategoryOverviews(merged));
+              setCategories(buildCategoryOverviews(live));
             } else {
               setSelectedProduct(prevSel => prevSel ? prevSel : null);
               setCategories([]);
             }
-            return merged;
+            return live;
           });
         }
 

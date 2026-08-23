@@ -16,7 +16,7 @@ if str(ocr_feature_dir) not in sys.path:
     sys.path.insert(0, str(ocr_feature_dir))
 
 try:
-    from ocr_agent import OCRAgentSystem, DocumentType
+    from ocr_agent import OCRAgentSystem, DocumentType  # type: ignore
 except ImportError as e:
     logging.warning(f"Could not import ocr_agent from {ocr_feature_dir}: {e}")
     OCRAgentSystem = None

@@ -53,14 +53,14 @@ export const CatalogCopilotView: React.FC<CatalogCopilotViewProps> = ({ onSelect
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         data: {
           question: 'Welcome',
-          answer: `### 👋 Welcome to SourceLedger Catalog Copilot!
+          answer: `### Welcome to SourceLedger Catalog Copilot!
 
 I am your multi-agent product intelligence assistant. I have **live read & execution access** to:
-- 🗄️ **SQLite Product Database**: All product records, extracted fields, and source documents.
-- ⚖️ **ValidationAgent**: Cross-source conflict detection & trust tier resolution.
-- 🔗 **GraphAgent**: Product variant family & relationship analysis.
-- 🛡️ **DashboardService**: Quality metrics & anti-hardcoding audits.
-- 📜 **ExplainabilityLayer**: Source excerpt line-level citations.
+- **SQLite Product Database**: All product records, extracted fields, and source documents.
+- **ValidationAgent**: Cross-source conflict detection & trust tier resolution.
+- **GraphAgent**: Product variant family & relationship analysis.
+- **DashboardService**: Quality metrics & anti-hardcoding audits.
+- **ExplainabilityLayer**: Source excerpt line-level citations.
 
 Ask me anything about your catalog, or click a quick-start chip below!`,
           cited_skus: [],
@@ -153,8 +153,8 @@ Ask me anything about your catalog, or click a quick-start chip below!`,
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 rounded-[24px] bg-white/70 backdrop-blur-xl border border-white/80 ring-1 ring-white/50 shadow-md">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E8622C] to-[#191715] flex items-center justify-center text-white shadow-lg shadow-[#E8622C]/20">
-            <Bot className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-white/30 backdrop-blur-xl border border-white/40 ring-1 ring-white/20 shadow-[0_8px_32px_rgba(26,23,21,0.05)] flex items-center justify-center text-[#191715]">
+            <Bot className="w-6 h-6 text-[#E8622C]" />
           </div>
           <div>
             <h1 className="text-xl font-black text-[#191715] flex items-center gap-2">
@@ -340,15 +340,22 @@ Ask me anything about your catalog, or click a quick-start chip below!`,
       {/* Quick-Start Prompt Suggestions */}
       {suggestions.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {suggestions.map((sug, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSend(sug.prompt)}
-              className="px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white border border-white ring-1 ring-white/60 text-xs font-bold text-[#191715] hover:text-[#E8622C] transition-all whitespace-nowrap shadow-xs cursor-pointer flex items-center gap-2"
-            >
-              <span>{sug.label}</span>
-            </button>
-          ))}
+          {suggestions.map((sug, idx) => {
+            let Icon = Search;
+            if (sug.icon === 'ShieldCheck' || sug.icon === 'ShieldAlert') Icon = ShieldCheck;
+            if (sug.icon === 'GitFork') Icon = GitFork;
+            if (sug.icon === 'Sparkles') Icon = Sparkles;
+            return (
+              <button
+                key={idx}
+                onClick={() => handleSend(sug.prompt)}
+                className="px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white border border-white ring-1 ring-white/60 text-xs font-bold text-[#191715] hover:text-[#E8622C] transition-all whitespace-nowrap shadow-xs cursor-pointer flex items-center gap-2"
+              >
+                <Icon className="w-4 h-4 text-[#E8622C]" />
+                <span>{sug.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 

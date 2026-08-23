@@ -86,7 +86,7 @@ export const LeftRail: React.FC<LeftRailProps> = ({
   ];
 
   return (
-    <aside className="relative z-20 my-auto ml-4 sm:ml-6 w-16 sm:w-18 shrink-0 rounded-[28px] bg-white/70 backdrop-blur-2xl border border-white/80 ring-1 ring-white/50 shadow-[0_12px_36px_rgba(26,23,21,0.08)] flex flex-col items-center py-4 gap-4 transition-all self-center">
+    <aside className="relative z-20 my-auto ml-4 sm:ml-6 w-16 sm:w-18 shrink-0 rounded-[28px] bg-white/20 backdrop-blur-3xl border border-white/30 ring-1 ring-white/20 shadow-[0_12px_36px_rgba(26,23,21,0.08)] flex flex-col items-center py-4 gap-4 transition-all self-center">
       {/* Navigation Dock Items */}
       <div className="flex flex-col items-center gap-3.5 w-full px-2">
         {navItems.map((item) => {
