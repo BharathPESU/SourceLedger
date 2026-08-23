@@ -1,0 +1,33 @@
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "frontend/dist"
+
+[dev]
+  command = "npm run dev"
+  port    = 3000
+
+# Proxy /api/* → Render backend
+# Set VITE_BACKEND_URL in Netlify → Site Configuration → Environment Variables
+# to your Render service URL, e.g. https://sourceledger-backend.onrender.com
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://sourceledger-backend.onrender.com/api/:splat"
+  status = 200
+  force  = true
+
+# All other frontend routes resolve to index.html (SPA routing)
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
+

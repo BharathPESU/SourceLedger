@@ -1,0 +1,46 @@
+services:
+  # ── Backend API (FastAPI) ────────────────────────────────────────────
+  - type: web
+    name: sourceledger-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DB_PATH
+        value: /data/sourceledger.db
+      - key: SOURCE_STORAGE_PATH
+        value: /data/sources
+      # ── LLM Gateway ─────────────────────────────
+      - key: API_URL
+        sync: false   # Set in Render Dashboard → Environment
+      - key: API_KEY
+        sync: false
+      # ── Gemini Keys (round-robin rotation) ──────
+      - key: GOOGLE_API_KEY1
+        sync: false
+      - key: GOOGLE_API_KEY2
+        sync: false
+      - key: GOOGLE_API_KEY3
+        sync: false
+      # ── Supabase Auth Backend ────────────────────
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # ── CORS — point to your Netlify frontend URL ─
+      - key: FRONTEND_URL
+        sync: false
+    disk:
+      name: sourceledger-data
+      mountPath: /data
+      sizeGB: 1          # 1 GB persistent disk — stores sourceledger.db + source docs
+    healthCheckPath: /health
+    autoDeploy: true

@@ -31,10 +31,14 @@ from .supabase_client import sync_product_to_supabase
 
 logger = get_logger("store")
 
-# SQLite database file path — located inside the backend directory
-DB_PATH = os.path.abspath(
+# SQLite database file path.
+# In production (Render), set the DB_PATH env var to a persistent disk location
+# e.g. DB_PATH=/data/sourceledger.db  (Render persistent disk mounted at /data)
+# Falls back to the local backend/sourceledger.db for development.
+_default_db_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "sourceledger.db")
 )
+DB_PATH = os.environ.get("DB_PATH", _default_db_path)
 
 
 class ProductStore:
