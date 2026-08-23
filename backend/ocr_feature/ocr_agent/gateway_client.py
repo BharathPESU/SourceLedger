@@ -82,7 +82,7 @@ class GeminiGatewayClient:
             try:
                 logger.info(f"Attempting PRIMARY Gateway Proxy /api/generate with {target_model}...")
                 response = requests.post(
-                    direct_gen_url, json=gen_payload, headers=self.headers, timeout=self.timeout
+                    direct_gen_url, json=gen_payload, headers=self.headers, timeout=10
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -102,7 +102,7 @@ class GeminiGatewayClient:
             try:
                 logger.info(f"Attempting PRIMARY Gateway Proxy /v1beta generateContent with {target_model}...")
                 response = requests.post(
-                    url, json=payload, headers=self.headers, timeout=self.timeout
+                    url, json=payload, headers=self.headers, timeout=10
                 )
                 if response.status_code == 404:
                     continue

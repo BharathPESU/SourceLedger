@@ -42,12 +42,24 @@ class ProductStore:
 
     All mutations write to SQLite and in-memory cache. Data persists permanently
     across server restarts in sourceledger.db.
+
+    SECURITY: Every query is scoped to a user_id. The in-memory cache stores
+    (UUID → ProductRecord) but every read/write through a public method requires
+    a matching user_id in the DB row. get_product always re-validates ownership
+    from the DB to prevent cross-user leakage via the shared in-memory dict.
     """
 
     def __init__(self, db_path: str = DB_PATH) -> None:
         self.db_path = db_path
+        # In-memory cache: maps product/source UUID → record.
+        # Used only as a fast read-through layer. Ownership MUST be
+        # re-checked against the DB user_id column on every retrieval.
         self._products: dict[UUID, ProductRecord] = {}
+        # product_user_index: maps product UUID → owner user_id.
+        # Enables O(1) ownership check without a DB round-trip on cache hits.
+        self._product_user_index: dict[UUID, str] = {}
         self._sources: dict[UUID, Source] = {}
+        self._source_user_index: dict[UUID, str] = {}
         self._review_actions: list[ReviewAction] = []
         self._init_sqlite()
         self._load_from_db()
@@ -192,26 +204,35 @@ class ProductStore:
 
 
     def _load_from_db(self) -> None:
-        """Load stored records from SQLite DB into in-memory cache on startup."""
+        """Load stored records from SQLite DB into in-memory cache on startup.
+
+        We store user_id alongside each record in the ownership index so that
+        get_product / get_source can reject cross-user access without an extra
+        DB query on every cache hit.
+        """
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
 
-                # Load sources
-                cursor.execute("SELECT data FROM sources")
+                # Load sources — keep user_id in the ownership index
+                cursor.execute("SELECT data, user_id FROM sources")
                 for row in cursor.fetchall():
                     try:
                         src = Source.model_validate_json(row["data"])
+                        uid = row["user_id"] or "default_user"
                         self._sources[src.id] = src
+                        self._source_user_index[src.id] = uid
                     except Exception as err:
                         logger.warning("Error parsing source row: %s", err)
 
-                # Load products
-                cursor.execute("SELECT data FROM products")
+                # Load products — keep user_id in the ownership index
+                cursor.execute("SELECT data, user_id FROM products")
                 for row in cursor.fetchall():
                     try:
                         prod = ProductRecord.model_validate_json(row["data"])
+                        uid = row["user_id"] or "default_user"
                         self._products[prod.id] = prod
+                        self._product_user_index[prod.id] = uid
                     except Exception as err:
                         logger.warning("Error parsing product row: %s", err)
 
@@ -236,28 +257,45 @@ class ProductStore:
     # ── Sources ──────────────────────────────────────────────────────
 
     async def save_source(self, source: Source, user_id: str = "default_user") -> Source:
+        active_user = user_id or "default_user"
         self._sources[source.id] = source
+        self._source_user_index[source.id] = active_user
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     "INSERT OR REPLACE INTO sources (id, content_hash, data, user_id) VALUES (?, ?, ?, ?)",
-                    (str(source.id), source.content_hash, source.model_dump_json(), user_id),
+                    (str(source.id), source.content_hash, source.model_dump_json(), active_user),
                 )
                 conn.commit()
-            logger.info("Saved source %s (user=%s) to SQLite DB", source.id, user_id)
+            logger.info("Saved source %s (user=%s) to SQLite DB", source.id, active_user)
         except Exception as e:
             logger.error("Failed to save source to SQLite DB: %s", e)
         return source
 
-    async def get_source(self, source_id: UUID) -> Optional[Source]:
-        return self._sources.get(source_id)
+    async def get_source(self, source_id: UUID, user_id: Optional[str] = None) -> Optional[Source]:
+        """Return source only if it belongs to user_id (or any user when user_id is None)."""
+        source = self._sources.get(source_id)
+        if source is None:
+            return None
+        if user_id is not None:
+            owner = self._source_user_index.get(source_id, "default_user")
+            if owner != user_id:
+                logger.warning(
+                    "get_source: user '%s' attempted to access source %s owned by '%s'",
+                    user_id, source_id, owner,
+                )
+                return None
+        return source
 
-    async def find_source_by_hash(self, content_hash: str) -> Optional[Source]:
-        """Look up a source by its content hash — used for idempotency."""
+    async def find_source_by_hash(self, content_hash: str, user_id: Optional[str] = None) -> Optional[Source]:
+        """Look up a source by its content hash — scoped to user_id for idempotency."""
+        active_user = user_id or "default_user"
         for source in self._sources.values():
             if source.content_hash == content_hash:
-                return source
+                owner = self._source_user_index.get(source.id, "default_user")
+                if owner == active_user:
+                    return source
         return None
 
     async def list_sources(self, user_id: Optional[str] = None) -> list[Source]:
@@ -280,7 +318,9 @@ class ProductStore:
     # ── Products ─────────────────────────────────────────────────────
 
     async def save_product(self, product: ProductRecord, user_id: str = "default_user") -> ProductRecord:
+        active_user = user_id or "default_user"
         self._products[product.id] = product
+        self._product_user_index[product.id] = active_user
         try:
             json_data = product.model_dump_json()
             with self._get_connection() as conn:
@@ -293,7 +333,7 @@ class ProductStore:
                         product.name,
                         product.confidence_overall,
                         json_data,
-                        user_id,
+                        active_user,
                     ),
                 )
                 conn.commit()
@@ -301,7 +341,7 @@ class ProductStore:
                 "Saved product %s '%s' (user=%s) to SQLite DB (category=%s, confidence=%d, fields=%d)",
                 product.id,
                 product.name,
-                user_id,
+                active_user,
                 product.category,
                 product.confidence_overall,
                 len(product.fields),
@@ -321,8 +361,24 @@ class ProductStore:
             logger.error("Failed to save product to SQLite DB: %s", e)
         return product
 
-    async def get_product(self, product_id: UUID) -> Optional[ProductRecord]:
-        return self._products.get(product_id)
+    async def get_product(self, product_id: UUID, user_id: Optional[str] = None) -> Optional[ProductRecord]:
+        """Return product only if it belongs to user_id.
+
+        When user_id is None the call is treated as an internal/admin lookup
+        (e.g. export pipeline). All user-facing API endpoints MUST pass user_id.
+        """
+        product = self._products.get(product_id)
+        if product is None:
+            return None
+        if user_id is not None:
+            owner = self._product_user_index.get(product_id, "default_user")
+            if owner != user_id:
+                logger.warning(
+                    "get_product: user '%s' attempted to access product %s owned by '%s'",
+                    user_id, product_id, owner,
+                )
+                return None
+        return product
 
     async def list_products(self, user_id: Optional[str] = None) -> list[ProductRecord]:
         active_user = user_id or "default_user"
@@ -341,9 +397,21 @@ class ProductStore:
             logger.error("Error listing products for user %s: %s", active_user, e)
             return []
 
-    async def update_product(self, product: ProductRecord) -> ProductRecord:
-        """Replace a product record entirely (used after review actions)."""
-        return await self.save_product(product)
+    async def update_product(self, product: ProductRecord, user_id: str = "default_user") -> ProductRecord:
+        """Replace a product record entirely (used after review actions).
+
+        user_id must match the original owner; saves under the same user_id.
+        """
+        active_user = user_id or "default_user"
+        # Verify ownership before allowing the overwrite
+        owner = self._product_user_index.get(product.id, active_user)
+        if owner != active_user:
+            logger.warning(
+                "update_product: user '%s' attempted to update product %s owned by '%s' — blocked",
+                active_user, product.id, owner,
+            )
+            raise PermissionError(f"Product {product.id} does not belong to user {active_user}")
+        return await self.save_product(product, user_id=active_user)
 
     async def update_field(
         self,
@@ -351,9 +419,11 @@ class ProductStore:
         field_id: UUID,
         new_value: object = None,
         new_status: Optional[FieldStatus] = None,
+        user_id: str = "default_user",
     ) -> Optional[ProductField]:
         """Update a single field within a product record and persist."""
-        product = self._products.get(product_id)
+        active_user = user_id or "default_user"
+        product = await self.get_product(product_id, user_id=active_user)
         if not product:
             return None
 
@@ -370,7 +440,7 @@ class ProductStore:
                 break
 
         if updated_field:
-            await self.save_product(product)
+            await self.save_product(product, user_id=active_user)
         return updated_field
 
     # ── Review Queue ─────────────────────────────────────────────────

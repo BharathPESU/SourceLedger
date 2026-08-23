@@ -46,7 +46,8 @@ async def review_field(
     x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ) -> ReviewActionResponse:
     """Accept, edit, or reject a field value in the review queue."""
-    product = await store.get_product(product_id)
+    active_user = x_user_id or "default_user"
+    product = await store.get_product(product_id, user_id=active_user)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -83,10 +84,10 @@ async def review_field(
 
     # Update the field in the product and recompute overall confidence
     await store.update_field(
-        product_id, field_id, new_value=field.value, new_status=field.status
+        product_id, field_id, new_value=field.value, new_status=field.status,
+        user_id=active_user,
     )
 
-    active_user = x_user_id or "default_user"
     # Record the review action for audit trail and active learning
     review_action = ReviewAction(
         field_id=field_id,
@@ -127,16 +128,19 @@ async def bulk_review_field(
     product_id: UUID,
     field_id: UUID,
     request: ReviewActionRequest,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ):
     """One-click bulk correction (Phase 12b).
 
     Applies the reviewer's correction to all other needs_review items sharing
     the same category, field name, and original value pattern across the catalog.
+    Only applies within the authenticated user's own catalog.
     """
-    primary_res = await review_field(product_id, field_id, request)
+    primary_res = await review_field(product_id, field_id, request, x_user_id=x_user_id)
     
-    # Query all matching records needing review
-    all_queue = await store.get_review_queue()
+    # Query only this user's matching records needing review
+    active_user = x_user_id or "default_user"
+    all_queue = await store.get_review_queue(user_id=active_user)
     matching_targets = [
         item for item in all_queue
         if item["field"].name == primary_res.updated_field.name
@@ -147,7 +151,7 @@ async def bulk_review_field(
     bulk_count = 0
     for target in matching_targets:
         try:
-            await review_field(target["product_id"], target["field"].id, request)
+            await review_field(target["product_id"], target["field"].id, request, x_user_id=x_user_id)
             bulk_count += 1
         except Exception:
             pass

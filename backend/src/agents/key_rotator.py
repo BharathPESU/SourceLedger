@@ -152,7 +152,7 @@ class APIKeyRotator:
             }
 
             logger.info("Attempting PRIMARY Render Proxy generate_content with model %s...", model)
-            res = requests.post(target_url, json=payload, headers=headers, timeout=45)
+            res = requests.post(target_url, json=payload, headers=headers, timeout=10)
             if res.status_code == 200:
                 res_data = res.json()
                 candidates = res_data.get("candidates", [])

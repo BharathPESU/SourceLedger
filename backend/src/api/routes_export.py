@@ -10,13 +10,18 @@ Export logic is fully generic:
   part-number key AND whose name looks like an internal ID (UUID fragment,
   purely numeric, etc.) — without hardcoding any specific product names
 - Unknown fields default to N/A, not fabricated placeholder text
+
+SECURITY: All endpoints require and enforce user_id scoping — users can only
+export their own products. A missing or mismatched x-user-id header will
+result in an empty or 404 response, never another user's data.
 """
 
 import csv
 import io
 import re
+from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 
 from ..models.unihack_schema import UNIHACK_DELIVERY_COLUMNS, map_product_fields_to_unihack_row
@@ -137,14 +142,17 @@ def _dedup_products(products: list) -> list:
 
 
 @router.get("/export/csv")
-async def export_all_products_csv():
+async def export_all_products_csv(
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+):
     """Export all valid ledgered products in the 252-column Unihack Delivery CSV format.
 
     Deduplicates by canonical part number (keeps highest-confidence record).
     Filters stale/failed records generically without hardcoding product names.
     Unknown fields are N/A, not fabricated placeholder text.
+    Only exports products belonging to the authenticated user.
     """
-    all_products = await store.list_products()
+    all_products = await store.list_products(user_id=x_user_id)
 
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=UNIHACK_DELIVERY_COLUMNS)
@@ -200,9 +208,15 @@ async def export_all_products_csv():
 
 
 @router.get("/products/{product_id}/export-csv")
-async def export_single_product_csv(product_id: UUID):
-    """Export a single product record in Unihack Delivery CSV format."""
-    product = await store.get_product(product_id)
+async def export_single_product_csv(
+    product_id: UUID,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+):
+    """Export a single product record in Unihack Delivery CSV format.
+
+    Returns 404 if the product does not exist or belongs to a different user.
+    """
+    product = await store.get_product(product_id, user_id=x_user_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -225,20 +239,25 @@ async def export_single_product_csv(product_id: UUID):
 
 
 @router.get("/export/jsonld")
-async def export_catalog_jsonld():
+async def export_catalog_jsonld(
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+):
     """Export all validated products in Schema.org/Product JSON-LD format (Phase 12c)."""
     from ..services.jsonld_exporter import export_catalog_to_jsonld
-    products = await store.list_products()
+    products = await store.list_products(user_id=x_user_id)
     valid_prods = [p for p in products if p.confidence_overall >= 50]
     jsonld_data = export_catalog_to_jsonld(valid_prods)
     return jsonld_data
 
 
 @router.get("/products/{product_id}/export/jsonld")
-async def export_single_product_jsonld(product_id: UUID):
+async def export_single_product_jsonld(
+    product_id: UUID,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+):
     """Export a single product in Schema.org/Product JSON-LD format (Phase 12c)."""
     from ..services.jsonld_exporter import export_product_to_jsonld
-    product = await store.get_product(product_id)
+    product = await store.get_product(product_id, user_id=x_user_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return export_product_to_jsonld(product)

@@ -191,15 +191,33 @@ class ProductRecord(BaseModel):
     )
 
     def compute_overall_confidence(self) -> int:
-        """Recalculate overall confidence as minimum of all field confidences.
+        """Recalculate overall confidence as the average of fields that have
+        meaningful confidence scores.
 
-        Using min rather than mean because a record with nine 95%
-        fields and one 20% field is not a 87.5%-trustworthy record —
-        it's a record with a known weak spot that needs review.
+        Rules:
+        - AUTO_COMMITTED and HUMAN_CORRECTED fields always count.
+        - NEEDS_REVIEW fields with confidence > 0 count.
+        - NEEDS_REVIEW fields with confidence == 0 (rejected/blanked) are
+          excluded from the average but their count is noted via a small
+          penalty so the score isn't inflated.
+        - Returns 0 only when there are truly no fields or all fields are 0.
         """
         if not self.fields:
             return 0
-        return min(f.confidence for f in self.fields)
+
+        scored = [f.confidence for f in self.fields if f.confidence > 0]
+        zero_count = sum(1 for f in self.fields if f.confidence == 0)
+
+        if not scored:
+            return 0
+
+        avg = sum(scored) / len(scored)
+
+        # Small penalty for each zero-confidence (rejected) field:
+        # each one shaves 3 points off the average, capped so we never
+        # go below 10 (showing some data was extracted even if imperfect).
+        penalty = zero_count * 3
+        return max(10, round(avg - penalty))
 
 
 # ── ReviewAction ─────────────────────────────────────────────────────

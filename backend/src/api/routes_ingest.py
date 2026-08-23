@@ -230,6 +230,7 @@ def _extract_part_num_from_row(row_dict: dict) -> str:
 async def bulk_ingest_csv(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
 ):
     """Upload a CSV file and process each row through the full pipeline.
 
@@ -239,7 +240,11 @@ async def bulk_ingest_csv(
 
     Processing runs in the background. Poll /api/ingest/bulk-csv/{job_id}
     for progress, then GET /api/export/csv to download the enriched output.
+
+    All rows are stored under the authenticated user's account only.
     """
+    active_user = x_user_id or "default_user"
+
     raw_bytes = await file.read()
     try:
         text = raw_bytes.decode("utf-8-sig")  # strip BOM if present
@@ -263,11 +268,13 @@ async def bulk_ingest_csv(
         # These become blank passthrough rows in the export CSV.
         "failed_rows": [],
         "status": "running",
+        # SECURITY: store owner so download endpoint can scope fetches
+        "user_id": active_user,
     }
 
-    background_tasks.add_task(_process_bulk_rows, job_id, rows)
+    background_tasks.add_task(_process_bulk_rows, job_id, rows, active_user)
 
-    logger.info("bulk_ingest: started job %s — %d rows", job_id, len(rows))
+    logger.info("bulk_ingest: started job %s — %d rows (user=%s)", job_id, len(rows), active_user)
     return {
         "job_id": job_id,
         "total_rows": len(rows),
@@ -299,7 +306,10 @@ async def bulk_ingest_status(job_id: str):
 
 
 @router.post("/ingest/bulk-csv/{job_id}/download")
-async def bulk_ingest_download(job_id: str):
+async def bulk_ingest_download(
+    job_id: str,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+):
     """Download the enriched CSV for a completed bulk job.
 
     Successfully processed rows are emitted with all enriched fields.
@@ -307,15 +317,25 @@ async def bulk_ingest_download(job_id: str):
     are emitted as blank passthrough rows: the original part number is
     preserved in Mfg_Part_Num / PART_NUMBER; all enriched columns are
     empty or N/A so no fabricated data appears.
+
+    Only the user who started the job can download it.
     """
     job = _bulk_jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+
+    # SECURITY: only the job owner can download
+    active_user = x_user_id or "default_user"
+    job_owner = job.get("user_id", "default_user")
+    if job_owner != active_user:
+        raise HTTPException(status_code=403, detail="Access denied: this job belongs to a different user.")
+
     if job["status"] != "completed":
         raise HTTPException(status_code=202, detail=f"Job still running — {job['done']}/{job['total']} done.")
 
-    # ── Successful products ──────────────────────────────────────────
+    # ── Successful products — scoped to job owner ──────────────────
     product_ids: list[UUID] = [UUID(pid) for pid in job["product_ids"]]
+    # Pass user_id=None for internal pipeline lookup (UUID already validated as owned)
     products = [await store.get_product(pid) for pid in product_ids]
     products = [p for p in products if p]
 
@@ -373,7 +393,7 @@ async def bulk_ingest_download(job_id: str):
 
 # ─── Background worker ────────────────────────────────────────────────────────
 
-async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
+async def _process_bulk_rows(job_id: str, rows: list[dict], user_id: str = "default_user") -> None:
     """Process each CSV row through the full pipeline (runs in background).
 
     Each row dict is JSON-serialized and passed as the content string.
@@ -387,8 +407,11 @@ async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
     - The download endpoint emits a blank passthrough row so the output
       has one row per input row, with failed rows showing only the part
       number and all enriched columns empty.
+
+    All rows are persisted under user_id so they are only visible to that user.
     """
     job = _bulk_jobs[job_id]
+    active_user = user_id or "default_user"
 
     for i, row_dict in enumerate(rows):
         # Pass the raw CSV row as a JSON-encoded dict so the ExtractionAgent
@@ -401,6 +424,7 @@ async def _process_bulk_rows(job_id: str, rows: list[dict]) -> None:
                     source_type=SourceType.CSV,
                     content=row_json,
                     category=None,
+                    user_id=active_user,
                 )
             job["done"] += 1
             job["product_ids"].append(str(product.id))

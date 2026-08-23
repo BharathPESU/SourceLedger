@@ -42,9 +42,15 @@ async def list_products(x_user_id: Optional[str] = Header(None, alias="x-user-id
 
 
 @router.get("/products/{product_id}", response_model=ProductDetailResponse)
-async def get_product(product_id: UUID) -> ProductDetailResponse:
-    """Get full product record with all fields and provenance."""
-    product = await store.get_product(product_id)
+async def get_product(
+    product_id: UUID,
+    x_user_id: Optional[str] = Header(None, alias="x-user-id"),
+) -> ProductDetailResponse:
+    """Get full product record with all fields and provenance.
+
+    Returns 404 if the product does not exist or does not belong to the requesting user.
+    """
+    product = await store.get_product(product_id, user_id=x_user_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 

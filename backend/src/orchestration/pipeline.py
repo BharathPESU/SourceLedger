@@ -107,14 +107,14 @@ async def run_pipeline(
 
         # ── Stage 2: Idempotency check ───────────────────────────────
         existing = await store.find_source_by_hash(
-            ingestion_result.source.content_hash
+            ingestion_result.source.content_hash, user_id=user_id
         )
         if existing:
             logger.info(
                 "Duplicate source detected (hash=%s) — checking for existing product",
                 existing.content_hash[:12],
             )
-            products = await store.list_products()
+            products = await store.list_products(user_id=user_id)
             for p in products:
                 if existing.id in p.source_ids:
                     ctx["output_summary"] = (
@@ -235,7 +235,7 @@ async def run_pipeline(
         )
 
         for enrichment_source in enrichment_result.enrichment_sources:
-            await store.save_source(enrichment_source)
+            await store.save_source(enrichment_source, user_id=user_id)
 
         # ── Post-enrichment hallucination guard ───────────────────────────
         # If extraction produced very few fields (≤ 3 identity fields) and
