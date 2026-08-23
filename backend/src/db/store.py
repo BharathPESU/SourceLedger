@@ -79,7 +79,16 @@ class ProductStore:
         self._load_from_db()
 
     def _get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
+        try:
+            db_dir = os.path.dirname(self.db_path)
+            if db_dir:
+                os.makedirs(db_dir, exist_ok=True)
+            conn = sqlite3.connect(self.db_path)
+        except Exception as err:
+            logger.warning("Could not open SQLite DB at %s (%s) — falling back to /tmp/sourceledger.db", self.db_path, err)
+            fallback_dir = "/tmp"
+            os.makedirs(fallback_dir, exist_ok=True)
+            conn = sqlite3.connect(os.path.join(fallback_dir, "sourceledger.db"))
         conn.row_factory = sqlite3.Row
         return conn
 
