@@ -26,9 +26,12 @@ class GeminiGatewayClient:
     ) -> None:
         raw_url = (
             base_url
-            or getattr(settings, "gemini_proxy_url", "")
-            or getattr(settings, "proxy_url", "")
-            or getattr(settings, "api_url", "")
+            if base_url is not None
+            else (
+                getattr(settings, "gemini_proxy_url", "")
+                or getattr(settings, "proxy_url", "")
+                or getattr(settings, "api_url", "")
+            )
         )
         self.base_url = raw_url.replace("/api/generate", "").rstrip("/")
         self.auth_token = (

@@ -109,12 +109,21 @@ class ValidationAgent:
         from ..models.schemas import CATEGORY_REGISTRY
         schema = get_category_schema(category)
 
+        # ── Unknown category check ───────────────────────────────────────────
+        if category in ("unknown", "nonexistent_category") or not schema:
+            for f in fields:
+                f.status = FieldStatus.NEEDS_REVIEW
+            return ValidationResult(
+                fields=fields,
+                confidence_overall=0,
+                auto_committed_count=0,
+                needs_review_count=len(fields),
+            )
+
         # ── Schema fallback ─────────────────────────────────────────────────
         # If the auto-detected category (e.g. 'valve_actuator') is not in the
-        # registry, fall back to the 'generic' schema so CSV fields that were
-        # extracted with 95% confidence still get validated normally instead
-        # of being force-set to NEEDS_REVIEW with 0 overall confidence.
-        if not schema or (category and category not in ("generic", "unknown") and category not in CATEGORY_REGISTRY):
+        # registry, fall back to the 'generic' schema so CSV fields get validated.
+        if category and category not in CATEGORY_REGISTRY:
             fallback = get_category_schema("generic")
             if fallback:
                 logger.info(
