@@ -1,14 +1,21 @@
-```text
-   ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗██╗     ███████╗██████╗  ██████╗ ███████╗██████╗ 
-   ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝██║     ██╔════╝██╔══██╗██╔════╝ ██╔════╝██╔══██╗
-   ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  ██║     █████╗  ██║  ██║██║  ███╗█████╗  ██████╔╝
-   ╚════██║██║   ██║██║   ██║██╔══██╗██║     ██╔══╝  ██║     ██╔══╝  ██║  ██║██║   ██║██╔══╝  ██╔══██╗
-   ███████║╚██████╔╝╚██████╔╝██║  ██║╚██████╗███████╗███████╗███████╗██████╔╝╚██████╔╝███████╗██║  ██║
-   ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚══════╝╚══════╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝
-```
+<div align="center">
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database-zap.svg" width="120" height="120" alt="SourceLedger Logo" />
+  
+  # SourceLedger
 
-**SourceLedger** is an AI-powered Product Intelligence Engine designed to convert unstructured, messy industrial product datasheets, catalog PDFs, web pages, and CSV listings into normalized, commerce-ready product records with complete explainability, confidence scoring, and field-level source provenance.
+  **AI-Powered Product Intelligence Engine**
+  
+  *Every product fact, ledgered back to its source.*
 
+  [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+  [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+  [![React 18](https://img.shields.io/badge/react-18-61DAFB.svg?logo=react&logoColor=white)](https://reactjs.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+  
+  <br />
+</div>
+
+**SourceLedger** is an enterprise-grade AI Product Intelligence and Catalog Harmonization System. Built for industrial e-commerce, distributor onboarding, and catalog data engineering, SourceLedger ingests multi-format documents (PDF specification sheets, scanned catalog images, vendor web pages, raw text, and bulk CSV files) and transforms them into standardized, commerce-ready product records with complete explainability, confidence scoring, and field-level source provenance.
 ---
 
 ## Table of Contents
