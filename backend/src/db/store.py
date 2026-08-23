@@ -136,6 +136,15 @@ class ProductStore:
                     )
                 """
                 )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS user_profiles (
+                        user_id TEXT PRIMARY KEY,
+                        data TEXT NOT NULL,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+                )
                 
                 # Migration: add user_id column to existing tables if missing
                 for tbl in ["sources", "products", "review_actions", "field_conflicts", "product_relationships", "correction_patterns"]:
@@ -630,6 +639,38 @@ class ProductStore:
         except Exception as e:
             logger.error("Failed to get correction patterns: %s", e)
         return patterns
+
+    def get_user_profile(self, user_id: str) -> Optional[dict]:
+        """Retrieve user profile by user_id."""
+        active_user = user_id or "default_user"
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT data FROM user_profiles WHERE user_id = ?", (active_user,))
+                row = cursor.fetchone()
+                if row and row["data"]:
+                    return json.loads(row["data"])
+        except Exception as e:
+            logger.error("Failed to get user profile for %s: %s", active_user, e)
+        return None
+
+    def save_user_profile(self, user_id: str, profile_data: dict) -> None:
+        """Save or update user profile."""
+        active_user = user_id or "default_user"
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO user_profiles (user_id, data, updated_at)
+                    VALUES (?, ?, CURRENT_TIMESTAMP)
+                    """,
+                    (active_user, json.dumps(profile_data)),
+                )
+                conn.commit()
+                logger.info("Saved profile for user %s", active_user)
+        except Exception as e:
+            logger.error("Failed to save user profile for %s: %s", active_user, e)
 
 
 # ── Singleton ────────────────────────────────────────────────────────

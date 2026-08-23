@@ -11,6 +11,7 @@ import { DataQualityDashboardView } from './components/DataQualityDashboardView'
 import { CatalogCopilotView } from './components/CatalogCopilotView';
 import { SettingsView } from './components/SettingsView';
 import { OcrAgentView } from './components/OcrAgentView';
+import { ProfileView } from './components/ProfileView';
 import { IngestModal } from './components/IngestModal';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
@@ -412,6 +413,10 @@ function MainAppContent() {
 
               {activeTab === 'ocr' && (
                 <OcrAgentView />
+              )}
+
+              {activeTab === 'profile' && (
+                <ProfileView />
               )}
             </ErrorBoundary>
 

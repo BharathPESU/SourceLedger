@@ -821,3 +821,15 @@ export async function resetApiKeyRotator(): Promise<any> {
     method: 'POST',
   });
 }
+
+export async function fetchUserProfile(): Promise<{ status: string; user_id: string; profile: any }> {
+  return apiFetch<{ status: string; user_id: string; profile: any }>('/profile');
+}
+
+export async function updateUserProfile(profile: any): Promise<any> {
+  return apiFetch<any>('/profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile),
+  });
+}

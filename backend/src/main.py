@@ -14,6 +14,7 @@ from .api.routes_ocr import router as ocr_router
 from .api.routes_products import router as products_router
 from .api.routes_review import router as review_router
 from .api.routes_settings import router as settings_router
+from .api.routes_profile import router as profile_router
 
 app = FastAPI(
     title="SourceLedger",
@@ -50,5 +51,6 @@ app.include_router(conflicts_router)
 app.include_router(graph_router)
 app.include_router(copilot_router)
 app.include_router(settings_router)
+app.include_router(profile_router)
 
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   LayoutDashboard, 
   UploadCloud, 
@@ -10,7 +9,8 @@ import {
   FileSpreadsheet,
   HelpCircle,
   LogOut,
-  Bot
+  Bot,
+  User
 } from 'lucide-react';
 import { ActiveTab } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -75,6 +75,12 @@ export const LeftRail: React.FC<LeftRailProps> = ({
       label: 'Settings & Model Rules',
       icon: Sliders,
       shortcut: '8'
+    },
+    {
+      id: 'profile' as ActiveTab,
+      label: 'My Profile & Address',
+      icon: User,
+      shortcut: 'P'
     }
   ];
 

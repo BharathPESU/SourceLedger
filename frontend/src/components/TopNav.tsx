@@ -8,7 +8,8 @@ import {
   AlertTriangle, 
   Layers, 
   Command,
-  X
+  X,
+  User
 } from 'lucide-react';
 import { ProductRecord } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -210,7 +211,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             </div>
 
             {/* User Profile Avatar & Dropdown */}
-            <UserProfileDropdown />
+            <UserProfileDropdown setActiveTab={setActiveTab} />
           </div>
 
           {/* Primary Action Button */}
@@ -227,7 +228,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   );
 };
 
-const UserProfileDropdown: React.FC = () => {
+const UserProfileDropdown: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTab }) => {
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -263,6 +264,17 @@ const UserProfileDropdown: React.FC = () => {
               {email}
             </p>
           </div>
+
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              setActiveTab('profile');
+            }}
+            className="w-full py-2 px-3 rounded-xl bg-white hover:bg-[#FAF4EB] text-[#191715] text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 border border-black/5"
+          >
+            <User className="w-4 h-4 text-[#E8622C]" />
+            <span>My Profile & Address</span>
+          </button>
 
           <button
             onClick={() => {

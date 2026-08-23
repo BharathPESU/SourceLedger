@@ -101,4 +101,21 @@ export interface CategoryOverview {
   accentColor: 'orange' | 'charcoal' | 'cream';
 }
 
-export type ActiveTab = 'dashboard' | 'review_queue' | 'field_inspector' | 'catalog' | 'sources' | 'settings' | 'ocr' | 'quality_dashboard' | 'copilot';
+export type ActiveTab = 'dashboard' | 'review_queue' | 'field_inspector' | 'catalog' | 'sources' | 'settings' | 'ocr' | 'quality_dashboard' | 'copilot' | 'profile';
+
+export interface UserProfile {
+  full_name: string;
+  display_name: string;
+  title: string;
+  company: string;
+  phone: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  country: string;
+  bio: string;
+  preferred_language: string;
+  avatar_color: string;
+}
