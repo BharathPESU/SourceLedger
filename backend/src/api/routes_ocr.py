@@ -108,6 +108,7 @@ async def extract_document_image(
             from ..db.store import store
             from ..models.product_record import (
                 ProductRecord as BackendProductRecord,
+                ProductField as BackendProductField,
                 SourceExcerpt as BackendSourceExcerpt,
                 FieldStatus,
                 Source as BackendSource,
@@ -155,6 +156,12 @@ async def extract_document_image(
                         ),
                         status=f_status,
                         reasoning=f"Extracted from {filename_clean} via Ledger Multimodal OCR Agent",
+                        source_excerpt=SourceExcerpt(
+                            source_id=source_id,
+                            text=f"{k}: {val_str}" if not raw_text else raw_text[:200],
+                            location="page-1",
+                            extraction_method="vlm_image",
+                        ),
                     )
                 )
 

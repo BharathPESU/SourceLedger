@@ -322,7 +322,7 @@ class MultimodalExtractorTool:
                 response_mime_type="application/json"
             )
             extracted_data = cls._clean_json_response(raw_response)
-            if extracted_data and not extracted_data.get("error"):
+            if extracted_data and not extracted_data.get("error") and len(extracted_data) > 1:
                 return extracted_data
         except Exception as err:
             logger.warning(f"Remote LLM gateway extraction error: {err}. Using local document spec parser...")
