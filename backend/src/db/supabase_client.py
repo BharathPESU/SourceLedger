@@ -20,8 +20,21 @@ def get_supabase_client():
     if _supabase_client is not None:
         return _supabase_client
 
-    supabase_url = settings.supabase_url or os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-    supabase_key = settings.supabase_key or settings.supabase_service_role_key or os.getenv("SUPABASE_KEY")
+    supabase_url = (
+        settings.get_effective_supabase_url()
+        or os.getenv("SUPABASE_URL")
+        or os.getenv("VITE_SUPABASE_URL")
+        or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+        or ""
+    ).strip()
+
+    supabase_key = (
+        settings.get_effective_supabase_key()
+        or os.getenv("SUPABASE_KEY")
+        or os.getenv("VITE_SUPABASE_ANON_KEY")
+        or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        or ""
+    ).strip()
 
     if not supabase_url or not supabase_key:
         logger.info("Supabase credentials not fully configured in environment (using local memory store fallback).")
