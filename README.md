@@ -1,514 +1,627 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database-zap.svg" width="120" height="120" alt="SourceLedger Logo" />
-  
-  # SourceLedger
 
-  **AI-Powered Product Intelligence Engine**
-  
-  *Every product fact, ledgered back to its source.*
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=SourceLedger&fontSize=60&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=AI-Powered%20Product%20Intelligence%20Engine&descAlignY=62&descSize=20&descColor=c9d1d9" width="100%" />
 
-  [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-  [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-  [![React 18](https://img.shields.io/badge/react-18-61DAFB.svg?logo=react&logoColor=white)](https://reactjs.org/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-  
-  <br />
+<br/>
+
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=58A6FF&center=true&vCenter=true&width=700&lines=Every+product+fact%2C+ledgered+back+to+its+source.;Multi-Agent+AI+Catalog+Intelligence+Engine.;Confidence+Scored.+Source+Cited.+Human+Reviewed.;Built+for+Industrial+E-Commerce+at+Scale.)](https://git.io/typing-svg)
+
+<br/>
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+
+<br/>
+
+[![UniHack 2026](https://img.shields.io/badge/🏆_UniHack-2026-FFD700?style=for-the-badge)](https://unihack.net)
+[![Team](https://img.shields.io/badge/Team-ERROR__404__NOT__FOUND-FF6B6B?style=for-the-badge&logo=github&logoColor=white)](https://github.com/balaraj74)
+[![Status](https://img.shields.io/badge/Status-Active-00D26A?style=for-the-badge&logo=statuspage&logoColor=white)]()
+
 </div>
 
-**SourceLedger** is an enterprise-grade AI Product Intelligence and Catalog Harmonization System. Built for industrial e-commerce, distributor onboarding, and catalog data engineering, SourceLedger ingests multi-format documents (PDF specification sheets, scanned catalog images, vendor web pages, raw text, and bulk CSV files) and transforms them into standardized, commerce-ready product records with complete explainability, confidence scoring, and field-level source provenance.
 ---
 
-## Table of Contents
+<div align="center">
 
-1. [What is SourceLedger?](#1-what-is-sourceledger)
-2. [Problem Statement](#2-problem-statement)
-3. [Solution Overview](#3-solution-overview)
-4. [Key Features](#4-key-features)
-5. [How SourceLedger Works](#5-how-sourceledger-works)
-6. [Multi-Agent Architecture](#6-multi-agent-architecture)
-7. [System Architecture](#7-system-architecture)
-8. [Project Structure](#8-project-structure)
-9. [Technology Stack](#9-technology-stack)
-10. [API Reference](#10-api-reference)
-11. [Database](#11-database)
-12. [Authentication & Security](#12-authentication--security)
-13. [Prerequisites](#13-prerequisites)
-14. [Quick Start](#14-quick-start)
-15. [Manual Installation](#15-manual-installation)
-16. [Environment Variables](#16-environment-variables)
-17. [Running the Application](#17-running-the-application)
-18. [Testing](#18-testing)
-19. [Configuration](#19-configuration)
-20. [Troubleshooting](#20-troubleshooting)
-21. [Evaluation / Quality Metrics](#21-evaluation--quality-metrics)
-22. [Limitations](#22-limitations)
-23. [Future Roadmap](#23-future-roadmap)
-24. [License](#24-license)
-25. [Contributors](#25-contributors)
+## ✨ What Makes SourceLedger Different?
+
+</div>
+
+> **The Golden Rule:** *No product attribute enters the catalog without a verifiable source citation, a 0–100% confidence score, and an explicit AI reasoning chain.*
+
+Unlike black-box AI enrichment tools that silently hallucinate part numbers and attributes, SourceLedger provides **complete data provenance** — every field tells you *where it came from*, *how confident the AI is*, and *why that value was chosen*. Low-confidence fields are automatically routed to human reviewers, making SourceLedger the first truly **explainable** product catalog intelligence engine.
 
 ---
 
-## 1. What is SourceLedger?
+## 📋 Table of Contents
 
-**SourceLedger** is an enterprise-grade AI Product Intelligence and Catalog Harmonization System. Built for industrial e-commerce, distributor onboarding, and catalog data engineering, SourceLedger ingests multi-format documents (PDF specification sheets, scanned catalog images, vendor web pages, raw text, and bulk CSV files) and transforms them into standardized, commerce-ready product records.
+<div align="center">
 
-Unlike black-box AI tools that output unverified attributes, SourceLedger operates under a strict **Golden Rule**: *No product attribute exists in the catalog without a verifiable source citation, a 0–100% confidence score, and an explicit AI reasoning chain.* Low-confidence fields (≤ 70%) or cross-source conflicts are automatically routed to a human Review Queue, ensuring complete data governance.
+| | Section | | Section |
+|:---:|:---|:---:|:---|
+| 🎯 | [What is SourceLedger?](#-what-is-sourceledger) | 🔐 | [Authentication & Security](#-authentication--security) |
+| ❗ | [Problem Statement](#-problem-statement) | 💻 | [Prerequisites](#-prerequisites) |
+| 💡 | [Solution Overview](#-solution-overview) | ⚡ | [Quick Start](#-quick-start) |
+| 🚀 | [Key Features](#-key-features) | 🔧 | [Manual Installation](#-manual-installation) |
+| ⚙️ | [How It Works](#️-how-it-works) | 🔑 | [Environment Variables](#-environment-variables) |
+| 🤖 | [Multi-Agent Architecture](#-multi-agent-architecture) | 🧪 | [Testing](#-testing) |
+| 🏗️ | [System Architecture](#️-system-architecture) | 🔭 | [Troubleshooting](#-troubleshooting) |
+| 📁 | [Project Structure](#-project-structure) | 📊 | [Quality Metrics](#-quality-metrics) |
+| 🛠️ | [Technology Stack](#️-technology-stack) | 🗺️ | [Roadmap](#️-roadmap) |
+| 🌐 | [API Reference](#-api-reference) | 📜 | [License](#-license) |
+| 🗄️ | [Database](#️-database) | 👥 | [Contributors](#-contributors) |
+
+</div>
 
 ---
 
-## 2. Problem Statement
+## 🎯 What is SourceLedger?
 
-Industrial distributors and e-commerce platforms process millions of complex technical listings from thousands of manufacturers. Today, this workflow suffers from critical friction:
+**SourceLedger** is an enterprise-grade AI Product Intelligence and Catalog Harmonization System built for industrial e-commerce, distributor onboarding, and catalog data engineering teams.
 
-- **Unstructured & Disparate Sources**: Product specifications are trapped in multi-page PDF datasheets, unstructured vendor web pages, scanned image catalogs, and noisy CSV exports.
-- **Inconsistent Taxonomy & Units**: Measurements (e.g., flow rate, voltage, thread size) are recorded in mixed units (GPM vs. m³/h, HP vs. kW) or fractional formats (3/8 in vs. 0.375 in).
-- **Lack of Provenance & Trust**: Standard LLM extractions suffer from hallucinations, silently fabricating part numbers or attributes without audit trails.
-- **Manual Review Bottlenecks**: Catalog managers spend hundreds of hours manually cross-checking spec sheets, leading to high onboarding costs and delayed time-to-market.
+It ingests **multi-format documents** — PDF specification sheets, scanned catalog images, vendor web pages, raw text, and bulk CSVs — and transforms them into standardized, commerce-ready product records. Every extracted attribute is:
+
+<div align="center">
+
+| 🎯 Attribute | 📋 Description |
+|:---:|:---|
+| **📍 Source-Cited** | Verbatim text excerpt from the original document |
+| **📊 Confidence-Scored** | 0–100% field-level trust score |
+| **🧠 Reasoning-Chained** | Explicit AI justification for every value chosen |
+| **✅ Review-Gated** | Auto-committed if ≥70%, else human review queue |
+
+</div>
 
 ---
 
-## 3. Solution Overview
+## ❗ Problem Statement
 
-SourceLedger resolves catalog chaos through a multi-agent orchestration pipeline that pairs multimodal vision LLMs with deterministic validation rules:
+Industrial distributors process millions of complex technical listings from thousands of manufacturers. Today, this workflow is broken:
 
-```text
-  Input Documents (PDF / Web / Image / CSV / Text)
-                         │
-                         ▼
-        ┌──────────────────────────────────┐
-        │        Ingestion Agent           │  ──► SHA-256 Hashing & Storage
-        └────────────────┬─────────────────┘
-                         │
-                         ▼
-        ┌──────────────────────────────────┐
-        │  Ledger Multimodal OCR Agent     │  ──► PyMuPDF / pypdfium2 Vision Rendering
-        └────────────────┬─────────────────┘
-                         │
-                         ▼
-        ┌──────────────────────────────────┐
-        │        Extraction Agent          │  ──► Category Schema Locking (Pydantic)
-        └────────────────┬─────────────────┘
-                         │
-                         ▼
-        ┌──────────────────────────────────┐
-        │        Enrichment Agent          │  ──► Secondary Gap-Fill & Taxonomy Mapping
-        └────────────────┬─────────────────┘
-                         │
-                         ▼
-        ┌──────────────────────────────────┐
-        │        Validation Agent          │  ──► Conflict Resolution & Confidence Scoring
-        └────────────────┬─────────────────┘
-                         │
-          ┌──────────────┴──────────────┐
-          ▼                             ▼
-   Auto-Committed               Needs Review Queue
-   (Confidence ≥ 70%)           (Human-in-the-Loop Audit Trail)
-          │                             │
-          └──────────────┬──────────────┘
-                         │
-                         ▼
-           Standardized Delivery CSV Export
+<div align="center">
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    THE CATALOG DATA PROBLEM                     │
+├──────────────────────┬──────────────────────────────────────────┤
+│  📄 Source Chaos     │ Specs locked in PDFs, scans, HTML, CSVs  │
+│  📐 Unit Anarchy     │ GPM vs m³/h, 3/8" vs 0.375", HP vs kW   │
+│  👻 AI Hallucinations│ Black-box tools invent unverified facts   │
+│  ⏱️ Manual Bottleneck│ 100s of hours per catalog onboarding     │
+└──────────────────────┴──────────────────────────────────────────┘
+```
+
+</div>
+
+---
+
+## 💡 Solution Overview
+
+SourceLedger resolves catalog chaos through a **multi-agent orchestration pipeline** pairing multimodal vision LLMs with deterministic validation rules:
+
+```mermaid
+flowchart TD
+    A["📥 Input Documents\nPDF · Web · Image · CSV · Text"] --> B
+
+    B["🔄 Ingestion Agent\nSHA-256 Hashing & Storage"]
+    B --> C["👁️ Ledger OCR Agent\nPyMuPDF · pypdfium2 · Vision Rendering"]
+    C --> D["🔍 Extraction Agent\nCategory Schema Locking — Pydantic v2"]
+    D --> E["🧬 Enrichment Agent\nTaxonomy Gap-Fill & UNSPSC Mapping"]
+    E --> F["✅ Validation Agent\nConflict Resolution & Confidence Scoring"]
+
+    F --> G{"Confidence\nThreshold"}
+    G -->|"≥ 70%"| H["✅ Auto-Committed\nto Catalog"]
+    G -->|"< 70%"| I["🔍 Human Review\nQueue"]
+    H --> J["📤 Delivery CSV Export"]
+    I --> J
+
+    style A fill:#1a1a2e,color:#fff,stroke:#58a6ff
+    style H fill:#0d4a2e,color:#fff,stroke:#3ecf8e
+    style I fill:#4a1a0d,color:#fff,stroke:#ff6b6b
+    style J fill:#1a2e4a,color:#fff,stroke:#58a6ff
 ```
 
 ---
 
-## 4. Key Features
+## 🚀 Key Features
 
-- **Multi-Format Ingestion**: Ingests PDF specification sheets, web URLs/HTML, scanned document images, raw text, and bulk CSV files.
-- **Ledger Multimodal OCR Agent**: Multi-page PDF page screenshot rendering using PyMuPDF (`fitz`) and `pypdfium2` fallback, capturing high-resolution vision extractions with page-level citations.
-- **Domain-Specific Schema Locking**: Enforces category-specific Pydantic schemas across 6 industrial domains (`industrial_pump`, `electrical_connector`, `safety_fastener`, `power_tool`, `home_appliance`, `generic`).
-- **Confidence Scoring & Trust-Tier Ranking**: Computes overall and field-level confidence scores (0–100%) incorporating source trust tiers (Tier 1 OEM Manufacturer, Tier 2 Authorized Distributor, Tier 3 Marketplace).
-- **Field Inspector & Provenance**: Surfaces verbatim source excerpts, confidence badges, and LLM reasoning chains for every catalog field.
-- **Human-in-the-Loop Review Queue**: Dedicated workflow for catalog managers to review, accept, edit, or reject flagged attributes with immutable `ReviewAction` audit logging.
-- **Catalog Copilot & Multi-Agent Data Chat**: Real-time conversational interface with live read & execution access to the SQLite database. Dispatches multi-agent tools on demand to filter specifications, scan cross-source conflicts, identify product variant families, and run anti-hardcoding audits.
-- **Supabase Authentication**: Production authentication suite featuring email/password sign-up, email verification access guard, sign-in, password reset workflows, and Google OAuth 2.0.
-- **Standardized Delivery CSV Exporter**: Exports catalog records into delivery CSV format.
-- **Per-User Data Isolation**: Strict ownership enforcement — every product, source, and review action is scoped to its authenticated user. Cross-user data leakage is architecturally impossible.
+<div align="center">
 
----
+| Feature | Description |
+|:---:|:---|
+| 📄 **Multi-Format Ingestion** | PDF spec sheets, web URLs, scanned images, raw text, bulk CSV |
+| 👁️ **Ledger Multimodal OCR** | Multi-page PyMuPDF + pypdfium2 vision rendering with page-level citations |
+| 🔒 **Domain Schema Locking** | 6 industrial category Pydantic schemas: pump · connector · fastener · tool · appliance · generic |
+| 📊 **Confidence Scoring** | 0–100% field-level scores with 3-tier source trust ranking (OEM → Distributor → Marketplace) |
+| 🧾 **Field Provenance** | Verbatim source excerpts + LLM reasoning chains for every single attribute |
+| 🖊️ **Human-in-the-Loop** | Review Queue with immutable `ReviewAction` audit logging |
+| 🤖 **Catalog Copilot** | Conversational multi-agent AI with live SQLite read + tool dispatch |
+| 🔐 **Supabase Auth** | Email/password, email verification, password reset & Google OAuth 2.0 |
+| 🧍 **Per-User Isolation** | Every record is ownership-scoped — cross-user access is architecturally impossible |
+| 📤 **Delivery CSV Export** | Standardized Unihack/commerce-format export |
 
-## 5. How SourceLedger Works
-
-### File Ingestion & OCR
-1. **Ingest Source**: Users upload files via the **Ingest New Source** modal or select **Ledger Multimodal OCR Agent**.
-2. **Vision Preprocessor**: PDF documents are rendered into high-resolution PNG page screenshots.
-3. **Multimodal Extraction**: Multimodal vision models analyze page screenshots concurrently, extracting attributes into structured JSON.
-
-### Extraction, Enrichment & Validation
-1. **Schema Locking**: Extracted JSON is validated against Pydantic category models. Malformed responses trigger automatic JSON repair loops.
-2. **Secondary Gap Fill**: The Enrichment Agent cross-references secondary sources and catalog entries to populate missing attributes.
-3. **Trust & Conflict Resolution**: The Validation Agent compares conflicting values across sources, favoring higher trust tiers (Tier 1 OEM over Tier 3 Marketplace).
-4. **Status Assignment**: Records with overall confidence ≥ 70% are marked `auto_committed`; records with fields < 70% are routed to `needs_review`.
+</div>
 
 ---
 
-## 6. Multi-Agent Architecture
+## ⚙️ How It Works
 
-SourceLedger employs six specialized backend agents:
+### 1️⃣ Document Ingestion & OCR
 
-```text
-                                  ┌─────────────────────────┐
-                                  │      CopilotEngine      │  (Conversational Multi-Agent Router)
-                                  └────────────┬────────────┘
-                                               │
-      ┌──────────────┬──────────────┬──────────┴──────┬──────────────┬──────────────┐
-      │              │              │                  │              │              │
-┌─────▼────────┐ ┌───▼──────────┐ ┌▼─────────────┐ ┌─▼───────────┐ ┌▼────────────┐ ┌▼────────────┐
-│IngestionAgent│ │ExtractionAgent│ │EnrichmentAgent│ │Validation   │ │GraphAgent   │ │Explainability│
-│PDF/Web/CSV   │ │(Schema Lock) │ │(Taxonomy)    │ │Agent (Trust)│ │(Variants)   │ │Layer (Audit) │
-└──────────────┘ └──────────────┘ └──────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
+```
+User uploads PDF/URL/Image
+         │
+         ▼
+📁 Document stored with SHA-256 hash (idempotency)
+         │
+         ▼
+📸 PDF pages rendered as high-res PNG screenshots (PyMuPDF)
+         │
+         ▼
+🤖 Vision LLM analyzes each page concurrently
+         │
+         ▼
+📦 Structured JSON extracted with field-level confidence
 ```
 
-1. **`IngestionAgent`** — Parses raw PDFs, HTML, text, and CSV files; generates unique SHA-256 content hashes for idempotency.
-2. **`ExtractionAgent`** — Executes category-locked LLM extractions against category schemas.
-3. **`EnrichmentAgent`** — Fills missing attributes using secondary sources and maps UNSPSC/eCl@ss taxonomy codes.
-4. **`ValidationAgent`** — Calculates weighted field and record confidence scores, resolves multi-source conflicts, and sets review statuses.
-5. **`GraphAgent`** — Analyzes product relationships, part-number prefix/suffix variants, compatibility, and cross-references.
-6. **`ExplainabilityLayer`** — Annotates extracted fields with verbatim source text excerpts and LLM reasoning chains.
-7. **`CopilotEngine`** — Conversational catalog intelligence router. Synthesizes natural language answers by executing multi-agent tools over live SQLite records.
-8. **`KeyRotator`** — Thread-safe round-robin rotator managing API keys to prevent HTTP 429 rate limit errors.
+### 2️⃣ Extraction, Enrichment & Validation
 
----
+```
+Schema Locking  ──►  Gap Fill  ──►  Conflict Resolution  ──►  Status Assignment
+    │                   │                   │                        │
+Pydantic v2         Secondary          Tier-ranked             auto_committed
+category model      sources            trust scores            OR needs_review
+```
 
-## 7. System Architecture
+### 3️⃣ Human Review Cycle
 
-```text
-┌───────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT LAYER                                 │
-│          React 18 + TypeScript + Vite + Tailwind CSS v4 + Motion          │
-└─────────────────────────────────────┬─────────────────────────────────────┘
-                                      │ REST APIs / JSON
-┌─────────────────────────────────────▼─────────────────────────────────────┐
-│                              FASTAPI BACKEND                              │
-│         FastAPI Router + Async Handlers + Pydantic v2 Schema Engine        │
-└──────────────────┬──────────────────┬──────────────────┬──────────────────┘
-                   │                  │                  │
-                   ▼                  ▼                  ▼
-        ┌──────────────────┐┌──────────────────┐┌──────────────────┐
-        │  Multi-Agent     ││ Persistent Store ││ Supabase Auth    │
-        │  Orchestration   ││ SQLite DB        ││ Session & OAuth  │
-        └──────────────────┘└──────────────────┘└──────────────────┘
+```
+🚩 needs_review field appears in Review Queue
+         │
+Catalog manager: Accept · Edit · Reject
+         │
+         ▼
+ReviewAction logged immutably in audit trail
+         │
+         ▼
+Field confidence updated — promotes to auto_committed
 ```
 
 ---
 
-## 8. Project Structure
+## 🤖 Multi-Agent Architecture
 
-```text
+```mermaid
+graph TB
+    CE["🤖 CopilotEngine\nConversational Multi-Agent Router"]
+
+    CE --> IA["📥 IngestionAgent\nPDF · HTML · CSV · Text Parser"]
+    CE --> EA["🔍 ExtractionAgent\nCategory Schema-Locked LLM"]
+    CE --> ENA["🧬 EnrichmentAgent\nTaxonomy & Gap-Fill"]
+    CE --> VA["✅ ValidationAgent\nTrust-Tier Scoring"]
+    CE --> GA["🕸️ GraphAgent\nVariant & Relationship Mapping"]
+    CE --> EXL["📋 ExplainabilityLayer\nSource & Reasoning Annotator"]
+
+    IA --> KR["🔑 KeyRotator\nRound-Robin API Key Manager"]
+    EA --> KR
+    ENA --> KR
+    VA --> KR
+
+    style CE fill:#1a1a3e,color:#fff,stroke:#7c3aed
+    style KR fill:#2a1a0e,color:#fff,stroke:#f59e0b
+```
+
+| Agent | Responsibility |
+|:---:|:---|
+| **📥 IngestionAgent** | Parses PDFs, HTML, text, CSV; SHA-256 hashing for idempotency |
+| **🔍 ExtractionAgent** | Category-locked structured LLM extractions against Pydantic schemas |
+| **🧬 EnrichmentAgent** | Secondary gap-fill, UNSPSC/eCl@ss taxonomy code mapping |
+| **✅ ValidationAgent** | Weighted confidence scores, multi-source conflict resolution, review routing |
+| **🕸️ GraphAgent** | Product relationships, part-number variants, cross-reference analysis |
+| **📋 ExplainabilityLayer** | Verbatim source annotations and LLM reasoning chains on every field |
+| **🤖 CopilotEngine** | Conversational router dispatching multi-agent tools over live data |
+| **🔑 KeyRotator** | Thread-safe round-robin Gemini API key rotation to avoid rate limits |
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TB
+    subgraph "🌐 Client Layer"
+        UI["React 18 · TypeScript · Vite\nTailwind CSS v4 · Motion"]
+    end
+
+    subgraph "⚙️ FastAPI Backend"
+        API["FastAPI Router\nAsync Handlers · Pydantic v2"]
+    end
+
+    subgraph "🤖 Agent Layer"
+        AGT["Multi-Agent Orchestration\n8 Specialized Agents"]
+    end
+
+    subgraph "💾 Data Layer"
+        DB["SQLite\nsourceledger.db"]
+        SB["Supabase Postgres\nOptional Cloud Sync"]
+    end
+
+    subgraph "🔐 Auth Layer"
+        AUTH["Supabase Auth\nEmail · Google OAuth 2.0"]
+    end
+
+    UI -->|REST / JSON| API
+    API --> AGT
+    API --> DB
+    API --> AUTH
+    DB -.->|Optional Sync| SB
+
+    style UI fill:#1a2e4a,color:#fff,stroke:#58a6ff
+    style API fill:#1a3a2e,color:#fff,stroke:#3ecf8e
+    style AGT fill:#3a1a4a,color:#fff,stroke:#a855f7
+    style DB fill:#2a1a1a,color:#fff,stroke:#ef4444
+    style AUTH fill:#2a2a1a,color:#fff,stroke:#f59e0b
+```
+
+---
+
+## 📁 Project Structure
+
+```
 SourceLedger/
-├── backend/
-│   ├── ocr_feature/
-│   │   ├── ocr_agent/
-│   │   │   ├── agent.py               # Multimodal OCR Agent system
-│   │   │   ├── gateway_client.py      # LLM Gateway client & fallback router
-│   │   │   ├── prompts.py             # Vision OCR prompt templates
-│   │   │   ├── schemas.py             # OCR Pydantic models
-│   │   │   └── tools.py               # Preprocessing & fallback extractors
-│   │   └── tests/                     # OCR pytest suite
-│   ├── src/
-│   │   ├── agents/                    # Multi-agent system implementations
-│   │   │   ├── enrichment_agent.py
-│   │   │   ├── explainability_layer.py
-│   │   │   ├── extraction_agent.py
-│   │   │   ├── graph_agent.py
-│   │   │   ├── ingestion_agent.py
-│   │   │   ├── key_rotator.py
-│   │   │   └── validation_agent.py
-│   │   ├── api/                       # FastAPI router endpoints
-│   │   │   ├── routes_conflicts.py
-│   │   │   ├── routes_copilot.py
-│   │   │   ├── routes_dashboard.py
-│   │   │   ├── routes_export.py
-│   │   │   ├── routes_fields.py
-│   │   │   ├── routes_graph.py
-│   │   │   ├── routes_ingest.py
-│   │   │   ├── routes_ocr.py
-│   │   │   ├── routes_products.py
-│   │   │   └── routes_review.py
-│   │   ├── db/
-│   │   │   ├── store.py               # SQLite persistent product store (per-user isolation)
-│   │   │   └── supabase_client.py
-│   │   ├── models/
-│   │   │   ├── product_record.py
-│   │   │   └── schemas.py             # Category schema registry
-│   │   ├── services/
-│   │   │   ├── catalog_qa_service.py
-│   │   │   ├── copilot_service.py
-│   │   │   ├── csv_processor.py
-│   │   │   ├── dashboard_service.py
-│   │   │   └── jsonld_exporter.py
-│   │   ├── config.py                  # Environment settings (pydantic-settings, no hardcoded keys)
-│   │   └── main.py
-│   ├── requirements.txt
-│   └── .env.example                   # Backend env template
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── auth/                  # Supabase authentication screens
-│   │   │   ├── CatalogCopilotView.tsx
-│   │   │   ├── DashboardView.tsx
-│   │   │   ├── FieldInspectorView.tsx
-│   │   │   ├── IngestModal.tsx
-│   │   │   ├── ProductsCatalogView.tsx
-│   │   │   └── ReviewQueueView.tsx
-│   │   ├── context/                   # AuthContext provider
-│   │   ├── lib/                       # API client & Supabase SDK
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── docs/                              # Architecture & PRD documentation
-├── input/                             # Sample input datasets
-├── output/                            # Generated output CSV files
-├── sample_data/                       # Category-specific sample documents
-├── supabase/                          # Supabase migrations & config
-├── docker-compose.yml
-├── run_batch_processing.py            # CLI bulk CSV batch processor
-├── start.sh                           # One-command startup script
-├── .env.example                       # Root environment template
-├── CHANGELOG.md
-└── README.md
+│
+├── 🔧 backend/
+│   ├── 👁️ ocr_feature/
+│   │   └── ocr_agent/
+│   │       ├── agent.py               # Multimodal OCR Agent orchestrator
+│   │       ├── gateway_client.py      # LLM gateway & fallback routing
+│   │       ├── prompts.py             # Vision extraction prompt templates
+│   │       ├── schemas.py             # OCR Pydantic models
+│   │       └── tools.py               # PDF preprocessing & extractors
+│   │
+│   └── 🐍 src/
+│       ├── 🤖 agents/
+│       │   ├── enrichment_agent.py
+│       │   ├── explainability_layer.py
+│       │   ├── extraction_agent.py
+│       │   ├── graph_agent.py
+│       │   ├── ingestion_agent.py
+│       │   ├── key_rotator.py         # Round-robin API key rotation
+│       │   └── validation_agent.py
+│       │
+│       ├── 🌐 api/
+│       │   ├── routes_conflicts.py
+│       │   ├── routes_copilot.py
+│       │   ├── routes_dashboard.py
+│       │   ├── routes_export.py
+│       │   ├── routes_fields.py
+│       │   ├── routes_graph.py
+│       │   ├── routes_ingest.py
+│       │   ├── routes_ocr.py
+│       │   ├── routes_products.py
+│       │   └── routes_review.py
+│       │
+│       ├── 💾 db/
+│       │   ├── store.py               # SQLite store — per-user data isolation
+│       │   └── supabase_client.py
+│       │
+│       ├── 📐 models/
+│       │   ├── product_record.py      # ProductRecord + confidence calculation
+│       │   └── schemas.py             # Category schema registry (6 domains)
+│       │
+│       ├── 🔧 services/
+│       │   ├── catalog_qa_service.py
+│       │   ├── copilot_service.py
+│       │   ├── csv_processor.py
+│       │   ├── dashboard_service.py
+│       │   └── jsonld_exporter.py
+│       │
+│       ├── config.py                  # Env settings via pydantic-settings (no hardcoded keys)
+│       └── main.py
+│
+├── ⚛️ frontend/
+│   └── src/
+│       ├── 🧩 components/
+│       │   ├── auth/                  # Full Supabase auth suite
+│       │   ├── CatalogCopilotView.tsx # AI conversational interface
+│       │   ├── DashboardView.tsx      # Quality metrics dashboard
+│       │   ├── FieldInspectorView.tsx # Per-field provenance inspector
+│       │   ├── IngestModal.tsx        # Multi-format document ingestion
+│       │   ├── ProductsCatalogView.tsx
+│       │   └── ReviewQueueView.tsx    # Human-in-the-loop review
+│       │
+│       ├── context/                   # React AuthContext provider
+│       └── lib/                       # API client & Supabase SDK
+│
+├── 📚 docs/                            # Architecture & PRD documentation
+├── 📥 input/                           # Sample input datasets
+├── 📤 output/                          # Generated delivery CSV files
+├── 🗂️ sample_data/                     # Category sample documents
+├── 🐘 supabase/                        # Migrations & config
+│
+├── 🐳 docker-compose.yml
+├── ▶️  start.sh                         # One-command launcher
+├── 🔄 run_batch_processing.py          # CLI bulk batch processor
+├── 📋 .env.example
+└── 📝 CHANGELOG.md
 ```
 
 ---
 
-## 9. Technology Stack
+## 🛠️ Technology Stack
+
+<div align="center">
+
+### Frontend
+
+[![My Skills](https://skillicons.dev/icons?i=react,ts,vite,tailwind&theme=dark)](https://skillicons.dev)
+
+### Backend
+
+[![My Skills](https://skillicons.dev/icons?i=python,fastapi,sqlite&theme=dark)](https://skillicons.dev)
+
+### Infrastructure & Auth
+
+[![My Skills](https://skillicons.dev/icons?i=supabase,docker,github&theme=dark)](https://skillicons.dev)
+
+</div>
+
+<br/>
 
 | Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend UI** | React 18 + TypeScript | Component-based web application |
-| **Build Tool** | Vite | Fast HMR dev server and production bundler |
-| **Styling** | Tailwind CSS v4 + Motion | Glassmorphic design system and micro-animations |
-| **Charts & Icons** | Recharts + Lucide React | Data visualization and UI icons |
-| **Authentication** | Supabase Auth | Email/password & Google OAuth 2.0 |
-| **Backend API** | FastAPI + Uvicorn | High-performance async REST API |
-| **Schema Engine** | Pydantic v2 + Pydantic Settings | Schema locking and env config (no hardcoded keys) |
-| **Document OCR** | PyMuPDF, pypdfium2, Pillow | PDF rendering and image pre-processing |
-| **Database** | SQLite + Supabase | Local persistent store with optional cloud sync |
-| **AI / LLM** | Google Gemini API / API Gateway | Multimodal vision & structured text extraction |
-| **CSV Engine** | Pandas + Python `csv` | Delivery format CSV generation |
-| **Testing** | Pytest + Pytest-Asyncio | Backend unit and integration tests |
+|:---:|:---|:---|
+| **⚛️ Frontend** | React 18 + TypeScript | Component-based SPA with strict type safety |
+| **⚡ Build** | Vite | Ultra-fast HMR dev server & production bundler |
+| **🎨 Styling** | Tailwind CSS v4 + Motion | Glassmorphic design + smooth micro-animations |
+| **📈 Charts** | Recharts + Lucide React | Quality metric dashboards & UI icons |
+| **🔐 Auth** | Supabase Auth | Email/password & Google OAuth 2.0 |
+| **🐍 Backend** | FastAPI + Uvicorn | High-performance async REST API |
+| **📐 Schemas** | Pydantic v2 + Settings | Category locking & env config (no hardcoded keys) |
+| **👁️ OCR** | PyMuPDF · pypdfium2 · Pillow | PDF rendering & image preprocessing |
+| **💾 Database** | SQLite + Supabase Postgres | Local store + optional cloud sync |
+| **🤖 AI / LLM** | Google Gemini API | Multimodal vision & structured text extraction |
+| **📊 CSV** | Pandas + csv | Delivery format CSV generation |
+| **🧪 Testing** | Pytest + pytest-asyncio | Backend unit & integration tests |
 
 ---
 
-## 10. API Reference
+## 🌐 API Reference
 
-**Base URL**: `http://localhost:8000/api`  
-**Swagger UI**: `http://localhost:8000/docs`  
-**ReDoc**: `http://localhost:8000/redoc`
+**Base URL:** `http://localhost:8000/api` &nbsp;|&nbsp; **Swagger UI:** [`/docs`](http://localhost:8000/docs) &nbsp;|&nbsp; **ReDoc:** [`/redoc`](http://localhost:8000/redoc)
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/copilot/chat` | `POST` | Natural language chat with multi-agent tool execution |
-| `/api/copilot/suggestions` | `GET` | Contextual quick-start prompt suggestions |
-| `/api/ingest` | `POST` | Ingest PDF, web URL, text, or CSV through multi-agent pipeline |
-| `/api/extract` | `POST` | Multimodal Vision OCR extraction |
-| `/api/products` | `GET` | List catalog products (scoped to authenticated user) |
-| `/api/products/{id}` | `GET` | Retrieve detailed product record |
-| `/api/fields/approve` | `POST` | Approve a field or all fields |
-| `/api/fields/edit` | `POST` | Override an attribute and log a `ReviewAction` |
-| `/api/review` | `GET` | Fields flagged `needs_review` |
-| `/api/dashboard/stats` | `GET` | Catalog quality metrics |
-| `/api/export/csv` | `GET` | Export delivery CSV |
+> All endpoints require the `x-user-id` header for per-user data isolation.
 
-All endpoints require `x-user-id` header for per-user data isolation.
+| Method | Endpoint | Description |
+|:---:|:---|:---|
+| ![POST](https://img.shields.io/badge/POST-238636?style=flat-square) | `/api/copilot/chat` | Natural language chat with multi-agent tool execution |
+| ![GET](https://img.shields.io/badge/GET-0075ca?style=flat-square) | `/api/copilot/suggestions` | Contextual quick-start prompt suggestions |
+| ![POST](https://img.shields.io/badge/POST-238636?style=flat-square) | `/api/ingest` | Ingest PDF / web URL / text / CSV through the pipeline |
+| ![POST](https://img.shields.io/badge/POST-238636?style=flat-square) | `/api/extract` | Multimodal Vision OCR extraction |
+| ![GET](https://img.shields.io/badge/GET-0075ca?style=flat-square) | `/api/products` | List catalog products (scoped to authenticated user) |
+| ![GET](https://img.shields.io/badge/GET-0075ca?style=flat-square) | `/api/products/{id}` | Retrieve detailed product record with field provenance |
+| ![POST](https://img.shields.io/badge/POST-238636?style=flat-square) | `/api/fields/approve` | Approve a single field or all fields on a product |
+| ![POST](https://img.shields.io/badge/POST-238636?style=flat-square) | `/api/fields/edit` | Override an attribute and log a `ReviewAction` |
+| ![GET](https://img.shields.io/badge/GET-0075ca?style=flat-square) | `/api/review` | Fields flagged `needs_review` for human inspection |
+| ![GET](https://img.shields.io/badge/GET-0075ca?style=flat-square) | `/api/dashboard/stats` | Catalog quality metrics and ingestion statistics |
+| ![GET](https://img.shields.io/badge/GET-0075ca?style=flat-square) | `/api/export/csv` | Export full catalog as delivery-format CSV |
 
 ---
 
-## 11. Database
+## 🗄️ Database
 
-SourceLedger uses a dual-layer persistence strategy:
+SourceLedger uses a **dual-layer persistence** strategy:
 
-1. **SQLite Database (`backend/sourceledger.db`)**: Primary zero-config persistent store. Stores all ingested sources, product records, fields, and review actions. Survives server restarts.
-2. **Supabase Postgres**: Optional cloud sync via `backend/src/db/supabase_client.py`.
+```
+Primary:   SQLite (backend/sourceledger.db)  ← Zero-config, survives restarts
+Optional:  Supabase Postgres               ← Cloud sync via supabase_client.py
+```
 
-### Tables
-- `sources`: `id` (UUID), `content_hash` (TEXT), `user_id` (TEXT), `data` (JSON)
-- `products`: `id` (UUID), `category`, `name`, `confidence`, `user_id` (TEXT), `data` (JSON)
-- `review_actions`: `id` (UUID), `product_id` (UUID), `user_id` (TEXT), `data` (JSON)
+### Schema
 
-All tables include a `user_id` column enforcing per-user data isolation at the storage layer.
-
----
-
-## 12. Authentication & Security
-
-- **Email & Password Authentication**: Full sign-up, sign-in, and email verification guard.
-- **Google OAuth 2.0**: Integrated Google single sign-on.
-- **Password Reset Flow**: Request recovery and set new passwords.
-- **Per-User Data Isolation**: Every product, source, and review action is owned by its uploader. Cross-user access returns 404/403 — enforced at both the API and storage layers.
-- **No Hardcoded Keys**: All LLM API keys are read strictly from `.env` via `pydantic-settings`. Zero credentials in source code.
-- **SHA-256 Content Hashing**: Document idempotency without exposing raw content.
+```sql
+-- All tables include user_id for per-user isolation
+sources        (id UUID, content_hash TEXT, user_id TEXT, data JSON)
+products       (id UUID, category TEXT, name TEXT, confidence REAL, user_id TEXT, data JSON)
+review_actions (id UUID, product_id UUID, user_id TEXT, data JSON)
+```
 
 ---
 
-## 13. Prerequisites
+## 🔐 Authentication & Security
 
-- **Python**: 3.10+ (3.12 recommended)
-- **Node.js**: 18.0+ (24.x supported)
-- **npm**: 9.0+
+<div align="center">
+
+| 🔒 Feature | Detail |
+|:---:|:---|
+| **📧 Email Auth** | Sign-up, sign-in with email verification guard |
+| **🔑 Google OAuth 2.0** | One-click Google single sign-on |
+| **🔄 Password Reset** | Recovery email → secure new password flow |
+| **🧍 User Isolation** | Every record scoped to owner — 404/403 on cross-user access |
+| **🚫 No Hardcoded Keys** | All API keys read from `.env` via `pydantic-settings` |
+| **#️⃣ Content Hashing** | SHA-256 document deduplication without exposing content |
+
+</div>
 
 ---
 
-## 14. Quick Start
+## 💻 Prerequisites
 
 ```bash
+Python  ≥ 3.10  (3.12 recommended)
+Node.js ≥ 18.0  (24.x supported)
+npm     ≥ 9.0
+```
+
+---
+
+## ⚡ Quick Start
+
+```bash
+# Clone the repo
+git clone https://github.com/balaraj74/SourceLedger.git
+cd SourceLedger
+
+# One-command launch — installs everything and starts both servers
 chmod +x start.sh
 ./start.sh
 ```
 
-The script automatically:
-1. Verifies Python, Node, npm prerequisites.
-2. Creates Python virtual environment and installs dependencies.
-3. Installs frontend Node modules.
-4. Creates default `.env` files from `.env.example`.
-5. Launches FastAPI backend on `http://localhost:8000` and Vite frontend on `http://localhost:3000`.
+The `start.sh` script automatically:
+
+- ✅ Verifies Python, Node.js, npm versions
+- 📦 Creates Python virtual environment and installs all dependencies
+- 📦 Installs frontend Node modules
+- 📋 Creates `.env` files from `.env.example` if missing
+- 🚀 Launches FastAPI backend on **http://localhost:8000**
+- 🚀 Launches Vite frontend on **http://localhost:3000**
 
 ---
 
-## 15. Manual Installation
+## 🔧 Manual Installation
 
 ### Backend
+
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
-# Fill in your API keys in backend/.env
+# → Fill in your API keys in backend/.env
 uvicorn src.main:app --reload --port 8000
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install
 cp .env.example .env
-# Fill in your Supabase credentials in frontend/.env
+# → Fill in your Supabase credentials in frontend/.env
 npm run dev -- --port 3000
 ```
 
 ---
 
-## 16. Environment Variables
+## 🔑 Environment Variables
 
 ### Backend (`backend/.env`)
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `GOOGLE_API_KEY1` .. `GOOGLE_API_KEY8` | Optional | Gemini API keys for round-robin key rotation |
-| `API_URL` | Required | Gateway proxy URL for LLM requests |
-| `API_KEY` | Required | Gateway proxy authentication key |
-| `CONFIDENCE_THRESHOLD` | Optional (default `70`) | Auto-commit threshold |
-| `SUPABASE_URL` | Optional | Supabase project URL |
-| `SUPABASE_KEY` | Optional | Supabase API key |
+| Variable | Required | Default | Purpose |
+|:---|:---:|:---:|:---|
+| `API_URL` | ✅ Yes | — | LLM Gateway proxy URL |
+| `API_KEY` | ✅ Yes | — | Gateway proxy authentication key |
+| `GOOGLE_API_KEY1` … `8` | ⚪ Optional | `""` | Gemini keys for round-robin rotation |
+| `CONFIDENCE_THRESHOLD` | ⚪ Optional | `70` | Auto-commit threshold (0–100) |
+| `SOURCE_STORAGE_PATH` | ⚪ Optional | `./storage/sources` | Ingested document storage path |
+| `SUPABASE_URL` | ⚪ Optional | `""` | Supabase project URL |
+| `SUPABASE_KEY` | ⚪ Optional | `""` | Supabase service API key |
 
 ### Frontend (`frontend/.env`)
 
 | Variable | Required | Purpose |
-|---|---|---|
-| `VITE_SUPABASE_URL` | Required | Supabase project URL for auth |
-| `VITE_SUPABASE_ANON_KEY` | Required | Supabase public anon key |
+|:---|:---:|:---|
+| `VITE_SUPABASE_URL` | ✅ Yes | Supabase project URL for auth |
+| `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Supabase public anon key |
 
 ---
 
-## 17. Running the Application
-
-- **Web App**: `http://localhost:3000`
-- **API**: `http://localhost:8000/api`
-- **Swagger Docs**: `http://localhost:8000/docs`
-- **CLI Batch**: `python3 run_batch_processing.py`
-
----
-
-## 18. Testing
+## 🧪 Testing
 
 ```bash
-# Backend unit & integration tests
-python3 -m pytest backend/tests
+# Backend — all unit & integration tests
+python3 -m pytest backend/tests -v
 
-# OCR agent tests
-python3 -m pytest backend/ocr_feature/tests
+# OCR Agent — vision pipeline tests
+python3 -m pytest backend/ocr_feature/tests -v
 
-# Frontend type check
+# Frontend — TypeScript type checking & lint
 cd frontend && npm run lint
 ```
 
 ---
 
-## 19. Configuration
+## 🔭 Troubleshooting
 
-- **Confidence Threshold**: Set `CONFIDENCE_THRESHOLD=70` in `backend/.env`.
-- **Supported Categories**: Add schemas in `backend/src/models/schemas.py`.
-- **Key Rotation**: Add up to 8 Gemini keys as `GOOGLE_API_KEY1`..`GOOGLE_API_KEY8`.
-
----
-
-## 20. Troubleshooting
-
-| Issue | Fix |
-|---|---|
-| 500 OCR Agent Error | Install `pillow`, `pymupdf`, `pypdfium2`, `jinja2` in `backend/.venv` |
-| CORS / Connection Refused | Confirm FastAPI is running on port 8000 |
-| Supabase Auth Redirect Error | Add `http://localhost:3000` to Site URL in Supabase Dashboard → Auth → URL Configuration |
-| 0% Confidence on All Fields | Check `CONFIDENCE_THRESHOLD` — categories without a registered schema fall back to `generic` |
+| 🔴 Issue | ✅ Fix |
+|:---|:---|
+| **500 OCR Agent Error** | Run `pip install pillow pymupdf pypdfium2 jinja2` inside `backend/.venv` |
+| **CORS / Connection Refused** | Confirm FastAPI is running: `curl http://localhost:8000/docs` |
+| **Supabase Auth Redirect Loop** | Add `http://localhost:3000` to **Site URL** in Supabase Dashboard → Auth → URL Configuration |
+| **0% Confidence on All Fields** | Unknown category falls back to `generic` schema. Check product category detection. |
+| **HTTP 429 Rate Limit** | Add more Gemini keys (`GOOGLE_API_KEY2`, etc.) for round-robin rotation |
 
 ---
 
-## 21. Evaluation / Quality Metrics
+## 📊 Quality Metrics
 
-- **Pipeline Velocity**: Single-item extraction under 3 seconds using parallel vision page concurrency.
-- **Schema Compliance**: 100% Pydantic schema validation across all 6 industrial domain models.
-- **Provenanced Output**: Every extracted attribute carries a verbatim quote, confidence score, and LLM reasoning chain.
-- **Data Isolation**: Smoke-tested — cross-user product access returns `None` at the store layer.
+<div align="center">
 
----
+| Metric | Result |
+|:---:|:---:|
+| ⚡ Pipeline Velocity | < 3 seconds per item (parallel vision concurrency) |
+| 📐 Schema Compliance | 100% — 6 Pydantic domain models validated |
+| 📍 Output Provenance | Every field has verbatim quote + confidence + reasoning |
+| 🧍 Data Isolation | Smoke-tested — cross-user access returns `None` at store layer |
 
-## 22. Limitations
-
-- **Vector Database**: Qdrant vector embedding is configured as a Phase 5 stretch target and disabled by default.
-- **OCR Scan Quality**: Highly degraded or handwritten scans are processed best-effort and flagged for human review.
-
----
-
-## 23. Future Roadmap
-
-- [ ] **Vector Similarity Deduplication**: Qdrant embeddings for clustering duplicate listings across suppliers.
-- [ ] **UNSPSC Automated Taxonomy Mapping**: Expand automated UNSPSC/eCl@ss lookups.
-- [ ] **Active Learning Loop**: Feed `ReviewAction` human corrections back into prompt refinement.
-- [ ] **Multi-Tenant Cloud Deploy**: Cloud Run deployment with tenant-scoped Supabase Row Level Security.
+</div>
 
 ---
 
-## 24. License
+## 🗺️ Roadmap
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+- [ ] 🔍 **Vector Similarity Deduplication** — Qdrant embeddings to cluster duplicate supplier listings
+- [ ] 🏷️ **Automated UNSPSC/eCl@ss Taxonomy** — Expand industrial code lookups
+- [ ] 🔄 **Active Learning Loop** — Feed `ReviewAction` corrections back into prompt refinement
+- [ ] ☁️ **Multi-Tenant Cloud Deploy** — Cloud Run + Supabase Row Level Security
+- [ ] 📱 **Mobile Catalog Reviewer** — React Native companion app for review queue
 
-SourceLedger is open-source software licensed under the **[Apache License, Version 2.0](LICENSE)**.
+---
 
-```text
+## 📜 License
+
+<div align="center">
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+
+SourceLedger is open-source software licensed under the **Apache License, Version 2.0**.
+
+</div>
+
+```
 Copyright 2026 SourceLedger Contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 ```
 
 ---
 
-## 25. Contributors
+## 👥 Contributors
 
-- **Balaraj R** — Founder
-- **Bharath CD** — Co-founder
+<div align="center">
+
+| 🧑‍💻 Contributor | 🎯 Role |
+|:---:|:---:|
+| **Balaraj R** | Founder & Lead Engineer |
+| **Bharath CD** | Co-founder |
+
+</div>
 
 ---
 
-*This README reflects the current implementation of SourceLedger and is maintained alongside codebase updates.*
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer&animation=fadeIn" width="100%" />
+
+*Built with ❤️ for UniHack 2026 — Team ERROR_404_NOT_FOUND*
+
+</div>
