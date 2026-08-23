@@ -35,7 +35,7 @@ export const AuthCardLayout: React.FC<AuthCardLayoutProps> = ({ children, title,
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-5xl mx-auto bg-white/60 backdrop-blur-3xl rounded-[2.5rem] border border-white/80 ring-1 ring-black/5 shadow-[0_32px_64px_rgba(26,23,21,0.15)] overflow-hidden"
+        className="relative z-10 w-full max-w-5xl mx-auto bg-white/30 backdrop-blur-2xl rounded-[2.5rem] border border-white/50 shadow-[0_32px_64px_rgba(26,23,21,0.15)] overflow-hidden"
       >
         <div className="grid grid-cols-1 lg:grid-cols-2">
           
@@ -44,12 +44,14 @@ export const AuthCardLayout: React.FC<AuthCardLayoutProps> = ({ children, title,
             variants={staggerContainer}
             initial="hidden"
             animate="show"
-            className="hidden lg:flex flex-col justify-between p-10 lg:p-14 border-r border-white/40 bg-gradient-to-br from-white/40 to-transparent"
+            className="hidden lg:flex flex-col justify-between p-10 lg:p-14 border-r border-white/30 bg-gradient-to-br from-white/40 to-transparent"
           >
             <div>
-              <motion.div variants={fadeUp} className="flex items-center gap-3 mb-12">
-                <img src="/logo.png" alt="SourceLedger Logo" className="h-12 w-auto object-contain drop-shadow-sm" />
-                <h1 className="font-didone text-4xl font-bold tracking-tight text-[#191715]">
+              <motion.div variants={fadeUp} className="flex items-center gap-4 mb-12">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 overflow-hidden border border-white/80">
+                  <img src="/logo.png" alt="SourceLedger Logo" className="w-full h-full object-cover" />
+                </div>
+                <h1 className="font-didone text-5xl font-bold tracking-tight text-[#191715]">
                   Source<span className="font-didone-italic text-[#E8622C] font-normal">Ledger</span>
                 </h1>
               </motion.div>
@@ -65,7 +67,7 @@ export const AuthCardLayout: React.FC<AuthCardLayoutProps> = ({ children, title,
               
               <div className="space-y-8">
                 <motion.div variants={fadeUp} className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#E8622C] shrink-0 shadow-sm border border-white/80">
+                  <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-[#E8622C] shrink-0 shadow-sm border border-white/80">
                     <Zap className="w-5 h-5" />
                   </div>
                   <div>
@@ -75,7 +77,7 @@ export const AuthCardLayout: React.FC<AuthCardLayoutProps> = ({ children, title,
                 </motion.div>
                 
                 <motion.div variants={fadeUp} className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#E8622C] shrink-0 shadow-sm border border-white/80">
+                  <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-[#E8622C] shrink-0 shadow-sm border border-white/80">
                     <Search className="w-5 h-5" />
                   </div>
                   <div>
@@ -85,7 +87,7 @@ export const AuthCardLayout: React.FC<AuthCardLayoutProps> = ({ children, title,
                 </motion.div>
 
                 <motion.div variants={fadeUp} className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#E8622C] shrink-0 shadow-sm border border-white/80">
+                  <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-[#E8622C] shrink-0 shadow-sm border border-white/80">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
@@ -101,10 +103,12 @@ export const AuthCardLayout: React.FC<AuthCardLayoutProps> = ({ children, title,
           </motion.div>
 
           {/* Right Panel: Auth Container */}
-          <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-14 bg-white/20">
+          <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-14 bg-white/10">
             {/* Mobile Header (Hidden on Desktop) */}
             <div className="flex lg:hidden flex-col items-center text-center mb-8">
-              <img src="/logo.png" alt="SourceLedger Logo" className="h-14 w-auto object-contain drop-shadow-sm mb-4" />
+              <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 overflow-hidden mb-4 border border-white/80">
+                <img src="/logo.png" alt="SourceLedger Logo" className="w-full h-full object-cover" />
+              </div>
               <h1 className="font-didone text-4xl font-bold tracking-tight text-[#191715]">
                 Source<span className="font-didone-italic text-[#E8622C] font-normal">Ledger</span>
               </h1>
