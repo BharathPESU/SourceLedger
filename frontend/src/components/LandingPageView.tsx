@@ -640,7 +640,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onLogin }) => 
             {/* System Status Pill */}
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/80 text-[#191715] text-xs font-mono border border-white shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>8-Key Gemini Pool Active</span>
+              <span>8-Key Ledger AI Pool Active</span>
               <span className="text-[#8C8276]">•</span>
               <span>Pydantic Schema Engine Online</span>
             </div>
