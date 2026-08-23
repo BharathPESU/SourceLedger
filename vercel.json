@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://sourceledger-backend.onrender.com/api/:path*"
+      "destination": "https://sourceledger-w3ue.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
