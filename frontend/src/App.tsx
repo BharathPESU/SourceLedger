@@ -13,6 +13,7 @@ import { SettingsView } from './components/SettingsView';
 import { OcrAgentView } from './components/OcrAgentView';
 import { ProfileView } from './components/ProfileView';
 import { IngestModal } from './components/IngestModal';
+import { LandingPageView } from './components/LandingPageView';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
 import { 
@@ -46,6 +47,7 @@ function MainAppContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [selectedProduct, setSelectedProduct] = useState<ProductRecord | null>(null);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const mainScrollRef = useRef<HTMLElement | null>(null);
@@ -304,8 +306,11 @@ function MainAppContent() {
     );
   }
 
-  // 2. Unauthenticated user -> render Auth Flow (SignIn, SignUp, ForgotPassword, ResetPassword)
+  // 2. Unauthenticated user -> render Landing Page or Auth Flow
   if (!session || !user) {
+    if (showLanding) {
+      return <LandingPageView onLogin={() => setShowLanding(false)} />;
+    }
     return <AuthContainer />;
   }
 
