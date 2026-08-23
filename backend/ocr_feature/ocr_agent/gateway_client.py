@@ -76,9 +76,31 @@ class GeminiGatewayClient:
         }
         
         for target_model in models_to_try:
+            # Format A: /api/generate
+            direct_gen_url = f"{self.base_url}/api/generate"
+            gen_payload = {"model": target_model, "prompt": prompt}
+            try:
+                logger.info(f"Attempting PRIMARY Gateway Proxy /api/generate with {target_model}...")
+                response = requests.post(
+                    direct_gen_url, json=gen_payload, headers=self.headers, timeout=self.timeout
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts and parts[0].get("text"):
+                            logger.info(f"PRIMARY Gateway Proxy /api/generate succeeded with {target_model}")
+                            return parts[0].get("text", "")
+                    if "text" in data and data["text"]:
+                        return data["text"]
+            except Exception as e:
+                logger.warning(f"PRIMARY Gateway Proxy /api/generate error with {target_model}: {e}")
+
+            # Format B: /v1beta/models/{target_model}:generateContent
             url = f"{self.base_url}/v1beta/models/{target_model}:generateContent"
             try:
-                logger.info(f"Attempting PRIMARY Gateway Proxy generate_text with {target_model}...")
+                logger.info(f"Attempting PRIMARY Gateway Proxy /v1beta generateContent with {target_model}...")
                 response = requests.post(
                     url, json=payload, headers=self.headers, timeout=self.timeout
                 )
