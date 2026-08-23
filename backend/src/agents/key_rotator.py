@@ -119,7 +119,7 @@ class APIKeyRotator:
         proxy_url = (os.getenv("API_URL") or "https://free-api-erel.onrender.com").rstrip("/")
         if proxy_url.endswith("/api/generate"):
             proxy_url = proxy_url[:-13]
-        proxy_token = os.getenv("API_KEY") or "sk_proxy_qu7f0nNyFooVFjM3iNb_lmwZr_NP-BuL"
+        proxy_token = os.getenv("API_KEY") or ""
 
         # 1. Try Render Proxy Gateway FIRST (PRIMARY)
         try:

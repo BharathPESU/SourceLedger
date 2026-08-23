@@ -17,7 +17,7 @@ def _resolve_base_url(url: Optional[str]) -> str:
     return raw_url
 
 def _resolve_auth_token(token: Optional[str]) -> str:
-    return token or os.getenv("API_KEY") or "sk_proxy_qu7f0nNyFooVFjM3iNb_lmwZr_NP-BuL"
+    return token or os.getenv("API_KEY") or ""
 
 DEFAULT_MODELS = ["gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 
