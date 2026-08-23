@@ -27,9 +27,19 @@ from ..models.schemas import (
     ProductRelationship,
 )
 from ..utils.logging import get_logger
-from .supabase_client import sync_product_to_supabase
+from .supabase_client import get_supabase_client, sync_product_to_supabase
 
 logger = get_logger("store")
+
+
+def _parse_model(model_cls, raw_data):
+    """Safely parse Pydantic model from either JSON string (SQLite) or dict (Supabase JSONB)."""
+    if isinstance(raw_data, str):
+        return model_cls.model_validate_json(raw_data)
+    elif isinstance(raw_data, dict):
+        return model_cls.model_validate(raw_data)
+    raise ValueError(f"Unsupported data type for parsing: {type(raw_data)}")
+
 
 # SQLite database file path.
 # In production (Render), set the DB_PATH env var to a persistent disk location
@@ -189,7 +199,24 @@ class ProductStore:
             self._products.clear()
             self._sources.clear()
             self._review_actions.clear()
-            
+
+        # Clear Supabase Postgres
+        sp = get_supabase_client()
+        if sp:
+            try:
+                if user_id:
+                    sp.table("products").delete().eq("user_id", user_id).execute()
+                    sp.table("sources").delete().eq("user_id", user_id).execute()
+                    sp.table("review_actions").delete().eq("user_id", user_id).execute()
+                else:
+                    sp.table("products").delete().neq("id", "").execute()
+                    sp.table("sources").delete().neq("id", "").execute()
+                    sp.table("review_actions").delete().neq("id", "").execute()
+                logger.info("✓ Cleared records for user_id=%s from Supabase Postgres", user_id)
+            except Exception as e:
+                logger.error("Failed to clear Supabase Postgres: %s", e)
+
+        # Clear SQLite DB
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -202,23 +229,57 @@ class ProductStore:
                     cursor.execute("DELETE FROM sources")
                     cursor.execute("DELETE FROM review_actions")
                 conn.commit()
-            logger.info(f"✓ Cleared records for user_id={user_id} from SQLite database")
+            logger.info("✓ Cleared records for user_id=%s from SQLite database", user_id)
         except Exception as e:
             logger.error("Failed to clear SQLite database: %s", e)
 
-
     def _load_from_db(self) -> None:
-        """Load stored records from SQLite DB into in-memory cache on startup.
+        """Load stored records from DB into in-memory cache on startup."""
+        # Try loading from Supabase Postgres first
+        sp = get_supabase_client()
+        if sp:
+            try:
+                s_res = sp.table("sources").select("data, user_id").execute()
+                for row in s_res.data or []:
+                    try:
+                        src = _parse_model(Source, row["data"])
+                        uid = row.get("user_id") or "default_user"
+                        self._sources[src.id] = src
+                        self._source_user_index[src.id] = uid
+                    except Exception as err:
+                        logger.warning("Error parsing Supabase source row: %s", err)
 
-        We store user_id alongside each record in the ownership index so that
-        get_product / get_source can reject cross-user access without an extra
-        DB query on every cache hit.
-        """
+                p_res = sp.table("products").select("data, user_id").execute()
+                for row in p_res.data or []:
+                    try:
+                        prod = _parse_model(ProductRecord, row["data"])
+                        uid = row.get("user_id") or "default_user"
+                        self._products[prod.id] = prod
+                        self._product_user_index[prod.id] = uid
+                    except Exception as err:
+                        logger.warning("Error parsing Supabase product row: %s", err)
+
+                r_res = sp.table("review_actions").select("data").execute()
+                for row in r_res.data or []:
+                    try:
+                        act = _parse_model(ReviewAction, row["data"])
+                        self._review_actions.append(act)
+                    except Exception as err:
+                        logger.warning("Error parsing Supabase review action row: %s", err)
+
+                logger.info(
+                    "✓ Loaded %d products, %d sources, and %d review actions from Supabase Postgres.",
+                    len(self._products),
+                    len(self._sources),
+                    len(self._review_actions),
+                )
+            except Exception as e:
+                logger.error("Error loading data from Supabase Postgres: %s", e)
+
+        # Also load from SQLite DB
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-
-                # Load sources — keep user_id in the ownership index
                 cursor.execute("SELECT data, user_id FROM sources")
                 for row in cursor.fetchall():
                     try:
@@ -229,7 +290,6 @@ class ProductStore:
                     except Exception as err:
                         logger.warning("Error parsing source row: %s", err)
 
-                # Load products — keep user_id in the ownership index
                 cursor.execute("SELECT data, user_id FROM products")
                 for row in cursor.fetchall():
                     try:
@@ -240,17 +300,17 @@ class ProductStore:
                     except Exception as err:
                         logger.warning("Error parsing product row: %s", err)
 
-                # Load review actions
                 cursor.execute("SELECT data FROM review_actions")
                 for row in cursor.fetchall():
                     try:
                         act = ReviewAction.model_validate_json(row["data"])
-                        self._review_actions.append(act)
+                        if act not in self._review_actions:
+                            self._review_actions.append(act)
                     except Exception as err:
                         logger.warning("Error parsing review action row: %s", err)
 
             logger.info(
-                "✓ Loaded %d products, %d sources, and %d review actions from SQLite database.",
+                "✓ Sync completed: %d products, %d sources, and %d review actions in active memory.",
                 len(self._products),
                 len(self._sources),
                 len(self._review_actions),
@@ -258,12 +318,27 @@ class ProductStore:
         except Exception as e:
             logger.error("Error loading data from SQLite database: %s", e)
 
+
     # ── Sources ──────────────────────────────────────────────────────
 
     async def save_source(self, source: Source, user_id: str = "default_user") -> Source:
         active_user = user_id or "default_user"
         self._sources[source.id] = source
         self._source_user_index[source.id] = active_user
+
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("sources").upsert({
+                    "id": str(source.id),
+                    "content_hash": source.content_hash,
+                    "data": source.model_dump(mode="json"),
+                    "user_id": active_user,
+                }).execute()
+                logger.info("✓ Saved source %s (user=%s) to Supabase Postgres", source.id, active_user)
+            except Exception as e:
+                logger.error("Failed to save source to Supabase Postgres: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -304,6 +379,18 @@ class ProductStore:
 
     async def list_sources(self, user_id: Optional[str] = None) -> list[Source]:
         active_user = user_id or "default_user"
+        sp = get_supabase_client()
+        if sp:
+            try:
+                res = sp.table("sources").select("data").eq("user_id", active_user).execute()
+                sources = []
+                for row in res.data or []:
+                    sources.append(_parse_model(Source, row["data"]))
+                if sources:
+                    return sources
+            except Exception as e:
+                logger.error("Error listing sources from Supabase for user %s: %s", active_user, e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -316,8 +403,8 @@ class ProductStore:
                     res.append(Source.model_validate_json(row["data"]))
                 return res
         except Exception as e:
-            logger.error("Error listing sources for user %s: %s", active_user, e)
-            return []
+            logger.error("Error listing sources from SQLite for user %s: %s", active_user, e)
+            return [s for s_id, s in self._sources.items() if self._source_user_index.get(s_id) == active_user]
 
     # ── Products ─────────────────────────────────────────────────────
 
@@ -325,8 +412,33 @@ class ProductStore:
         active_user = user_id or "default_user"
         self._products[product.id] = product
         self._product_user_index[product.id] = active_user
+        json_dict = product.model_dump(mode="json")
+        json_str = product.model_dump_json()
+
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("products").upsert({
+                    "id": str(product.id),
+                    "category": product.category,
+                    "name": product.name,
+                    "confidence": product.confidence_overall,
+                    "data": json_dict,
+                    "user_id": active_user,
+                }).execute()
+                logger.info(
+                    "✓ Saved product %s '%s' (user=%s) to Supabase Postgres (category=%s, confidence=%d, fields=%d)",
+                    product.id,
+                    product.name,
+                    active_user,
+                    product.category,
+                    product.confidence_overall,
+                    len(product.fields),
+                )
+            except Exception as e:
+                logger.error("Failed to save product to Supabase Postgres: %s", e)
+
         try:
-            json_data = product.model_dump_json()
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
@@ -336,41 +448,18 @@ class ProductStore:
                         product.category,
                         product.name,
                         product.confidence_overall,
-                        json_data,
+                        json_str,
                         active_user,
                     ),
                 )
                 conn.commit()
-            logger.info(
-                "Saved product %s '%s' (user=%s) to SQLite DB (category=%s, confidence=%d, fields=%d)",
-                product.id,
-                product.name,
-                active_user,
-                product.category,
-                product.confidence_overall,
-                len(product.fields),
-            )
-            # Sync to Supabase if configured
-            await sync_product_to_supabase(
-                {
-                    "id": str(product.id),
-                    "name": product.name,
-                    "category": product.category,
-                    "confidence_overall": product.confidence_overall,
-                    "field_count": len(product.fields),
-                    "data": json_data,
-                }
-            )
+            logger.info("Saved product %s '%s' to SQLite DB", product.id, product.name)
         except Exception as e:
             logger.error("Failed to save product to SQLite DB: %s", e)
         return product
 
     async def get_product(self, product_id: UUID, user_id: Optional[str] = None) -> Optional[ProductRecord]:
-        """Return product only if it belongs to user_id.
-
-        When user_id is None the call is treated as an internal/admin lookup
-        (e.g. export pipeline). All user-facing API endpoints MUST pass user_id.
-        """
+        """Return product only if it belongs to user_id."""
         product = self._products.get(product_id)
         if product is None:
             return None
@@ -386,6 +475,18 @@ class ProductStore:
 
     async def list_products(self, user_id: Optional[str] = None) -> list[ProductRecord]:
         active_user = user_id or "default_user"
+        sp = get_supabase_client()
+        if sp:
+            try:
+                res = sp.table("products").select("data").eq("user_id", active_user).execute()
+                products = []
+                for row in res.data or []:
+                    products.append(_parse_model(ProductRecord, row["data"]))
+                if products:
+                    return products
+            except Exception as e:
+                logger.error("Error listing products from Supabase for user %s: %s", active_user, e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -398,8 +499,9 @@ class ProductStore:
                     res.append(ProductRecord.model_validate_json(row["data"]))
                 return res
         except Exception as e:
-            logger.error("Error listing products for user %s: %s", active_user, e)
-            return []
+            logger.error("Error listing products from SQLite for user %s: %s", active_user, e)
+            return [p for p_id, p in self._products.items() if self._product_user_index.get(p_id) == active_user]
+
 
     async def update_product(self, product: ProductRecord, user_id: str = "default_user") -> ProductRecord:
         """Replace a product record entirely (used after review actions).
@@ -471,20 +573,31 @@ class ProductStore:
 
     async def save_review_action(self, action: ReviewAction, user_id: str = "default_user") -> ReviewAction:
         self._review_actions.append(action)
+        json_dict = action.model_dump(mode="json")
+        json_str = action.model_dump_json()
+
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("review_actions").upsert({
+                    "id": str(action.id),
+                    "product_id": str(action.product_id),
+                    "data": json_dict,
+                    "user_id": user_id,
+                }).execute()
+                logger.info("✓ Saved review action %s to Supabase Postgres", action.action.value)
+            except Exception as e:
+                logger.error("Failed to save review action to Supabase Postgres: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     "INSERT OR REPLACE INTO review_actions (id, product_id, data, user_id) VALUES (?, ?, ?, ?)",
-                    (str(action.id), str(action.product_id), action.model_dump_json(), user_id),
+                    (str(action.id), str(action.product_id), json_str, user_id),
                 )
                 conn.commit()
-            logger.info(
-                "Saved review action: %s on field %s (user=%s) to SQLite DB",
-                action.action.value,
-                action.field_id,
-                user_id,
-            )
+            logger.info("Saved review action %s to SQLite DB", action.action.value)
         except Exception as e:
             logger.error("Failed to save review action to SQLite DB: %s", e)
         return action
@@ -492,6 +605,18 @@ class ProductStore:
     async def get_review_actions(self, user_id: Optional[str] = None) -> list[ReviewAction]:
         if not user_id:
             return list(self._review_actions)
+        sp = get_supabase_client()
+        if sp:
+            try:
+                res = sp.table("review_actions").select("data").eq("user_id", user_id).execute()
+                actions = []
+                for row in res.data or []:
+                    actions.append(_parse_model(ReviewAction, row["data"]))
+                if actions:
+                    return actions
+            except Exception as e:
+                logger.error("Error getting review actions from Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -501,7 +626,7 @@ class ProductStore:
                     res.append(ReviewAction.model_validate_json(row["data"]))
                 return res
         except Exception:
-            return list(self._review_actions)
+            return [a for a in self._review_actions if getattr(a, "user_id", None) == user_id]
 
     # ── Dashboard Stats ──────────────────────────────────────────────
 
@@ -565,7 +690,23 @@ class ProductStore:
     # ── Phase 7: Field Conflicts Methods ─────────────────────────────────
 
     def save_field_conflict(self, conflict: FieldConflict, user_id: str = "default_user") -> None:
-        """Persist a FieldConflict entity to SQLite."""
+        """Persist a FieldConflict entity."""
+        json_dict = conflict.model_dump(mode="json")
+        json_str = conflict.model_dump_json()
+
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("field_conflicts").upsert({
+                    "id": str(conflict.id),
+                    "product_id": str(conflict.product_id),
+                    "field_name": conflict.field_name,
+                    "data": json_dict,
+                    "user_id": user_id,
+                }).execute()
+            except Exception as e:
+                logger.error("Failed to save FieldConflict to Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -578,7 +719,7 @@ class ProductStore:
                         str(conflict.id),
                         str(conflict.product_id),
                         conflict.field_name,
-                        conflict.model_dump_json(),
+                        json_str,
                         user_id,
                     ),
                 )
@@ -590,11 +731,27 @@ class ProductStore:
                 user_id,
             )
         except Exception as e:
-            logger.error("Failed to save FieldConflict: %s", e)
+            logger.error("Failed to save FieldConflict to SQLite: %s", e)
 
     def list_field_conflicts(self, product_id: Optional[UUID] = None, user_id: Optional[str] = None) -> list[FieldConflict]:
         """Fetch all field conflicts, optionally filtered by product_id and user_id."""
         conflicts: list[FieldConflict] = []
+        sp = get_supabase_client()
+        if sp:
+            try:
+                query = sp.table("field_conflicts").select("data")
+                if product_id:
+                    query = query.eq("product_id", str(product_id))
+                if user_id:
+                    query = query.eq("user_id", user_id)
+                res = query.execute()
+                for row in res.data or []:
+                    conflicts.append(_parse_model(FieldConflict, row["data"]))
+                if conflicts:
+                    return conflicts
+            except Exception as e:
+                logger.error("Failed to list field conflicts from Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -618,13 +775,31 @@ class ProductStore:
                 for row in cursor.fetchall():
                     conflicts.append(FieldConflict.model_validate_json(row["data"]))
         except Exception as e:
-            logger.error("Failed to list field conflicts: %s", e)
+            logger.error("Failed to list field conflicts from SQLite: %s", e)
         return conflicts
 
     # ── Phase 8: Product Relationships Methods ────────────────────────────
 
     def save_product_relationship(self, rel: ProductRelationship, user_id: str = "default_user") -> None:
-        """Persist a ProductRelationship graph edge to SQLite."""
+        """Persist a ProductRelationship graph edge."""
+        json_dict = rel.model_dump(mode="json")
+        json_str = rel.model_dump_json()
+
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("product_relationships").upsert({
+                    "id": str(rel.id),
+                    "source_sku": rel.source_sku,
+                    "target_sku": rel.target_sku,
+                    "relationship_type": rel.relationship_type,
+                    "confidence": rel.confidence,
+                    "data": json_dict,
+                    "user_id": user_id,
+                }).execute()
+            except Exception as e:
+                logger.error("Failed to save ProductRelationship to Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -640,18 +815,37 @@ class ProductStore:
                         rel.target_sku,
                         rel.relationship_type,
                         rel.confidence,
-                        rel.model_dump_json(),
+                        json_str,
                         user_id,
                     ),
                 )
                 conn.commit()
             logger.info("✓ Saved ProductRelationship %s -> %s (user=%s)", rel.source_sku, rel.target_sku, user_id)
         except Exception as e:
-            logger.error("Failed to save ProductRelationship: %s", e)
+            logger.error("Failed to save ProductRelationship to SQLite: %s", e)
 
     def list_product_relationships(self, sku: Optional[str] = None, user_id: Optional[str] = None) -> list[ProductRelationship]:
         """Fetch graph relationships, optionally filtered by SKU and user_id."""
         rels: list[ProductRelationship] = []
+        sp = get_supabase_client()
+        if sp:
+            try:
+                query = sp.table("product_relationships").select("data")
+                if user_id:
+                    query = query.eq("user_id", user_id)
+                res = query.execute()
+                for row in res.data or []:
+                    r = _parse_model(ProductRelationship, row["data"])
+                    if sku:
+                        if r.source_sku == sku or r.target_sku == sku:
+                            rels.append(r)
+                    else:
+                        rels.append(r)
+                if rels:
+                    return rels
+            except Exception as e:
+                logger.error("Failed to list product relationships from Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -672,7 +866,7 @@ class ProductStore:
                 for row in cursor.fetchall():
                     rels.append(ProductRelationship.model_validate_json(row["data"]))
         except Exception as e:
-            logger.error("Failed to list product relationships: %s", e)
+            logger.error("Failed to list product relationships from SQLite: %s", e)
         return rels
 
     # ── Phase 10: Correction Pattern Active Learning Methods ──────────────
@@ -680,6 +874,22 @@ class ProductStore:
     def save_correction_pattern(self, pattern: CorrectionPattern) -> None:
         """Persist or update a CorrectionPattern."""
         pat_id = f"{pattern.category}:{pattern.field_name}:{pattern.manufacturer or 'all'}"
+        json_dict = pattern.model_dump(mode="json")
+        json_str = pattern.model_dump_json()
+
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("correction_patterns").upsert({
+                    "id": pat_id,
+                    "category": pattern.category,
+                    "field_name": pattern.field_name,
+                    "manufacturer": pattern.manufacturer or "all",
+                    "data": json_dict,
+                }).execute()
+            except Exception as e:
+                logger.error("Failed to save CorrectionPattern to Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -694,16 +904,27 @@ class ProductStore:
                         pattern.category,
                         pattern.field_name,
                         pattern.manufacturer or "all",
-                        pattern.model_dump_json(),
+                        json_str,
                     ),
                 )
                 conn.commit()
         except Exception as e:
-            logger.error("Failed to save CorrectionPattern: %s", e)
+            logger.error("Failed to save CorrectionPattern to SQLite: %s", e)
 
     def get_correction_patterns(self) -> list[CorrectionPattern]:
         """List all active learning correction patterns."""
         patterns: list[CorrectionPattern] = []
+        sp = get_supabase_client()
+        if sp:
+            try:
+                res = sp.table("correction_patterns").select("data").execute()
+                for row in res.data or []:
+                    patterns.append(_parse_model(CorrectionPattern, row["data"]))
+                if patterns:
+                    return patterns
+            except Exception as e:
+                logger.error("Failed to get correction patterns from Supabase: %s", e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -711,12 +932,22 @@ class ProductStore:
                 for row in cursor.fetchall():
                     patterns.append(CorrectionPattern.model_validate_json(row["data"]))
         except Exception as e:
-            logger.error("Failed to get correction patterns: %s", e)
+            logger.error("Failed to get correction patterns from SQLite: %s", e)
         return patterns
 
     def get_user_profile(self, user_id: str) -> Optional[dict]:
         """Retrieve user profile by user_id."""
         active_user = user_id or "default_user"
+        sp = get_supabase_client()
+        if sp:
+            try:
+                res = sp.table("user_profiles").select("data").eq("user_id", active_user).execute()
+                if res.data and len(res.data) > 0:
+                    data = res.data[0]["data"]
+                    return data if isinstance(data, dict) else json.loads(data)
+            except Exception as e:
+                logger.error("Failed to get user profile from Supabase for %s: %s", active_user, e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -731,6 +962,17 @@ class ProductStore:
     def save_user_profile(self, user_id: str, profile_data: dict) -> None:
         """Save or update user profile."""
         active_user = user_id or "default_user"
+        sp = get_supabase_client()
+        if sp:
+            try:
+                sp.table("user_profiles").upsert({
+                    "user_id": active_user,
+                    "data": profile_data,
+                }).execute()
+                logger.info("Saved profile for user %s to Supabase Postgres", active_user)
+            except Exception as e:
+                logger.error("Failed to save user profile to Supabase for %s: %s", active_user, e)
+
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -742,7 +984,7 @@ class ProductStore:
                     (active_user, json.dumps(profile_data)),
                 )
                 conn.commit()
-                logger.info("Saved profile for user %s", active_user)
+                logger.info("Saved profile for user %s to SQLite DB", active_user)
         except Exception as e:
             logger.error("Failed to save user profile for %s: %s", active_user, e)
 
@@ -751,4 +993,5 @@ class ProductStore:
 # Single store instance shared across the application lifetime.
 
 store = ProductStore()
+
 
