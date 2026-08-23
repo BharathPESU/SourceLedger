@@ -60,3 +60,13 @@ backend/*.sqlite
 *.zip
 
 
+
+# Dev tooling (Antigravity agent skills, Playwright MCP)
+.agents/
+.playwright-mcp/
+skills/
+skills-lock.json
+
+# Runtime storage (source document cache)
+storage/
+backend/storage/
