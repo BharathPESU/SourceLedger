@@ -1,7 +1,10 @@
 """SourceLedger backend — FastAPI application entry point."""
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .api.routes_conflicts import router as conflicts_router
 from .api.routes_copilot import router as copilot_router
@@ -22,14 +25,26 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — allow the React frontend dev server
+# CORS — dev origins always allowed; FRONTEND_URL env var adds the production
+# Netlify URL automatically so no code change is needed on deploy.
+_cors_origins = ["http://localhost:5173", "http://localhost:3000"]
+_frontend_url = os.environ.get("FRONTEND_URL", "").strip().rstrip("/")
+if _frontend_url:
+    _cors_origins.append(_frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health", tags=["health"])
+def health_check() -> JSONResponse:
+    """Render health-check endpoint — returns 200 when the service is ready."""
+    return JSONResponse({"status": "ok", "service": "sourceledger-backend"})
 
 
 import asyncio

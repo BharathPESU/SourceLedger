@@ -30,9 +30,9 @@ class GeminiGatewayClient:
             if base_url is not None
             else (
                 os.getenv("API_URL")
-                or getattr(settings, "api_url", "")
                 or getattr(settings, "gemini_proxy_url", "")
                 or getattr(settings, "proxy_url", "")
+                or getattr(settings, "api_url", "")
             )
         )
         self.base_url = raw_url.replace("/api/generate", "").rstrip("/") if raw_url else ""

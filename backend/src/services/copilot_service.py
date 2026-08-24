@@ -221,22 +221,22 @@ class CopilotEngine:
         """Return contextual quick-start prompt suggestions."""
         return [
             {
-                "label": "🔍 Filter Catalog Specifications",
+                "label": "Filter Catalog Specifications",
                 "prompt": "Which products have pressure ratings or flow rate specifications exceeding 40 units?",
                 "icon": "Search",
             },
             {
-                "label": "⚔️ Scan Cross-Source Conflicts",
+                "label": "Scan Cross-Source Conflicts",
                 "prompt": "Detect and analyze all cross-source field conflicts where OEM datasheets and distributor catalogs disagree.",
-                "icon": "ShieldAlert",
+                "icon": "ShieldCheck",
             },
             {
-                "label": "🔗 Identify Product Variant Families",
+                "label": "Identify Product Variant Families",
                 "prompt": "Analyze the catalog knowledge graph to detect part-number prefix/suffix variant family relationships.",
                 "icon": "GitFork",
             },
             {
-                "label": "🛡️ Quality & Anti-Hardcoding Audit",
+                "label": "Quality & Anti-Hardcoding Audit",
                 "prompt": "Run a dataset health check to flag suspicious fills, low-confidence fields, or placeholder values.",
                 "icon": "Sparkles",
             },

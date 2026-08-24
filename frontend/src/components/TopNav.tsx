@@ -77,16 +77,14 @@ export const TopNav: React.FC<TopNavProps> = ({
 
   return (
     <header className="sticky top-0 z-30 shrink-0 w-full px-4 sm:px-6 lg:px-10 pt-3 pb-1">
-      <div className="w-full max-w-[1920px] mx-auto h-16 rounded-full bg-white/75 backdrop-blur-2xl border border-white/80 ring-1 ring-white/50 shadow-[0_8px_32px_rgba(26,23,21,0.06)] px-5 md:px-6 flex items-center justify-between transition-all">
+      <div className="w-full max-w-[1920px] mx-auto h-16 rounded-full bg-white/20 backdrop-blur-3xl border border-white/30 ring-1 ring-white/20 shadow-[0_8px_32px_rgba(26,23,21,0.06)] px-5 md:px-6 flex items-center justify-between transition-all">
         {/* Left: Brand Logo & Tag */}
         <div className="flex items-center gap-6 md:gap-10 shrink-0">
           <button 
             onClick={() => setActiveTab('dashboard')}
             className="flex items-center gap-3 group text-left cursor-pointer focus:outline-hidden"
           >
-            <div className="w-9 h-9 rounded-full bg-[#E8622C] flex items-center justify-center text-white shadow-md shadow-[#E8622C]/25 transition-transform group-hover:scale-105">
-              <Layers className="w-4.5 h-4.5" />
-            </div>
+            <img src="/logo.png" alt="SourceLedger Logo" className="w-10 h-10 object-cover rounded-xl border border-white/40 shadow-sm transition-transform group-hover:scale-105" />
             <div>
               <span className="font-didone text-xl font-bold tracking-tight text-[#191715]">
                 Source<span className="font-didone-italic text-[#E8622C] font-normal">Ledger</span>
@@ -250,10 +248,14 @@ const UserProfileDropdown: React.FC<{ setActiveTab: (tab: any) => void }> = ({ s
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-9 h-9 rounded-full bg-[#191715] text-white flex items-center justify-center text-xs font-bold shadow-md hover:scale-105 transition-transform cursor-pointer ring-2 ring-white/60"
+        className="w-9 h-9 rounded-full bg-[#191715] text-white flex items-center justify-center text-xs font-bold shadow-md hover:scale-105 transition-transform cursor-pointer ring-2 ring-white/60 overflow-hidden"
         title={email}
       >
-        {initial}
+        {user?.user_metadata?.avatar_url ? (
+          <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+        ) : (
+          initial
+        )}
       </button>
 
       {isOpen && (

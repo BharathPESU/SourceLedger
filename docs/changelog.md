@@ -2,6 +2,13 @@
 
 All notable changes to the SourceLedger project are documented in this file.
 
+## [0.6.0] — 2026-08-23
+
+### Added
+- Created public-facing **`LandingPageView.tsx`** with interactive **Traceability Inspector**, hero citation preview, 5-agent pipeline breakdown, and multi-source governance showcase.
+- Integrated floating rounded-full glass top navigation bar matching the main application `TopNav` style.
+- Applied responsive scroll-smooth navigation and keyboard focus ring accessibility across all interactive sections.
+
 ---
 
 ## [0.5.0] — 2026-08-22

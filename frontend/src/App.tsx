@@ -13,6 +13,7 @@ import { SettingsView } from './components/SettingsView';
 import { OcrAgentView } from './components/OcrAgentView';
 import { ProfileView } from './components/ProfileView';
 import { IngestModal } from './components/IngestModal';
+import { LandingPageView } from './components/LandingPageView';
 import { INITIAL_PRODUCTS, INITIAL_SOURCES, CATEGORY_OVERVIEWS } from './data/mockData';
 import { ProductRecord, IngestionSource, CategoryOverview, ActiveTab, FieldAuditEntry } from './types';
 import { 
@@ -20,7 +21,8 @@ import {
   fetchSources, 
   acceptField, 
   editField, 
-  buildCategoryOverviews 
+  buildCategoryOverviews,
+  setApiUserId
 } from './lib/api';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -45,9 +47,19 @@ function MainAppContent() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [selectedProduct, setSelectedProduct] = useState<ProductRecord | null>(null);
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const mainScrollRef = useRef<HTMLElement | null>(null);
+
+  // Sync user ID to api fetch helper globally
+  useEffect(() => {
+    if (user && user.id) {
+      setApiUserId(user.id);
+    } else {
+      setApiUserId(null);
+    }
+  }, [user]);
 
   // Load real-time catalog data from backend API
   useEffect(() => {
@@ -65,29 +77,26 @@ function MainAppContent() {
           
           setSources(prev => {
             const live = liveSources || [];
-            const liveIds = new Set(live.map(s => s.id));
-            const missingFromLive = prev.filter(s => !liveIds.has(s.id));
-            return [...missingFromLive, ...live];
+            if (live.length === 0 && prev.length > 0) return prev;
+            return live;
           });
 
           setProducts(prev => {
             const live = liveProducts || [];
-            const liveIds = new Set(live.map(p => p.id));
-            const missingFromLive = prev.filter(p => !liveIds.has(p.id));
-            const merged = [...missingFromLive, ...live];
+            if (live.length === 0 && prev.length > 0) return prev;
             
-            if (merged && merged.length > 0) {
+            if (live.length > 0) {
               setSelectedProduct(prevSel => {
-                if (!prevSel) return merged[0];
-                const match = merged.find(p => p.id === prevSel.id);
+                if (!prevSel) return live[0];
+                const match = live.find(p => p.id === prevSel.id);
                 return match || prevSel;
               });
-              setCategories(buildCategoryOverviews(merged));
+              setCategories(buildCategoryOverviews(live));
             } else {
               setSelectedProduct(prevSel => prevSel ? prevSel : null);
               setCategories([]);
             }
-            return merged;
+            return live;
           });
         }
 
@@ -297,8 +306,11 @@ function MainAppContent() {
     );
   }
 
-  // 2. Unauthenticated user -> render Auth Flow (SignIn, SignUp, ForgotPassword, ResetPassword)
+  // 2. Unauthenticated user -> render Landing Page or Auth Flow
   if (!session || !user) {
+    if (showLanding) {
+      return <LandingPageView onLogin={() => setShowLanding(false)} />;
+    }
     return <AuthContainer />;
   }
 

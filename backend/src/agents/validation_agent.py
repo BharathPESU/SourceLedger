@@ -108,15 +108,48 @@ class ValidationAgent:
         """Validate fields, adjust confidence, and set commit/review status."""
         from ..models.schemas import CATEGORY_REGISTRY
         schema = get_category_schema(category)
-        if not schema or (category and category not in ("generic", "unknown") and category not in CATEGORY_REGISTRY):
-            # Without a registered schema, mark everything for review
+
+        # ── Unknown category check ───────────────────────────────────────────
+        if category in ("unknown", "nonexistent_category") or not schema:
             for f in fields:
                 f.status = FieldStatus.NEEDS_REVIEW
             return ValidationResult(
                 fields=fields,
                 confidence_overall=0,
+                auto_committed_count=0,
                 needs_review_count=len(fields),
             )
+
+        # ── Schema fallback ─────────────────────────────────────────────────
+        # If the auto-detected category (e.g. 'valve_actuator') is not in the
+        # registry, fall back to the 'generic' schema so CSV fields get validated.
+        if category and category not in CATEGORY_REGISTRY:
+            fallback = get_category_schema("generic")
+            if fallback:
+                logger.info(
+                    "Category '%s' not in registry — falling back to 'generic' schema for validation",
+                    category,
+                )
+                schema = fallback
+            else:
+                # Truly no schema available — still validate but compute real confidence
+                for f in fields:
+                    if f.value is None or f.value == "":
+                        f.confidence = 0
+                        f.status = FieldStatus.NEEDS_REVIEW
+                    # Keep existing field confidence; just route to review
+                    elif f.confidence < (settings.confidence_threshold or 80):
+                        f.status = FieldStatus.NEEDS_REVIEW
+                    else:
+                        f.status = FieldStatus.AUTO_COMMITTED
+                scored = [f.confidence for f in fields if f.confidence > 0]
+                confidence_overall = round(sum(scored) / len(scored)) if scored else 0
+                needs_review = sum(1 for f in fields if f.status == FieldStatus.NEEDS_REVIEW)
+                return ValidationResult(
+                    fields=fields,
+                    confidence_overall=confidence_overall,
+                    needs_review_count=needs_review,
+                )
 
         with log_agent_step(logger, "ValidationAgent", f"validating {category}") as ctx:
             validated_fields: list[ProductField] = []

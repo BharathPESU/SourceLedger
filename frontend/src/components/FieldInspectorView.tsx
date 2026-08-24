@@ -699,7 +699,7 @@ export const FieldInspectorView: React.FC<FieldInspectorViewProps> = ({
                 </div>
               </div>
               <a
-                href="http://localhost:8000/api/export/csv"
+                href="/api/export/csv"
                 download="Unihack_Delivery_Format.csv"
                 className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#1F8A53] to-[#177A48] hover:scale-[1.02] active:scale-[0.98] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-[#1F8A53]/25 border border-white/20 transition-all cursor-pointer whitespace-nowrap"
                 title="Export catalog in exact Unihack 252-column Delivery CSV format"

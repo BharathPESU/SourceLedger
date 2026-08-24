@@ -711,7 +711,7 @@ Material Grade: Alloy Steel, Quenched and Tempered`
                 <span>Ingest Another Source</span>
               </button>
               <a
-                href="http://localhost:8000/api/export/csv"
+                href="/api/export/csv"
                 download="Unihack_Delivery_Format.csv"
                 className="px-5 py-2.5 rounded-full bg-white hover:bg-[#FAF4EB] text-[#191715] font-bold text-xs shadow-xs border border-[#DFCDBC] transition-all cursor-pointer flex items-center gap-1.5"
               >

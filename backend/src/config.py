@@ -69,6 +69,14 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_key: str = ""
     supabase_service_role_key: str = ""
+    vite_supabase_url: str = ""
+    vite_supabase_anon_key: str = ""
+
+    def get_effective_supabase_url(self) -> str:
+        return (self.supabase_url or self.vite_supabase_url or "").strip()
+
+    def get_effective_supabase_key(self) -> str:
+        return (self.supabase_key or self.supabase_service_role_key or self.vite_supabase_anon_key or "").strip()
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

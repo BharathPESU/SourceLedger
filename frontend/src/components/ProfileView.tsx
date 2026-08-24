@@ -39,8 +39,6 @@ export const ProfileView: React.FC = () => {
   const [country, setCountry] = useState('United States');
   const [bio, setBio] = useState('Managing product intelligence, datasheets, and canonical catalog standards.');
   const [preferredLanguage, setPreferredLanguage] = useState('English');
-  const [avatarColor, setAvatarColor] = useState('#E8622C');
-
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -69,9 +67,7 @@ export const ProfileView: React.FC = () => {
         setZipCode(p.zip_code || '');
         setCountry(p.country || 'United States');
         setBio(p.bio || 'Managing product intelligence, datasheets, and canonical catalog standards.');
-        setPreferredLanguage(p.preferred_language || 'English');
-        setAvatarColor(p.avatar_color || '#E8622C');
-      } else {
+        setPreferredLanguage(p.preferred_language || 'English');      } else {
         // Fallback to local storage or user metadata
         const local = localStorage.getItem(`sourceledger_profile_${user?.id}`);
         if (local) {
@@ -119,7 +115,6 @@ export const ProfileView: React.FC = () => {
       country: country,
       bio: bio,
       preferred_language: preferredLanguage,
-      avatar_color: avatarColor,
     };
 
     localStorage.setItem(`sourceledger_profile_${user?.id}`, JSON.stringify(profileData));
@@ -137,26 +132,18 @@ export const ProfileView: React.FC = () => {
 
   const initial = (displayName || fullName || email).charAt(0).toUpperCase();
 
-  const colorOptions = [
-    { label: 'Source Ledger Orange', value: '#E8622C' },
-    { label: 'Charcoal Dark', value: '#191715' },
-    { label: 'Emerald Forest', value: '#10B981' },
-    { label: 'Royal Sapphire', value: '#3B82F6' },
-    { label: 'Deep Purple', value: '#8B5CF6' },
-    { label: 'Rose Crimson', value: '#F43F5E' },
-  ];
-
   return (
     <div className="space-y-6 pb-20 max-w-6xl mx-auto">
       {/* Top Header Card with Glassmorphism */}
       <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/80 ring-1 ring-white/50 shadow-[0_8px_32px_rgba(26,23,21,0.05)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          {/* Avatar Badge with Custom Accent Color */}
-          <div 
-            style={{ backgroundColor: avatarColor }}
-            className="w-16 h-16 rounded-2xl text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-black/10 shrink-0 ring-4 ring-white/80 transition-transform hover:scale-105"
-          >
-            {initial}
+          {/* Avatar Badge */}
+          <div className="w-16 h-16 rounded-2xl bg-[#E8622C] text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-black/10 shrink-0 ring-4 ring-white/80 transition-transform hover:scale-105 overflow-hidden">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              initial
+            )}
           </div>
 
           <div>
@@ -400,45 +387,19 @@ export const ProfileView: React.FC = () => {
         {/* Right Column (4 cols): Account Security, Avatar Accent, Telemetry */}
         <div className="lg:col-span-4 space-y-6">
 
-          {/* Avatar Customization & Preferences */}
+          {/* Preferences */}
           <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 border border-white/80 ring-1 ring-white/50 shadow-sm space-y-5">
             <div className="flex items-center gap-2.5 pb-3 border-b border-white/60">
               <div className="w-8 h-8 rounded-xl bg-white/70 text-[#E8622C] flex items-center justify-center border border-white/80 shadow-2xs">
-                <Palette className="w-4 h-4" />
+                <Globe className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-bold text-base text-[#191715]">Avatar Style & Color</h3>
-                <p className="text-xs text-[#8C8276]">Personalize your badge theme</p>
+                <h3 className="font-bold text-base text-[#191715]">Preferences</h3>
+                <p className="text-xs text-[#8C8276]">Interface language and localization</p>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-[#191715] block">Badge Theme Accent</label>
-              <div className="grid grid-cols-3 gap-2">
-                {colorOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setAvatarColor(opt.value)}
-                    className={`p-2.5 rounded-2xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
-                      avatarColor === opt.value
-                        ? 'border-[#E8622C] bg-white shadow-xs ring-1 ring-[#E8622C]/30'
-                        : 'border-white/80 bg-white/50 hover:bg-white'
-                    }`}
-                  >
-                    <div 
-                      style={{ backgroundColor: opt.value }}
-                      className="w-4 h-4 rounded-full shrink-0 shadow-2xs"
-                    />
-                    <span className="text-[11px] font-bold text-[#191715] truncate">
-                      {opt.label.split(' ')[0]}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1.5 pt-2 border-t border-white/60">
+            <div className="space-y-1.5 pt-2">
               <label className="text-xs font-bold text-[#191715]">Interface Language</label>
               <select
                 value={preferredLanguage}
