@@ -19,10 +19,24 @@ from .api.routes_review import router as review_router
 from .api.routes_settings import router as settings_router
 from .api.routes_profile import router as profile_router
 
+from .api.auth import AuthMiddleware
+from .config import settings
+
+_is_production = (
+    settings.app_env.lower() in ("production", "prod")
+    or os.environ.get("ENVIRONMENT", "").lower() in ("production", "prod")
+    or os.environ.get("APP_ENV", "").lower() in ("production", "prod")
+    or os.environ.get("DISABLE_DOCS", "").lower() in ("true", "1")
+    or getattr(settings, "disable_docs", False)
+)
+
 app = FastAPI(
     title="SourceLedger",
     description="AI-Powered Product Intelligence Engine — every product fact, ledgered back to its source.",
     version="0.1.0",
+    docs_url=None if _is_production else "/docs",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
 )
 
 # CORS — dev origins always allowed; FRONTEND_URL env var adds the production
@@ -39,6 +53,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(AuthMiddleware)
+
 
 
 @app.get("/health", tags=["health"])

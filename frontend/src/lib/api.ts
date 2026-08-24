@@ -33,17 +33,21 @@ export function setApiUserId(userId: string | null) {
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const customHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
   
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      customHeaders['Authorization'] = `Bearer ${session.access_token}`;
+    }
+    const currentUserId = session?.user?.id || session?.user?.email;
+    if (currentUserId) {
+      customHeaders['x-user-id'] = currentUserId;
+    }
+  } catch {}
+
   if (globalUserId) {
     customHeaders['x-user-id'] = globalUserId;
-  } else {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id || session?.user?.email;
-      if (currentUserId) {
-        customHeaders['x-user-id'] = currentUserId;
-      }
-    } catch {}
   }
+
 
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { ...customHeaders, ...init?.headers },
@@ -826,6 +830,15 @@ export async function saveSystemSettings(settings: SystemSettings): Promise<any>
     body: JSON.stringify(settings),
   });
 }
+
+export async function patchSystemSettings(partialSettings: Partial<SystemSettings>): Promise<any> {
+  return apiFetch<any>('/settings', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(partialSettings),
+  });
+}
+
 
 export async function resetApiKeyRotator(): Promise<any> {
   return apiFetch<any>('/settings/reset-keys', {

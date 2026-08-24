@@ -53,9 +53,19 @@ class Settings(BaseSettings):
     # ── Vector DB (stretch — Phase 5) ────────────────────────────────
     qdrant_url: str = "http://localhost:6333"
 
+    # ── Security & Authentication ─────────────────────────────────────
+    jwt_secret: str = ""
+    supabase_jwt_secret: str = ""
+    admin_api_key: str = ""
+    disable_docs: bool = False
+
+    def get_effective_jwt_secret(self) -> str:
+        return (self.jwt_secret or self.supabase_jwt_secret or "").strip()
+
     # ── App ──────────────────────────────────────────────────────────
     app_env: str = "development"
     log_level: str = "INFO"
+
 
     # Fields with confidence below this threshold route to the review
     # queue instead of being auto-committed.

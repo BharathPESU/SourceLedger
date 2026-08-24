@@ -1,12 +1,13 @@
 """System Settings & Configuration API routes — SourceLedger."""
 
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from ..db.store import store
 from ..config import settings
 from ..agents.key_rotator import key_rotator, RATE_LIMIT_COOLDOWN_SECONDS
+from .auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/api", tags=["settings"])
 
@@ -21,6 +22,18 @@ class SystemSettingsPayload(BaseModel):
     proxy_timeout: int = Field(default=60, ge=10, le=300)
     auto_refresh_interval: int = Field(default=5, ge=2, le=60)
     density_mode: str = Field(default="comfortable")
+
+
+class SystemSettingsPartialPayload(BaseModel):
+    auto_commit_threshold: Optional[int] = Field(default=None, ge=50, le=100)
+    review_threshold: Optional[int] = Field(default=None, ge=30, le=90)
+    active_model: Optional[str] = None
+    enable_refinement: Optional[bool] = None
+    strict_tolerance: Optional[bool] = None
+    proxy_url: Optional[str] = None
+    proxy_timeout: Optional[int] = Field(default=None, ge=10, le=300)
+    auto_refresh_interval: Optional[int] = Field(default=None, ge=2, le=60)
+    density_mode: Optional[str] = None
 
 
 # In-memory settings cache initialized from environment
@@ -38,10 +51,14 @@ _current_settings: Dict[str, Any] = {
 
 
 @router.get("/settings")
-async def get_settings(x_user_id: Optional[str] = Header(None, alias="x-user-id")) -> Dict[str, Any]:
+async def get_settings(
+    user: Dict[str, Any] = Depends(get_current_user),
+    x_user_id: Optional[str] = Header(None, alias="x-user-id")
+) -> Dict[str, Any]:
     """Get active system configuration, model thresholds, and key rotator telemetry."""
-    user_products = await store.list_products(user_id=x_user_id)
-    user_sources = await store.list_sources(user_id=x_user_id)
+    active_user_id = user.get("user_id") or x_user_id
+    user_products = await store.list_products(user_id=active_user_id)
+    user_sources = await store.list_sources(user_id=active_user_id)
     
     return {
         "settings": _current_settings,
@@ -60,28 +77,52 @@ async def get_settings(x_user_id: Optional[str] = Header(None, alias="x-user-id"
 @router.post("/settings")
 async def update_settings(
     payload: SystemSettingsPayload,
-    x_user_id: Optional[str] = Header(None, alias="x-user-id")
+    admin_user: Dict[str, Any] = Depends(require_admin),
 ) -> Dict[str, Any]:
-    """Update live system configuration and model rules."""
+    """Update live system configuration and model rules (Requires Admin)."""
     _current_settings.update(payload.model_dump())
     
-    # Update active config thresholds
     if hasattr(settings, "confidence_threshold"):
         settings.confidence_threshold = payload.auto_commit_threshold
 
     return {
         "status": "success",
-        "message": "System settings and model thresholds updated successfully.",
+        "message": "System settings updated successfully by admin.",
         "settings": _current_settings,
+        "updated_by": admin_user.get("user_id"),
+    }
+
+
+@router.patch("/settings")
+async def patch_settings(
+    payload: SystemSettingsPartialPayload,
+    admin_user: Dict[str, Any] = Depends(require_admin),
+) -> Dict[str, Any]:
+    """Partially update system configuration and model rules (Requires Admin)."""
+    update_data = payload.model_dump(exclude_unset=True)
+    _current_settings.update(update_data)
+    
+    if "auto_commit_threshold" in update_data and hasattr(settings, "confidence_threshold"):
+        settings.confidence_threshold = update_data["auto_commit_threshold"]
+
+    return {
+        "status": "success",
+        "message": "System settings patched successfully by admin.",
+        "settings": _current_settings,
+        "updated_by": admin_user.get("user_id"),
     }
 
 
 @router.post("/settings/reset-keys")
-async def reset_key_rotator() -> Dict[str, Any]:
-    """Reset API Key Rotator, clearing all cooldown timers and restoring key pool."""
+async def reset_key_rotator(
+    admin_user: Dict[str, Any] = Depends(require_admin)
+) -> Dict[str, Any]:
+    """Reset API Key Rotator, clearing all cooldown timers and restoring key pool (Requires Admin)."""
     key_rotator.reset()
     return {
         "status": "success",
-        "message": f"API Key Rotator reset. All {key_rotator.total_keys} keys restored to active pool.",
+        "message": f"API Key Rotator reset by admin. All {key_rotator.total_keys} keys restored to active pool.",
         "active_keys": key_rotator.active_keys_count,
+        "reset_by": admin_user.get("user_id"),
     }
+
